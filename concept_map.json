@@ -1,0 +1,60 @@
+{
+    "fuseki_opening": [
+      "corner_enclosure",
+      "approach_corner",
+      "splitting_move",
+      "extension",
+      "territorial_move",
+      "influence_move",
+      "sanrensei",
+      "chinese_opening",
+    ],
+    "life_and_death": [
+      "life",
+      "death",
+      "seki",
+      "ko_fight"
+    ],
+    "connection_and_cuts": [
+      "connect",
+      "cutting_point",
+      "cross_cut",
+      "atari",
+      "capture"
+    ],
+    "shape": [
+      "good_shape",
+      "bad_shape",
+      "empty_triangle",
+      "tigers_mouth",
+      "bamboo_joint"
+    ],
+    "common_patterns": [
+      "ladder",
+      "ladder_breaker",
+      "net",
+      "snapback",
+      "throw_in",
+      "connect_under"
+    ],
+    "territorial_play": [
+      "invasion",
+      "reduction",
+      "territory_grab"
+    ],
+    "move_urgency": [
+      "sente",
+      "gote",
+      "reverse_sente",
+      "double_sente"
+    ],
+    "endgame": [
+      "monkey_jump",
+      "endgame_hane",
+      "one_point_jump",
+      "descent",
+      "hane_connect",
+      "boundary_play"
+    ]
+  }
+  
