@@ -1,60 +1,124 @@
 {
-    "fuseki_opening": [
-      "corner_enclosure",
-      "approach_corner",
-      "splitting_move",
-      "extension",
-      "territorial_move",
-      "influence_move",
-      "sanrensei",
-      "chinese_opening",
+  "opening": [
+    "corner_enclosure",
+    "approach_corner",
+    "splitting_move",
+    "extension",
+    "territorial_move",
+    "influence_move",
+    "3_3_invasion",
+    "shoulder_hit",
+    "tenuki",
+    "attachment",
+    "pincer",
+    "probe"
+  ],
+  "group_status": {
+    "states": [
+      "alive",
+      "dead",
+      "unsettled",
+      "seki"
     ],
-    "life_and_death": [
-      "life",
-      "death",
-      "seki",
-      "ko_fight"
-    ],
-    "connection_and_cuts": [
-      "connect",
+    "mechanisms": [
+      "eye",
+      "two_eyes",
+      "false_eye",
+      "vital_point",
+      "shortage_of_liberties",
+      "semeai",
+      "under_the_stones"
+    ]
+  },
+  "connection_cutting": {
+    "threats": [
       "cutting_point",
-      "cross_cut",
+      "peep",
       "atari",
-      "capture"
+      "double_atari"
     ],
-    "shape": [
-      "good_shape",
-      "bad_shape",
-      "empty_triangle",
-      "tigers_mouth",
-      "bamboo_joint"
+    "resolutions": [
+      "connect",
+      "extend",
+      "counter_cut"
     ],
-    "common_patterns": [
+    "structures": [
+      "cross_cut",
       "ladder",
-      "ladder_breaker",
-      "net",
-      "snapback",
-      "throw_in",
-      "connect_under"
+      "net"
+    ]
+  },
+  "tactical_motifs": [
+    "ladder",
+    "ladder_counter",
+    "net",
+    "snapback",
+    "throw_in",
+    "connect_under",
+    "sacrifice",
+  ],
+  "shape_patterns": [
+    "tigers_mouth",
+    "bamboo_joint",
+    "empty_triangle",
+    "ponnuki",
+  ],
+  "shape_quality": [
+    "good_shape",
+    "inefficient_shape",
+    "heavy_shape",
+    "light_shape",
+    "thin_shape",
+    "aji",
+    "aji_keshi"
+  ],
+  "territory_influence": {
+    "proactive": [
+      "secure_territory",
+      "lean_attack"
     ],
-    "territorial_play": [
+    "reactive": [
       "invasion",
       "reduction",
-      "territory_grab"
+      "press",
+      "capping_move",
+      "probe"
     ],
-    "move_urgency": [
-      "sente",
-      "gote",
-      "reverse_sente",
-      "double_sente"
-    ],
-    "endgame": [
+    "concepts": [
+      "moyo",
+      "framework"
+    ]
+  },
+  "initiative": [
+    "sente",
+    "gote",
+    "reverse_sente",
+    "double_sente",
+    "kikashi",
+    "tenuki",
+    "miai",
+  ],
+  "ko": {
+    "core": [
+      "ko_fight",
+      "ko_threat",
+      "threat_exhaustion"
+    ]
+  },
+  "endgame": {
+    "patterns": [
       "monkey_jump",
       "endgame_hane",
-      "one_point_jump",
-      "descent",
       "hane_connect",
-      "boundary_play"
+      "one_point_jump",
+      "descent"
+    ],
+    "concepts": [
+      "counting",
+      "reverse_sente_move",
+      "teire",
+      "dame_fill",
+      "large_point"
     ]
   }
-  
+}
