@@ -55,13 +55,13 @@
     "snapback",
     "throw_in",
     "connect_under",
-    "sacrifice",
+    "sacrifice"
   ],
   "shape_patterns": [
     "tigers_mouth",
     "bamboo_joint",
     "empty_triangle",
-    "ponnuki",
+    "ponnuki"
   ],
   "shape_quality": [
     "good_shape",
@@ -96,7 +96,7 @@
     "double_sente",
     "kikashi",
     "tenuki",
-    "miai",
+    "miai"
   ],
   "ko": {
     "core": [
