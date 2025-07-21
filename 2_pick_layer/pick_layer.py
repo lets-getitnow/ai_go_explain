@@ -41,7 +41,7 @@ from pathlib import Path
 from datetime import date
 
 # ── CONFIGURE YOUR MODEL PATH HERE ─────────────────────────────
-MODEL_PATH = Path("models/kata9x9-b18c384nbt-20231025.bin.gz")
+MODEL_PATH = Path("../models/kata9x9-b18c384nbt-20231025.bin.gz")
 
 # ── 1) Extract block & channel counts from filename ────────────
 match = re.search(r"b(\d+)c(\d+)", MODEL_PATH.name)
@@ -68,7 +68,7 @@ meta = {
                  "Binary model not loaded—layer chosen by filename metadata only."
 }
 
-with open("layer_selection.yml", "w", encoding="utf-8") as f:
+with open("../layer_selection.yml", "w", encoding="utf-8") as f:
     yaml.safe_dump(meta, f, allow_unicode=True)
 
-print(f"✅ Recorded {chosen_layer} from {blocks} residual blocks → layer_selection.yml")
+print(f"✅ Recorded {chosen_layer} from {blocks} residual blocks → ../layer_selection.yml")
