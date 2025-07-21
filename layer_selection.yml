@@ -1,0 +1,8 @@
+chosen_layer: trunk_block_9_output
+date: '2025-07-20'
+layer_shape: 384×9×9 (approx)
+network_file: models/kata9x9-b18c384nbt-20231025.bin.gz
+pooling: spatial mean
+rationale: Mid‑trunk balances local patterns vs. mixed policy/value signals. Binary
+  model not loaded—layer chosen by filename metadata only.
+trunk_blocks: 18
