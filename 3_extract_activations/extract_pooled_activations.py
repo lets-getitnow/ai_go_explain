@@ -155,27 +155,46 @@ class ActivationExtractor:
         batch_size: int,
         device: torch.device | str = "cpu",
     ) -> None:
+        """Initialise extractor using KataGo's ExtraOutputs API.
+
+        Beginning July 2025 the recommended way to obtain intermediate tensors
+        from KataGo's PyTorch implementation is to pass an `ExtraOutputs`
+        instance into the *forward* call.  This avoids fragile global state
+        (registering hooks) and guarantees that the tensor names exactly match
+        those reported by KataGo itself.
+
+        Args:
+            model:  The KataGo network in *eval* mode.
+            layer_name:  Name of the tensor to capture – **must** match one of
+                          the strings reported in ``ExtraOutputs.available``.
+            batch_size:  Mini-batch size for inference.
+            device:  CUDA device string or "cpu".
+        """
+
         self.model = model.to(device).eval()
         self.batch_size = batch_size
         self.device = torch.device(device)
 
-        # Forward hook to capture activations
-        self._captured: List[torch.Tensor] = []
-
+        # Import here to fail fast if the user hasn't cloned KataGo/python.
         try:
-            target_module = dict(self.model.named_modules())[layer_name]
-        except KeyError:
-            available_layers = [name for name, _ in self.model.named_modules()]
-            raise KeyError(
-                f"Layer '{layer_name}' not found in model modules. "
-                f"Available layers: {available_layers[:10]}... (showing first 10)"
-            )
+            from katago.train.model_pytorch import ExtraOutputs  # type: ignore
+        except ImportError as e:
+            raise ImportError(
+                "Unable to import 'ExtraOutputs' from KataGo. "
+                "Ensure the KataGo repository is cloned next to this project "
+                "(…/KataGo/python) and PYTHONPATH is set accordingly."
+            ) from e
 
-        def _hook(_module, _inp, out):  # noqa: D401, N802
-            # No mutation – detach ASAP.
-            self._captured.append(out.detach())
+        # Run one dummy forward pass to populate `.available` so we can give a
+        # Cannot pre-validate the layer name without knowing input tensor
+        # shape.  We therefore defer the check until the first real forward
+        # pass where we verify that the requested activation was produced.
 
-        target_module.register_forward_hook(_hook)
+        # The real ExtraOutputs instance requesting exactly the layer we want.
+        self._extra = ExtraOutputs(requested=[layer_name])
+        self._layer_name = layer_name
+        # Sanity – detach tensors immediately after capture.
+        self._extra.no_grad = True
 
     # ── PUBLIC API ──────────────────────────────────────────────────────
     def run(self, position_files: List[Path]) -> Tuple[np.ndarray, List[str]]:
@@ -188,11 +207,33 @@ class ActivationExtractor:
             batch_tensor = torch.tensor(batch_np, dtype=torch.float32, device=self.device)
 
             # ── INFERENCE ──────────────────────────────────────────────
-            self._captured.clear()
-            _ = self.model(batch_tensor)
-            if not self._captured:
-                raise RuntimeError("Forward hook did not capture any activations")
-            act = self._captured[0]  # shape: (B, C, 9, 9)
+            self._extra.clear()
+            _ = self.model(batch_tensor, extra_outputs=self._extra)  # type: ignore[call-arg]
+
+            # After the first forward pass we can validate that the requested
+            # layer name actually exists according to KataGo – this is the
+            # authoritative list of *all* intermediate tensors the network
+            # could provide.  We delay this check until now because we need a
+            # real input tensor of the correct shape to populate
+            # `ExtraOutputs.available`.
+            if not hasattr(self, "_validated"):
+                if self._layer_name not in self._extra.available:
+                    sample = sorted(self._extra.available)[:15]  # show a subset
+                    raise KeyError(
+                        f"Layer '{self._layer_name}' not recognised by KataGo.\n"
+                        f"Some available names: {', '.join(sample)} …"
+                    )
+                # Mark so we don't waste time on subsequent batches
+                self._validated = True  # type: ignore[attr-defined]
+
+            if self._layer_name not in self._extra.outputs:
+                raise RuntimeError(
+                    f"ExtraOutputs did not capture '{self._layer_name}'. "
+                    "This indicates a mismatch between requested tensor and "
+                    "what the network produced."
+                )
+
+            act = self._extra.outputs[self._layer_name]
             if act.dim() != 4:
                 raise ValueError(f"Expected 4-D activations, got {act.shape}")
 
