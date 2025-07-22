@@ -1,5 +1,5 @@
 board_size: 7
-chosen_layer: trunk_block_14_output
+chosen_layer: rconv14.out
 date: '2025-07-21'
 layer_shape: 512×7×7 (approx)
 network_file: ../models/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz

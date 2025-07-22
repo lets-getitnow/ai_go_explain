@@ -143,20 +143,40 @@ def load_katago_pytorch(ckpt_path: Path) -> torch.nn.Module:
         raise RuntimeError(f"Failed to load KataGo model from {ckpt_path}: {e}")
 
 
-def decode_position_npz(npz_file: Path) -> np.ndarray:
-    """Convert a single-position .npz into a float32 input tensor.
+def decode_position_npz(npz_file: Path) -> Tuple[np.ndarray, np.ndarray]:
+    """Convert a single-position .npz into float32 input tensors.
 
-    Expected output shape: (C_in, 9, 9).
-    Adapt this decoder to your data schema – fail if required arrays are
-    missing.
+    Returns:
+        binary_input: Shape (C_in, BOARD_SIZE, BOARD_SIZE) - board features
+        global_input: Shape (G_in,) - global features
+    
+    Decodes KataGo training data format with binaryInputNCHWPacked.
     """
     with np.load(npz_file) as data:
-        if "input" not in data:
-            raise KeyError(f"{npz_file} missing 'input' array")
-        arr = data["input"].astype(np.float32)
-    if arr.shape[-2:] != (BOARD_SIZE, BOARD_SIZE):
-        raise ValueError(f"Unexpected board shape in {npz_file}: {arr.shape}")
-    return arr
+        if "binaryInputNCHWPacked" not in data:
+            raise KeyError(f"{npz_file} missing 'binaryInputNCHWPacked' array")
+        if "globalInputNC" not in data:
+            raise KeyError(f"{npz_file} missing 'globalInputNC' array")
+        
+        binaryInputNCHWPacked = data["binaryInputNCHWPacked"]
+        globalInputNC = data["globalInputNC"]
+        
+        # Unpack the binary format using KataGo's decoding logic
+        binaryInputNCHW = np.unpackbits(binaryInputNCHWPacked, axis=2)
+        assert len(binaryInputNCHW.shape) == 3
+        assert binaryInputNCHW.shape[2] == ((BOARD_SIZE * BOARD_SIZE + 7) // 8) * 8
+        binaryInputNCHW = binaryInputNCHW[:,:,:BOARD_SIZE*BOARD_SIZE]
+        binaryInputNCHW = np.reshape(binaryInputNCHW, (
+            binaryInputNCHW.shape[0], binaryInputNCHW.shape[1], BOARD_SIZE, BOARD_SIZE
+        )).astype(np.float32)
+        
+        # Take the first sample (in case there are multiple in one file)
+        binary_arr = binaryInputNCHW[0]  # Shape: (C_in, BOARD_SIZE, BOARD_SIZE)
+        global_arr = globalInputNC[0].astype(np.float32)  # Shape: (G_in,)
+    
+    if binary_arr.shape[-2:] != (BOARD_SIZE, BOARD_SIZE):
+        raise ValueError(f"Unexpected board shape in {npz_file}: {binary_arr.shape}")
+    return binary_arr, global_arr
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -219,12 +239,17 @@ class ActivationExtractor:
 
         for start in range(0, len(position_files), self.batch_size):
             batch_paths = position_files[start : start + self.batch_size]
-            batch_np = np.stack([decode_position_npz(p) for p in batch_paths])
-            batch_tensor = torch.tensor(batch_np, dtype=torch.float32, device=self.device)
+            batch_data = [decode_position_npz(p) for p in batch_paths]
+            batch_binary = np.stack([binary for binary, global_ in batch_data])
+            batch_global = np.stack([global_ for binary, global_ in batch_data])
+            batch_binary_tensor = torch.tensor(batch_binary, dtype=torch.float32, device=self.device)
+            batch_global_tensor = torch.tensor(batch_global, dtype=torch.float32, device=self.device)
 
             # ── INFERENCE ──────────────────────────────────────────────
-            self._extra.clear()
-            _ = self.model(batch_tensor, extra_outputs=self._extra)  # type: ignore[call-arg]
+            # Clear previous outputs
+            self._extra.returned.clear()
+            self._extra.available.clear()
+            _ = self.model(batch_binary_tensor, batch_global_tensor, extra_outputs=self._extra)  # type: ignore[call-arg]
 
             # After the first forward pass we can validate that the requested
             # layer name actually exists according to KataGo – this is the
@@ -242,14 +267,14 @@ class ActivationExtractor:
                 # Mark so we don't waste time on subsequent batches
                 self._validated = True  # type: ignore[attr-defined]
 
-            if self._layer_name not in self._extra.outputs:
+            if self._layer_name not in self._extra.returned:
                 raise RuntimeError(
                     f"ExtraOutputs did not capture '{self._layer_name}'. "
                     "This indicates a mismatch between requested tensor and "
                     "what the network produced."
                 )
 
-            act = self._extra.outputs[self._layer_name]
+            act = self._extra.returned[self._layer_name]
             if act.dim() != 4:
                 raise ValueError(f"Expected 4-D activations, got {act.shape}")
 
