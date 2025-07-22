@@ -10,7 +10,7 @@ Generate varied 7×7 board positions using KataGo's self-play engine.
 ## Command
 ```bash
 katago selfplay \
-  -config selfplay7.cfg \
+  -config selfplay.cfg \
   -models-dir models/ \
   -output-dir selfplay_out/ \
   -max-games-total 200
