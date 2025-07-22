@@ -1,0 +1,20 @@
+{
+  "date": "2025-07-22",
+  "source_activations": "../3_extract_activations/activations/pooled_rconv14.out.npy",
+  "original_shape": "4x512",
+  "n_components": 3,
+  "n_positions": 4,
+  "n_channels": 512,
+  "reconstruction_error": 6.422760009765625,
+  "n_iterations": 54,
+  "original_meta": {
+    "date": "2025-07-22",
+    "source_model": "../models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt",
+    "layer": "rconv14.out",
+    "positions": 4,
+    "channels": 512,
+    "batch_size": 512,
+    "non_negative_shift": true,
+    "column_scaled": true
+  }
+}
