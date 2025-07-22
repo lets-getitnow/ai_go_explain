@@ -1,65 +1,68 @@
 # Step 3: Extract Activations
 
-Convert KataGo's binary model to PyTorch format and extract pooled activations from the chosen layer.
+Extract pooled activations from a chosen layer of KataGo's *general* neural network (trained for all board sizes) using the `.bin.gz` inference checkpoint.
 
 ## Prerequisites
 - Completed Step 1 (positions in `selfplay_out/`)
 - Completed Step 2 (`layer_selection.yml` exists)
-- PyTorch installed
+- KataGo inference model file (`.bin.gz` from https://katagotraining.org/networks/)
+- Python dependencies installed
 
-## One-Time Setup: Convert Model
+## Setup
 
-1. **Clone KataGo & its helper:**
+1. **Install Python dependencies:**
+   ```bash
+   pip install torch numpy pyyaml
+   ```
+
+2. **Clone KataGo for PyTorch helper code:**
    ```bash
    git clone https://github.com/lightvector/KataGo.git
-   cd KataGo/python             # contains export_model.py
-   pip install -r requirements.txt  # torch, numpy, pyyaml
    ```
 
-2. **Convert the binary weights to PyTorch** (keeps original layer names so the hook works):
-   ```bash
-   python export_model.py \
-     --model  ../../models/kata9x9-b18c384nbt-20231025.bin.gz \
-     --output ../../models/kata9x9-b18c384nbt-20231025.pt \
-     --no-half          # stay in fp32 to avoid hook size mismatches
-   ```
-
-3. **Update `load_katago_pytorch()` function** in `extract_pooled_activations.py`:
-   ```python
-   from importlib import import_module
-
-   def load_katago_pytorch(path: Path) -> torch.nn.Module:
-       kata_mod = import_module("katago_pytorch_model")  # dropped by exporter
-       net = kata_mod.KataGoModel()
-       net.load_state_dict(torch.load(path, map_location="cpu"), strict=True)
-       net.eval()
-       return net
-   ```
+3. **Place the `.bin.gz` network** inside `models/` (e.g. `kata1-b28c512nbt-s9853922560-d5031756885.bin.gz`).  No conversion to `.ckpt` is needed – the script loads inference files directly.
 
 ## Extract Activations
-
-Run the extractor to produce the pooled activation matrix:
 
 ```bash
 cd 3_extract_activations
 python extract_pooled_activations.py \
   --positions-dir ../selfplay_out \
-  --model-path   ../models/kata9x9-b18c384nbt-20231025.pt \
-  --batch-size   256 \
+  --model-path   ../models/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz \
+  --board-size   7 \
+  --batch-size   512 \
   --device       cuda:0   # or cpu
 ```
+
+## How It Works
+
+The script:
+1. **Loads the KataGo model** (supports `.bin.gz` inference files).
+2. **Uses the layer name** saved in `layer_selection.yml` to attach a forward hook.
+3. **Processes 7 × 7 positions** in batches for efficiency.
+4. **Spatially pools each channel** (mean across 7 × 7 spatial dimensions).
+5. **Produces a non-negative, column-scaled matrix** suitable for NMF.
 
 ## Output
 
 Creates `activations/` directory with:
 ```text
 activations/
-  pooled_trunk_block_9.npy      # (N_positions, 384) - the main data
-  pooled_meta.json              # metadata about extraction
-  pos_index_to_npz.txt          # mapping back to original positions
+  pooled_<layer>.npy      # (N_positions, C) – main data matrix
+  pooled_meta.json        # extraction metadata
+  pos_index_to_npz.txt    # mapping row → original position file
 ```
 
-The `pooled_trunk_block_9.npy` file contains the matrix **A** that will be used for NMF decomposition in Step 4.
+## Troubleshooting
+
+**"Layer '<name>' not found"**
+- Run `python pick_layer.py --list` to view all layer names in your model.
+
+**"Mismatched board shape"**
+- Ensure your `.npz` files contain 7 × 7 tensors.
+
+**"CUDA out of memory"**
+- Lower `--batch-size` or switch to CPU.
 
 ## Next Step
 → Continue to Step 4 (NMF parts finding) with your extracted activation matrix. 

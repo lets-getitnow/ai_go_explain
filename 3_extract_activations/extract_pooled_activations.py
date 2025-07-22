@@ -8,7 +8,7 @@ Produce the dataset required for all *down-stream* interpretability steps:
 It realises Step 3 of the pipeline outlined in the repository README:
 
 3-A Load positions (.npz files)             → source data for inference
-3-B Run inference up to chosen layer        → expose network “thought bubble”
+3-B Run inference up to chosen layer        → expose network "thought bubble"
 3-C Spatial-pool (mean) each channel        → collapse 9×9 grid per channel
 3-D Stack all rows                          → big matrix 𝐀  (N_pos × C_ch)
 3-E Ensure non-negative & scale             → required by NMF
@@ -28,15 +28,13 @@ High-Level Requirements
 • Entire script is runnable from the project root, e.g.:
       python extract_pooled_activations.py \
              --positions-dir selfplay_out/ \
-             --model-path models/kata9x9-b18c384nbt-20231025.bin.gz \
+             --model-path models/kata9x9-b18c384nbt-20231025.ckpt \
              --batch-size 256
 
 Implementation Notes (concise)
 -----------------------------
-1. *Model loading*: KataGo’s *\.bin.gz* is a custom format. Convert to a
-   PyTorch module **first** or provide a wrapper exposing `.forward()` that
-   returns intermediate tensors. Here we call a placeholder
-   `load_katago_pytorch()` that **you must implement**.
+1. *Model loading*: Uses KataGo's PyTorch training infrastructure to load
+   `.ckpt` checkpoint files directly with proper layer naming.
 2. *Hooking the layer*: Register a forward-hook on the desired module name
    (e.g. "trunk_block_9_output").
 3. *Position decoding*: Each .npz must contain the exact input tensor shape
@@ -53,6 +51,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from datetime import date
 from pathlib import Path
 from typing import List, Tuple
@@ -60,6 +59,12 @@ from typing import List, Tuple
 import numpy as np
 import torch
 import yaml
+
+# Add KataGo python path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent / "KataGo" / "python"))
+
+# Global board size (will be overridden by --board-size CLI flag)
+BOARD_SIZE: int = 7
 
 # ────────────────────────────────────────────────────────────────────────────
 # Helper functions (❗ YOU MAY need to adapt these to your environment)
@@ -75,16 +80,51 @@ def load_layer_selection(path: Path) -> Tuple[str, int]:
 
 
 def load_katago_pytorch(model_path: Path) -> torch.nn.Module:
-    """Load a *converted* KataGo model as a `torch.nn.Module`.
+    """Load a KataGo PyTorch checkpoint as a `torch.nn.Module`.
 
-    NOTE: This is a *placeholder*. Provide a concrete implementation that
-    returns a PyTorch network whose named modules include the layer chosen in
-    *layer_selection.yml*. The model **must** accept a tensor of shape
-    (B, C_in, 9, 9) and produce activations of shape (B, C_mid, 9, 9) at the
-    chosen layer.
+    Loads a KataGo training checkpoint (.ckpt file) using KataGo's existing
+    PyTorch infrastructure. The model will have proper layer names for hooking
+    and accepts input tensors of shape (B, C_in, 9, 9).
+    
+    Args:
+        model_path: Path to KataGo .ckpt checkpoint file
+        
+    Returns:
+        PyTorch model in eval mode with named modules matching KataGo layer names
+        
+    Raises:
+        ImportError: If KataGo python modules cannot be imported
+        FileNotFoundError: If checkpoint file doesn't exist
+        RuntimeError: If model loading fails
     """
-    raise NotImplementedError(
-        "Implement model loading or point to a converted PyTorch checkpoint")
+    if not model_path.exists():
+        raise FileNotFoundError(f"Model checkpoint not found: {model_path}")
+        
+    try:
+        from katago.train.load_model import load_model
+    except ImportError as e:
+        raise ImportError(
+            f"Failed to import KataGo modules. Ensure KataGo/python is in path: {e}"
+        )
+    
+    try:
+        # Load model using KataGo's infrastructure
+        # pos_len=9 for 9x9 boards, use_swa=False for standard model, device="cpu" for consistency
+        model, swa_model, other_state_dict = load_model(
+            checkpoint_file=str(model_path),
+            use_swa=False,
+            device="cpu",
+            pos_len=BOARD_SIZE,
+            verbose=False
+        )
+        
+        # Ensure model is in eval mode for inference
+        model.eval()
+        
+        return model
+        
+    except Exception as e:
+        raise RuntimeError(f"Failed to load KataGo model from {model_path}: {e}")
 
 
 def decode_position_npz(npz_file: Path) -> np.ndarray:
@@ -98,7 +138,7 @@ def decode_position_npz(npz_file: Path) -> np.ndarray:
         if "input" not in data:
             raise KeyError(f"{npz_file} missing 'input' array")
         arr = data["input"].astype(np.float32)
-    if arr.shape[-2:] != (9, 9):
+    if arr.shape[-2:] != (BOARD_SIZE, BOARD_SIZE):
         raise ValueError(f"Unexpected board shape in {npz_file}: {arr.shape}")
     return arr
 
@@ -125,9 +165,11 @@ class ActivationExtractor:
         try:
             target_module = dict(self.model.named_modules())[layer_name]
         except KeyError:
+            available_layers = [name for name, _ in self.model.named_modules()]
             raise KeyError(
                 f"Layer '{layer_name}' not found in model modules. "
-                "Ensure your converted model keeps original KataGo names.")
+                f"Available layers: {available_layers[:10]}... (showing first 10)"
+            )
 
         def _hook(_module, _inp, out):  # noqa: D401, N802
             # No mutation – detach ASAP.
@@ -188,9 +230,10 @@ def scale_columns(matrix: np.ndarray) -> np.ndarray:
 def parse_args() -> argparse.Namespace:  # noqa: D401
     p = argparse.ArgumentParser(description="Extract pooled activations from KataGo model")
     p.add_argument("--positions-dir", required=True, type=Path, help="Directory containing .npz position files")
-    p.add_argument("--model-path", required=True, type=Path, help="Path to converted PyTorch model checkpoint")
+    p.add_argument("--model-path", required=True, type=Path, help="Path to KataGo PyTorch checkpoint (.ckpt)")
     p.add_argument("--batch-size", type=int, default=256, help="Positions per inference batch")
     p.add_argument("--output-dir", type=Path, default=Path("activations"), help="Where to write outputs")
+    p.add_argument("--board-size", type=int, default=7, help="Board size (e.g. 7, 9, 19)")
     p.add_argument("--device", default="cpu", help="CUDA device ID or 'cpu'")
     return p.parse_args()
 
@@ -198,7 +241,10 @@ def parse_args() -> argparse.Namespace:  # noqa: D401
 def main() -> None:  # noqa: D401
     args = parse_args()
 
-    chosen_layer, channels = load_layer_selection(Path("../layer_selection.yml"))
+    global BOARD_SIZE  # noqa: PLW0603
+    BOARD_SIZE = args.board_size
+
+    chosen_layer, channels = load_layer_selection(Path("2_pick_layer/layer_selection.yml"))
 
     model = load_katago_pytorch(args.model_path)
     extractor = ActivationExtractor(model, chosen_layer, args.batch_size, args.device)

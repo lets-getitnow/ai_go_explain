@@ -4,9 +4,9 @@ SAE Approach:
 
 **Minimal Steps (n00b version)**
 
-1. **Collect positions:** (see [1_collect_positions/](1_collect_positions/)) Grab a few thousand varied 9×9 board snapshots (early, fights, endgame).
-2. **Pick one layer:** (see [2_pick_layer/](2_pick_layer/)) Choose a middle layer of the existing 9×9 net.
-3. **Extract activations:** (see [3_extract_activations/](3_extract_activations/)) For each position, record that layer's output and average it down to one number list (channel average).
+1. **Collect positions:** (see [1_collect_positions/](1_collect_positions/)) Grab a few thousand varied 7×7 board snapshots (early, fights, endgame) using any standard KataGo network.
+2. **Pick one layer:** (see [2_pick_layer/](2_pick_layer/)) Choose an intermediate layer of the *general* KataGo network (e.g. middle trunk block).
+3. **Extract activations:** (see [3_extract_activations/](3_extract_activations/)) For each 7×7 position, record that layer's output and average it down to one number list (channel-average).
 4. **Run simple parts finder (NMF):** Factor those lists into \~50–70 "parts."
 5. **Inspect parts:** For each part, look at the boards where it's strongest; note any clear pattern (e.g. ladders, atari, eyes).
 6. **Add tiny heuristics:** Auto‑flag basics (atari present, ladder path, ko, eye forming) to see which parts match which flags.

@@ -1,74 +1,94 @@
 """
-Pick‑Layer Helper Script
+Pick-Layer Helper Script
 ========================
 Purpose
 -------
-Identify and record the *middle* residual block in a KataGo 9×9 network so
-all downstream interpretability experiments know exactly which layer to
-probe. Works directly on KataGo’s native binary model files (`*.bin.gz`)—
-no conversion to PyTorch required.
+Identify and record an *intermediate* residual block in a **general KataGo network** so all downstream interpretability experiments know exactly which layer to probe. Works purely from the model filename (`*.bin.gz`) – no heavy model loading required.
 
-High‑Level Requirements
+Capabilities
+------------
+1. **List layers** – `--list` prints all trunk block layer names (e.g. `trunk_block_0_output … trunk_block_27_output`).
+2. **Automatic pick** – if `--choose` is omitted, the script picks the exact *middle* block.
+3. **Manual pick** – supply `--choose <layer_name>` to override.
+4. Records the decision to `layer_selection.yml` for reproducibility.
+
+Zero-Fallback Guarantee
 -----------------------
-• A KataGo model file (e.g. `models/kata9x9-b18c384nbt-20231025.bin.gz`).
-  The filename must contain the pattern `b<blocks>c<channels>`.
-• Python 3 with PyYAML installed (`pip install pyyaml`).
-
-What the Script Does
---------------------
-1. Parses the filename to discover how many residual blocks (`b18`) and
-   how many channels (`c384`).
-2. Chooses the exact middle block (⌈blocks / 2⌉; for 18 blocks that is
-   block 9).
-3. Writes a reproducible description of that choice to
-   `layer_selection.yml` using real Unicode characters (×, ‑, —) via
-   `allow_unicode=True`.
-
-Example YAML Output
--------------------
-chosen_layer: trunk_block_9_output
-date: '2025-07-21'
-layer_shape: "384×9×9 (approx)"
-network_file: models/kata9x9-b18c384nbt-20231025.bin.gz
-pooling: spatial mean
-rationale: "Mid‑trunk balances local patterns vs. mixed policy/value signals. Binary model not loaded—layer chosen by filename metadata only."
-trunk_blocks: 18
+Any missing or malformed argument halts with an explicit error – no silent defaults beyond those shown in `--help`.
 """
 
+import argparse
 import re
+import sys
 import yaml
 from pathlib import Path
 from datetime import date
 
-# ── CONFIGURE YOUR MODEL PATH HERE ─────────────────────────────
-MODEL_PATH = Path("../models/kata9x9-b18c384nbt-20231025.bin.gz")
 
-# ── 1) Extract block & channel counts from filename ────────────
-match = re.search(r"b(\d+)c(\d+)", MODEL_PATH.name)
-if not match:
-    raise ValueError(
-        "Model filename must contain 'b<blocks>c<channels>', e.g. b18c384")
+# ────────────────────────────────────────────────────────────────────────────
+# Argument parsing
+# ────────────────────────────────────────────────────────────────────────────
 
-blocks = int(match.group(1))
-channels = int(match.group(2))
+def parse_args() -> argparse.Namespace:  # noqa: D401
+    p = argparse.ArgumentParser(description="Choose an intermediate KataGo layer and write layer_selection.yml")
+    p.add_argument("--model-path", type=Path, required=True, help="Path to KataGo *.bin.gz model file")
+    p.add_argument("--board-size", type=int, default=7, help="Board size (e.g. 7, 9, 19)")
+    p.add_argument("--choose", type=str, help="Layer name to select instead of automatic middle block")
+    p.add_argument("--list", action="store_true", help="Only list candidate trunk block layer names and exit")
+    return p.parse_args()
 
-# ── 2) Pick the middle residual block (0‑indexed) ───────────────
-mid_block = blocks // 2  # for 18 → 9, for 17 → 8
-chosen_layer = f"trunk_block_{mid_block}_output"
 
-# ── 3) Record the decision to YAML for reproducibility ─────────
-meta = {
-    "network_file": str(MODEL_PATH),
-    "trunk_blocks": blocks,
-    "chosen_layer": chosen_layer,
-    "layer_shape": f"{channels}×9×9 (approx)",
-    "pooling": "spatial mean",
-    "date": date.today().isoformat(),
-    "rationale": "Mid‑trunk balances local patterns vs. mixed policy/value signals. "
-                 "Binary model not loaded—layer chosen by filename metadata only."
-}
+# ────────────────────────────────────────────────────────────────────────────
+# Main logic
+# ────────────────────────────────────────────────────────────────────────────
 
-with open("../layer_selection.yml", "w", encoding="utf-8") as f:
-    yaml.safe_dump(meta, f, allow_unicode=True)
+def main() -> None:  # noqa: D401
+    args = parse_args()
 
-print(f"✅ Recorded {chosen_layer} from {blocks} residual blocks → ../layer_selection.yml")
+    if not args.model_path.exists():
+        sys.exit(f"❌ Model file not found: {args.model_path}")
+
+    match = re.search(r"b(\d+)c(\d+)", args.model_path.name)
+    if not match:
+        sys.exit("❌ Model filename must contain 'b<blocks>c<channels>', e.g. b28c512…")
+
+    blocks = int(match.group(1))
+    channels = int(match.group(2))
+
+    candidate_layers = [f"trunk_block_{i}_output" for i in range(blocks)]
+
+    if args.list:
+        print("\n".join(candidate_layers))
+        return
+
+    chosen_layer: str
+    if args.choose:
+        if args.choose not in candidate_layers:
+            sys.exit(
+                f"❌ '{args.choose}' not among recognised trunk layers. "
+                f"Run with --list to see options."
+            )
+        chosen_layer = args.choose
+    else:
+        chosen_layer = candidate_layers[blocks // 2]
+
+    meta = {
+        "network_file": str(args.model_path),
+        "board_size": args.board_size,
+        "trunk_blocks": blocks,
+        "chosen_layer": chosen_layer,
+        "layer_shape": f"{channels}×{args.board_size}×{args.board_size} (approx)",
+        "pooling": "spatial mean",
+        "date": date.today().isoformat(),
+        "rationale": "Middle trunk balances local and global signals. Derived from filename metadata only.",
+    }
+
+    out_path = Path("layer_selection.yml")
+    with out_path.open("w", encoding="utf-8") as f:
+        yaml.safe_dump(meta, f, allow_unicode=True)
+
+    print(f"✅ Recorded {chosen_layer} → {out_path}")
+
+
+if __name__ == "__main__":
+    main()

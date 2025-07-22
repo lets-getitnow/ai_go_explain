@@ -1,16 +1,16 @@
 # Step 1: Collect Positions
 
-Generate varied 9×9 board positions using KataGo's selfplay engine.
+Generate varied 7×7 board positions using KataGo's self-play engine.
 
 ## Prerequisites
 - KataGo binary installed
-- Model file: `models/kata9x9-b18c384nbt-20231025.bin.gz`
-- Config file: `selfplay9.cfg`
+- Model file: `models/<latest_general_net>.bin.gz`  <!-- e.g. kata1-b28c512nbt-sXXXXX.bin.gz -->
+- Config file: `selfplay7.cfg`
 
 ## Command
 ```bash
 katago selfplay \
-  -config selfplay9.cfg \
+  -config selfplay7.cfg \
   -models-dir models/ \
   -output-dir selfplay_out/ \
   -max-games-total 200
@@ -21,7 +21,7 @@ Creates `selfplay_out/` directory with the following structure:
 ```
 selfplay_out/
 ├── log*.log (execution logs)
-└── kata9x9-b18c384nbt-20231025.bin.gz/
+└── <latest_general_net>/
     ├── selfplay-*.cfg (generated config)
     ├── sgfs/
     │   └── *.sgfs (game records)
