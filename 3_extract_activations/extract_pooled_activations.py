@@ -144,20 +144,28 @@ def load_katago_pytorch(ckpt_path: Path) -> torch.nn.Module:
 
 
 def decode_position_npz(npz_file: Path) -> Tuple[np.ndarray, np.ndarray]:
-    """Convert a single-position .npz into float32 input tensors.
+    """Decode **all** positions contained in a KataGo training `.npz` file.
 
-    Returns:
-        binary_input: Shape (C_in, BOARD_SIZE, BOARD_SIZE) - board features
-        global_input: Shape (G_in,) - global features
-    
-    Decodes KataGo training data format with binaryInputNCHWPacked.
+    Every `.npz` written by KataGo's self-play contains a *batch* of positions.
+    The original quick-start demo purposefully consumed only the first sample
+    to keep runtime tiny.  For real analysis we need the **entire** batch so
+    that subsequent NMF sees thousands of rows instead of just a handful.
+
+    Returns
+    -------
+    binary_input : np.ndarray
+        Shape **(N, C_in, BOARD_SIZE, BOARD_SIZE)** – board feature planes for
+        *all* N positions in the file.
+    global_input : np.ndarray
+        Shape **(N, G_in)** – global feature vectors corresponding to each
+        position.
     """
     with np.load(npz_file) as data:
         if "binaryInputNCHWPacked" not in data:
             raise KeyError(f"{npz_file} missing 'binaryInputNCHWPacked' array")
         if "globalInputNC" not in data:
             raise KeyError(f"{npz_file} missing 'globalInputNC' array")
-        
+ 
         binaryInputNCHWPacked = data["binaryInputNCHWPacked"]
         globalInputNC = data["globalInputNC"]
         
@@ -170,13 +178,22 @@ def decode_position_npz(npz_file: Path) -> Tuple[np.ndarray, np.ndarray]:
             binaryInputNCHW.shape[0], binaryInputNCHW.shape[1], BOARD_SIZE, BOARD_SIZE
         )).astype(np.float32)
         
-        # Take the first sample (in case there are multiple in one file)
-        binary_arr = binaryInputNCHW[0]  # Shape: (C_in, BOARD_SIZE, BOARD_SIZE)
-        global_arr = globalInputNC[0].astype(np.float32)  # Shape: (G_in,)
-    
-    if binary_arr.shape[-2:] != (BOARD_SIZE, BOARD_SIZE):
-        raise ValueError(f"Unexpected board shape in {npz_file}: {binary_arr.shape}")
-    return binary_arr, global_arr
+    # Cast to float32 once at the very end for memory efficiency
+    binary_arrs = binaryInputNCHW.astype(np.float32)             # (N, C_in, B, B)
+    global_arrs = globalInputNC.astype(np.float32)               # (N, G_in)
+
+    if binary_arrs.shape[0] != global_arrs.shape[0]:
+        raise ValueError(
+            f"Sample count mismatch in {npz_file}: "
+            f"{binary_arrs.shape[0]} vs {global_arrs.shape[0]}"
+        )
+
+    if binary_arrs.shape[-2:] != (BOARD_SIZE, BOARD_SIZE):
+        raise ValueError(
+            f"Unexpected board shape in {npz_file}: {binary_arrs.shape[-2:]}"
+        )
+
+    return binary_arrs, global_arrs
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -234,37 +251,54 @@ class ActivationExtractor:
 
     # ── PUBLIC API ──────────────────────────────────────────────────────
     def run(self, position_files: List[Path]) -> Tuple[np.ndarray, List[str]]:
+        """Run inference on **every** position in `position_files`.
+
+        The method streams data in mini-batches of size ``self.batch_size`` to
+        keep peak memory usage predictable.  It returns:
+
+        • ``big_matrix`` – shape (N_positions, C_channels)
+        • ``index``      – list mapping each row → originating `.npz` file
+        """
+
         rows: List[np.ndarray] = []
         index: List[str] = []
 
-        for start in range(0, len(position_files), self.batch_size):
-            batch_paths = position_files[start : start + self.batch_size]
-            batch_data = [decode_position_npz(p) for p in batch_paths]
-            batch_binary = np.stack([binary for binary, global_ in batch_data])
-            batch_global = np.stack([global_ for binary, global_ in batch_data])
-            batch_binary_tensor = torch.tensor(batch_binary, dtype=torch.float32, device=self.device)
-            batch_global_tensor = torch.tensor(batch_global, dtype=torch.float32, device=self.device)
+        buffer_bin: List[np.ndarray] = []  # (C_in, B, B)
+        buffer_glob: List[np.ndarray] = []  # (G_in,)
+        buffer_paths: List[str] = []
 
-            # ── INFERENCE ──────────────────────────────────────────────
-            # Clear previous outputs
+        def _flush_buffer() -> None:  # capture outer-scope via closure
+            """Run one batched forward pass and append pooled outputs."""
+            if not buffer_bin:
+                return  # nothing to do
+
+            batch_binary = np.stack(buffer_bin)
+            batch_global = np.stack(buffer_glob)
+
+            batch_binary_tensor = torch.tensor(
+                batch_binary, dtype=torch.float32, device=self.device
+            )
+            batch_global_tensor = torch.tensor(
+                batch_global, dtype=torch.float32, device=self.device
+            )
+
+            # ── INFERENCE ────────────────────────────────────────────
             self._extra.returned.clear()
             self._extra.available.clear()
-            _ = self.model(batch_binary_tensor, batch_global_tensor, extra_outputs=self._extra)  # type: ignore[call-arg]
+            _ = self.model(
+                batch_binary_tensor,
+                batch_global_tensor,
+                extra_outputs=self._extra,  # type: ignore[call-arg]
+            )
 
-            # After the first forward pass we can validate that the requested
-            # layer name actually exists according to KataGo – this is the
-            # authoritative list of *all* intermediate tensors the network
-            # could provide.  We delay this check until now because we need a
-            # real input tensor of the correct shape to populate
-            # `ExtraOutputs.available`.
+            # Validate layer name exactly once
             if not hasattr(self, "_validated"):
                 if self._layer_name not in self._extra.available:
-                    sample = sorted(self._extra.available)[:15]  # show a subset
+                    sample = sorted(self._extra.available)[:15]
                     raise KeyError(
-                        f"Layer '{self._layer_name}' not recognised by KataGo.\n"
+                        f"Layer '{self._layer_name}' not recognised. "
                         f"Some available names: {', '.join(sample)} …"
                     )
-                # Mark so we don't waste time on subsequent batches
                 self._validated = True  # type: ignore[attr-defined]
 
             if self._layer_name not in self._extra.returned:
@@ -278,12 +312,37 @@ class ActivationExtractor:
             if act.dim() != 4:
                 raise ValueError(f"Expected 4-D activations, got {act.shape}")
 
-            # ── SPATIAL MEAN POOL ─────────────────────────────────────
-            pooled = act.mean(dim=(-1, -2)).cpu().numpy()  # (B, C)
+            pooled = act.mean(dim=(-1, -2)).cpu().numpy()  # (B, C_channels)
             rows.append(pooled)
-            index.extend([str(p) for p in batch_paths])
+            index.extend(buffer_paths)
 
-        big_matrix = np.concatenate(rows, axis=0)  # (N, C)
+            # Clear buffers for next mini-batch
+            buffer_bin.clear()
+            buffer_glob.clear()
+            buffer_paths.clear()
+
+        # ── Stream over *.npz files ─────────────────────────────────
+        for npz_file in position_files:
+            binary_arrs, global_arrs = decode_position_npz(npz_file)
+
+            if binary_arrs.shape[0] != global_arrs.shape[0]:
+                raise ValueError(
+                    f"Sample count mismatch in {npz_file}: "
+                    f"{binary_arrs.shape[0]} vs {global_arrs.shape[0]}"
+                )
+
+            for i in range(binary_arrs.shape[0]):
+                buffer_bin.append(binary_arrs[i])
+                buffer_glob.append(global_arrs[i])
+                buffer_paths.append(str(npz_file))  # duplicate path per row
+
+                if len(buffer_bin) == self.batch_size:
+                    _flush_buffer()
+
+        # Flush any remaining samples that didn't fill a complete batch
+        _flush_buffer()
+
+        big_matrix = np.concatenate(rows, axis=0)  # (N_positions, C_channels)
         return big_matrix, index
 
 
