@@ -60,6 +60,9 @@ from typing import List, Tuple
 import numpy as np
 import torch
 import yaml
+import time
+import signal
+from contextlib import contextmanager
 
 # Add KataGo python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "KataGo" / "python"))
@@ -250,7 +253,7 @@ class ActivationExtractor:
         self._extra.no_grad = True
 
     # ── PUBLIC API ──────────────────────────────────────────────────────
-    def run(self, position_files: List[Path]) -> Tuple[np.ndarray, List[str]]:
+    def run(self, position_files: List[Path], *, total_positions: int | None = None) -> Tuple[np.ndarray, List[str]]:
         """Run inference on **every** position in `position_files`.
 
         The method streams data in mini-batches of size ``self.batch_size`` to
@@ -260,7 +263,15 @@ class ActivationExtractor:
         • ``index``      – list mapping each row → originating `.npz` file
         """
 
-        print(f"[INFO] Starting extraction over {len(position_files)} .npz files with batch size {self.batch_size}…")
+        if total_positions is None:
+            total_msg = "unknown number of"
+        else:
+            total_msg = f"{total_positions}"
+
+        print(
+            f"[INFO] Starting extraction over {len(position_files)} .npz files "
+            f"(~{total_msg} positions) with batch size {self.batch_size}…"
+        )
 
         rows: List[np.ndarray] = []
         index: List[str] = []
@@ -275,9 +286,13 @@ class ActivationExtractor:
             if not buffer_bin:
                 return  # nothing to do
 
+            print("[DEBUG] Beginning inference …")
+
+            print("[DEBUG] Step 1: Creating batch tensors…")
             batch_binary = np.stack(buffer_bin)
             batch_global = np.stack(buffer_glob)
 
+            print("[DEBUG] Step 2: Moving to device…")
             batch_binary_tensor = torch.tensor(
                 batch_binary, dtype=torch.float32, device=self.device
             )
@@ -285,14 +300,28 @@ class ActivationExtractor:
                 batch_global, dtype=torch.float32, device=self.device
             )
 
+            print("[DEBUG] Step 3: Clearing extra outputs…")
             # ── INFERENCE ────────────────────────────────────────────
+            start_t = time.perf_counter()
             self._extra.returned.clear()
             self._extra.available.clear()
-            _ = self.model(
-                batch_binary_tensor,
-                batch_global_tensor,
-                extra_outputs=self._extra,  # type: ignore[call-arg]
-            )
+            
+            print(f"[DEBUG] Step 4: Running model forward pass with timeout (60s)…")
+            try:
+                with timeout_context(60):
+                    _ = self.model(
+                        batch_binary_tensor,
+                        batch_global_tensor,
+                        extra_outputs=self._extra,  # type: ignore[call-arg]
+                    )
+            except TimeoutError:
+                print("[ERROR] Model forward pass timed out after 60 seconds!")
+                print(f"[ERROR] Batch shape: binary={batch_binary_tensor.shape}, global={batch_global_tensor.shape}")
+                print(f"[ERROR] Device: {self.device}")
+                raise
+            
+            print("[DEBUG] Step 5: Forward pass completed, extracting activations…")
+            infer_duration = time.perf_counter() - start_t
 
             # Validate layer name exactly once
             if not hasattr(self, "_validated"):
@@ -318,7 +347,18 @@ class ActivationExtractor:
             pooled = act.mean(dim=(-1, -2)).cpu().numpy()  # (B, C_channels)
             rows.append(pooled)
             index.extend(buffer_paths)
-            print(f"[PROGRESS] Processed {sum(r.shape[0] for r in rows)} positions so far…")
+            processed = sum(r.shape[0] for r in rows)
+            if total_positions:
+                pct = processed / total_positions * 100
+                print(
+                    f"[PROGRESS] Processed {processed}/{total_positions} positions "
+                    f"({pct:5.1f}%) [last batch {infer_duration:.2f}s]"
+                )
+            else:
+                print(
+                    f"[PROGRESS] Processed {processed} positions so far "
+                    f"[last batch {infer_duration:.2f}s]"
+                )
 
             # Clear buffers for next mini-batch
             buffer_bin.clear()
@@ -328,7 +368,13 @@ class ActivationExtractor:
         # ── Stream over *.npz files ─────────────────────────────────
         for npz_file in position_files:
             print(f"[INFO] Decoding {npz_file} …")
+            decode_start = time.perf_counter()
             binary_arrs, global_arrs = decode_position_npz(npz_file)
+            decode_dur = time.perf_counter() - decode_start
+            print(
+                f"[DEBUG] Finished decoding {npz_file.name}: "
+                f"{binary_arrs.shape[0]} positions in {decode_dur:.2f}s"
+            )
 
             if binary_arrs.shape[0] != global_arrs.shape[0]:
                 raise ValueError(
@@ -340,6 +386,14 @@ class ActivationExtractor:
                 buffer_bin.append(binary_arrs[i])
                 buffer_glob.append(global_arrs[i])
                 buffer_paths.append(str(npz_file))  # duplicate path per row
+
+                # Verbose within-file progress every 100 samples
+                if (i + 1) % 100 == 0 or (i + 1) == binary_arrs.shape[0]:
+                    loaded = i + 1
+                    print(
+                        f"[TRACE] Loaded {loaded}/{binary_arrs.shape[0]} "
+                        f"positions from {npz_file.name} into buffer"
+                    )
 
                 if len(buffer_bin) == self.batch_size:
                     _flush_buffer()
@@ -384,6 +438,21 @@ def parse_args() -> argparse.Namespace:  # noqa: D401
     return p.parse_args()
 
 
+@contextmanager
+def timeout_context(seconds: int):
+    """Context manager that raises TimeoutError if operation takes too long."""
+    def timeout_handler(signum, frame):
+        raise TimeoutError(f"Operation timed out after {seconds} seconds")
+    
+    old_handler = signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, old_handler)
+
+
 def main() -> None:  # noqa: D401
     args = parse_args()
 
@@ -406,7 +475,17 @@ def main() -> None:  # noqa: D401
         raise FileNotFoundError(f"No .npz files found under {args.positions_dir}")
     print(f"[INFO] {len(position_files)} .npz files found. Starting extraction…")
 
-    matrix, index = extractor.run(position_files)
+    # ── Pre-compute total positions for progress percentage ───────────────
+    total_positions = 0
+    for f in position_files:
+        with np.load(f) as data:
+            if "binaryInputNCHWPacked" not in data:
+                raise KeyError(f"{f} missing 'binaryInputNCHWPacked' array")
+            total_positions += data["binaryInputNCHWPacked"].shape[0]
+
+    print(f"[INFO] Total positions to process: {total_positions}")
+
+    matrix, index = extractor.run(position_files, total_positions=total_positions)
 
     if matrix.shape[1] != channels:
         raise ValueError(
