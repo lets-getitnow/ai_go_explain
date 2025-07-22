@@ -271,6 +271,7 @@ class ActivationExtractor:
 
         def _flush_buffer() -> None:  # capture outer-scope via closure
             """Run one batched forward pass and append pooled outputs."""
+            print(f"[DEBUG] Flushing batch of {len(buffer_bin)} positions …")
             if not buffer_bin:
                 return  # nothing to do
 
@@ -326,6 +327,7 @@ class ActivationExtractor:
 
         # ── Stream over *.npz files ─────────────────────────────────
         for npz_file in position_files:
+            print(f"[INFO] Decoding {npz_file} …")
             binary_arrs, global_arrs = decode_position_npz(npz_file)
 
             if binary_arrs.shape[0] != global_arrs.shape[0]:
