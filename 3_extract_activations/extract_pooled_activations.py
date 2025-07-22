@@ -260,6 +260,8 @@ class ActivationExtractor:
         • ``index``      – list mapping each row → originating `.npz` file
         """
 
+        print(f"[INFO] Starting extraction over {len(position_files)} .npz files with batch size {self.batch_size}…")
+
         rows: List[np.ndarray] = []
         index: List[str] = []
 
@@ -315,6 +317,7 @@ class ActivationExtractor:
             pooled = act.mean(dim=(-1, -2)).cpu().numpy()  # (B, C_channels)
             rows.append(pooled)
             index.extend(buffer_paths)
+            print(f"[PROGRESS] Processed {sum(r.shape[0] for r in rows)} positions so far…")
 
             # Clear buffers for next mini-batch
             buffer_bin.clear()
@@ -399,6 +402,7 @@ def main() -> None:  # noqa: D401
     position_files = sorted(args.positions_dir.rglob("*.npz"))
     if not position_files:
         raise FileNotFoundError(f"No .npz files found under {args.positions_dir}")
+    print(f"[INFO] {len(position_files)} .npz files found. Starting extraction…")
 
     matrix, index = extractor.run(position_files)
 
