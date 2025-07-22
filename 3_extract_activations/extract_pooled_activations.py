@@ -285,7 +285,12 @@ def main() -> None:  # noqa: D401
     global BOARD_SIZE  # noqa: PLW0603
     BOARD_SIZE = args.board_size
 
-    chosen_layer, channels = load_layer_selection(Path("2_pick_layer/layer_selection.yml"))
+    # Find project root (directory containing this script's parent)
+    script_dir = Path(__file__).parent
+    project_root = script_dir.parent
+    layer_selection_path = project_root / "2_pick_layer" / "layer_selection.yml"
+    
+    chosen_layer, channels = load_layer_selection(layer_selection_path)
 
     model = load_katago_pytorch(args.model_path)
     extractor = ActivationExtractor(model, chosen_layer, args.batch_size, args.device)
