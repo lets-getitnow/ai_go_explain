@@ -16,6 +16,16 @@ This step takes the NMF components from step 4 and loads the actual board positi
   - Extracts and saves the raw board data for manual analysis
   - Shows correlation between part activation strength and board positions
 
+- **`correlate_sgf.py`**: SGF correlation analysis script
+  - Examines .npz file structure to understand available metadata
+  - Analyzes SGF file format and game organization  
+  - Investigates how to map board positions back to specific SGF games and move numbers
+  - **Run this BEFORE examine_boards.py** to understand data structure
+  - **KEY DISCOVERY**: `.npz` files contain move information in `policyTargetsNCMove` array
+
+  Current Gap:
+examine_boards.py doesn't currently use the move information we discovered. It only extracts raw board states.
+
 ### Output Files
 
 - **`part{N}_rank{R}_pos{GLOBAL}.npy`**: Raw board data for analysis
@@ -28,24 +38,33 @@ This step takes the NMF components from step 4 and loads the actual board positi
 ```bash
 cd 5_inspect_parts
 
-# Extract board positions for analysis
+# First, understand the data structure and decode move information
+python3 correlate_sgf.py
+
+# Then extract board positions for analysis
 python3 examine_boards.py
+
+# Analysis now includes actual move information for pattern identification
 ```
 
 ## Analysis Process
 
-1. **Load strongest positions**: For each of the 3 NMF parts, examine the top 3 most strongly activating board positions
+1. **Understand data structure**: Run `correlate_sgf.py` to understand how .npz positions map to SGF games and move numbers
 
-2. **Extract board data**: Save the raw board states as .npy files for detailed analysis
+2. **Load strongest positions**: For each of the 3 NMF parts, examine the top 3 most strongly activating board positions
 
-3. **Pattern identification**: As a Go expert, examine the board positions to identify:
+3. **Extract board data**: Save the raw board states as .npy files for detailed analysis
+
+4. **Pattern identification**: As a Go expert, examine the board positions to identify:
    - Tactical patterns (atari, ladders, nets)
    - Life and death situations
    - Connection/cutting patterns
    - Territorial patterns
    - Any other recurring Go concepts
 
-4. **Part interpretation**: Determine if each part corresponds to a meaningful Go concept
+5. **Part interpretation**: Determine if each part corresponds to a meaningful Go concept
+
+**Note**: The correlation analysis revealed that `.npz` files contain actual move information in the `policyTargetsNCMove` array. This transforms the analysis from examining static board positions to understanding **what specific moves** the neural network associates with each pattern. This is essential for meaningful Go pattern interpretation.
 
 ## Expected Results
 
@@ -60,13 +79,67 @@ From step 4 analysis:
 - Only 3 parts from 2725 positions
 - Dense activation patterns may indicate need for parameter tuning
 
+**Data Correlation Challenges**:
+- Board positions extracted from .npz files lack game context
+- Need mapping from position indices to SGF games and move numbers
+- Multiple .npz files (4) vs single .sgfs file requires correlation analysis
+- Without move context, pattern interpretation is severely limited
+
+## Data Structure Discovery
+
+Running `correlate_sgf.py` revealed the internal structure of KataGo training data:
+
+### NPZ File Structure
+Each `.npz` file contains training data with these key arrays:
+- **`binaryInputNCHWPacked`** (1000, 22, 7): Board states in packed format
+- **`globalInputNC`** (1000, 19): Game metadata (komi, turn, game state)
+- **`policyTargetsNCMove`** (1000, 2, 50): **MOVE INFORMATION** - actual moves played
+- **`qValueTargetsNCMove`** (1000, 3, 50): Q-values for all possible moves
+
+### Move Decoding
+For 7×7 Go:
+- Move indices 0-48: Board positions (row×7 + col)
+- Move index 49: Pass move
+- High values in `policyTargetsNCMove` indicate the actual move played at that position
+
+### Example Strong-Activation Positions
+From NMF analysis, decoded move information:
+
+**Part 0, Rank 1** (Global pos 1388):
+- Move indices with high values: 22→515, 31→70, 37→333, 38→495
+- Primary move: Index 38 (value 495) = board position (5,3)
+
+**Part 1, Rank 1** (Global pos 1256): 
+- Move indices with high values: 19→449 (primary move)
+- Primary move: Index 19 = board position (2,5)
+
+**Part 2, Rank 1** (Global pos 834):
+- Move indices with high values: 48→415
+- Primary move: Index 48 = board position (6,6) or pass
+
+### SGF Correlation
+- 200 games in single `.sgfs` file
+- 4 NPZ files with 1000 positions each = 4000 total training positions
+- Analysis uses 2725 positions (some filtering applied in earlier steps)
+
 ## Next Steps
 
-If clear patterns emerge:
+**With Move Information Available:**
+1. **Create move decoder** to convert indices to 7×7 board coordinates
+2. **Analyze move patterns** for each NMF part's strong-activation positions
+3. **Extract SGF context** to understand the tactical situation for each move
+4. **Pattern identification** with move context:
+   - What type of moves activate each part?
+   - Are they corner moves, center fights, connection moves?
+   - Do parts specialize by move type or board area?
+
+**If clear patterns emerge:**
 - Proceed to step 6 (add heuristics)
 - Document the identified Go concepts for each interpretable part
 
-If patterns are unclear:
+**If patterns are unclear:**
 - Consider returning to step 4 with different NMF parameters
 - Increase sparsity regularization
-- Try different numbers of components 
+- Try different numbers of components
+
+**Important:** Now that we have move information, the analysis can focus on **what moves** the neural network considers important, not just static board positions. 
