@@ -108,15 +108,30 @@ def load_katago_pytorch(model_path: Path) -> torch.nn.Module:
         )
     
     try:
-        # Load model using KataGo's infrastructure
-        # pos_len=9 for 9x9 boards, use_swa=False for standard model, device="cpu" for consistency
-        model, swa_model, other_state_dict = load_model(
-            checkpoint_file=str(model_path),
-            use_swa=False,
-            device="cpu",
-            pos_len=BOARD_SIZE,
-            verbose=False
-        )
+        # Temporarily monkey-patch torch.load to handle PyTorch 2.6 compatibility
+        # PyTorch 2.6 changed weights_only default from False to True
+        original_torch_load = torch.load
+        
+        def patched_torch_load(*args, **kwargs):
+            if 'weights_only' not in kwargs:
+                kwargs['weights_only'] = False
+            return original_torch_load(*args, **kwargs)
+        
+        torch.load = patched_torch_load
+        
+        try:
+            # Load model using KataGo's infrastructure
+            # pos_len=9 for 9x9 boards, use_swa=False for standard model, device="cpu" for consistency
+            model, swa_model, other_state_dict = load_model(
+                checkpoint_file=str(model_path),
+                use_swa=False,
+                device="cpu",
+                pos_len=BOARD_SIZE,
+                verbose=False
+            )
+        finally:
+            # Always restore original torch.load
+            torch.load = original_torch_load
         
         # Ensure model is in eval mode for inference
         model.eval()
