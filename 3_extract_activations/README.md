@@ -22,6 +22,18 @@ Extract pooled activations from a chosen layer of KataGo's *general* neural netw
 
 3. **Place the `.bin.gz` network** inside `models/` (e.g. `kata1-b28c512nbt-s9853922560-d5031756885.bin.gz`).  No conversion to `.ckpt` is needed – the script loads inference files directly.
 
+4. *(Optional – recommended for macOS)* **Verify your PyTorch back-end:**
+   ```bash
+   # from inside 3_extract_activations/
+   python verify_pytorch_device.py
+   ```
+   If the script reports
+   ```text
+   MPS built     : True
+   MPS available : True
+   ```
+   then your Apple-Silicon GPU is usable – run the extractor with `--device mps` for faster execution. Otherwise default to `--device cpu` (or `cuda:0` on machines with an NVIDIA GPU).
+
 ## Extract Activations
 
 ```bash
@@ -31,14 +43,14 @@ python extract_pooled_activations.py \
   --model-path   ../models/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz \
   --board-size   7 \
   --batch-size   512 \
-  --device       cuda:0   # or cpu
+  --device       mps        # mps (Apple Silicon), cpu, or cuda:0
 ```
 
 ## How It Works
 
 The script:
 1. **Loads the KataGo model** (supports `.bin.gz` inference files).
-2. **Uses the layer name** saved in `layer_selection.yml` to attach a forward hook.
+2. **Requests exactly one intermediate tensor** via KataGo's `ExtraOutputs` API using the layer name stored in `layer_selection.yml`.
 3. **Processes 7 × 7 positions** in batches for efficiency.
 4. **Spatially pools each channel** (mean across 7 × 7 spatial dimensions).
 5. **Produces a non-negative, column-scaled matrix** suitable for NMF.
