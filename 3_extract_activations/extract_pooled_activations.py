@@ -1,4 +1,5 @@
 """
+
 Activation Extraction Script
 ===========================
 Purpose
@@ -79,15 +80,15 @@ def load_layer_selection(path: Path) -> Tuple[str, int]:
     return meta["chosen_layer"], int(meta["layer_shape"].split("×")[0])
 
 
-def load_katago_pytorch(model_path: Path) -> torch.nn.Module:
+def load_katago_pytorch(ckpt_path: Path) -> torch.nn.Module:
     """Load a KataGo PyTorch checkpoint as a `torch.nn.Module`.
 
-    Loads a KataGo training checkpoint (.ckpt file) using KataGo's existing
+    Loads a KataGo training checkpoint (model.ckpt file) using KataGo's existing
     PyTorch infrastructure. The model will have proper layer names for hooking
     and accepts input tensors of shape (B, C_in, 9, 9).
     
     Args:
-        model_path: Path to KataGo .ckpt checkpoint file
+        ckpt_path: Path to KataGo model.ckpt checkpoint file
         
     Returns:
         PyTorch model in eval mode with named modules matching KataGo layer names
@@ -97,8 +98,8 @@ def load_katago_pytorch(model_path: Path) -> torch.nn.Module:
         FileNotFoundError: If checkpoint file doesn't exist
         RuntimeError: If model loading fails
     """
-    if not model_path.exists():
-        raise FileNotFoundError(f"Model checkpoint not found: {model_path}")
+    if not ckpt_path.exists():
+        raise FileNotFoundError(f"Model checkpoint not found: {ckpt_path}")
         
     try:
         from katago.train.load_model import load_model
@@ -121,9 +122,9 @@ def load_katago_pytorch(model_path: Path) -> torch.nn.Module:
         
         try:
             # Load model using KataGo's infrastructure
-            # pos_len=9 for 9x9 boards, use_swa=False for standard model, device="cpu" for consistency
+            # pos_len=BOARD_SIZE for correct board size, use_swa=False for standard model, device="cpu" for consistency
             model, swa_model, other_state_dict = load_model(
-                checkpoint_file=str(model_path),
+                checkpoint_file=str(ckpt_path),
                 use_swa=False,
                 device="cpu",
                 pos_len=BOARD_SIZE,
@@ -139,7 +140,7 @@ def load_katago_pytorch(model_path: Path) -> torch.nn.Module:
         return model
         
     except Exception as e:
-        raise RuntimeError(f"Failed to load KataGo model from {model_path}: {e}")
+        raise RuntimeError(f"Failed to load KataGo model from {ckpt_path}: {e}")
 
 
 def decode_position_npz(npz_file: Path) -> np.ndarray:
@@ -286,7 +287,7 @@ def scale_columns(matrix: np.ndarray) -> np.ndarray:
 def parse_args() -> argparse.Namespace:  # noqa: D401
     p = argparse.ArgumentParser(description="Extract pooled activations from KataGo model")
     p.add_argument("--positions-dir", required=True, type=Path, help="Directory containing .npz position files")
-    p.add_argument("--model-path", required=True, type=Path, help="Path to KataGo PyTorch checkpoint (.ckpt)")
+    p.add_argument("--ckpt-path", required=True, type=Path, help="Path to KataGo model.ckpt checkpoint file")
     p.add_argument("--batch-size", type=int, default=256, help="Positions per inference batch")
     p.add_argument("--output-dir", type=Path, default=Path("activations"), help="Where to write outputs")
     p.add_argument("--board-size", type=int, default=7, help="Board size (e.g. 7, 9, 19)")
@@ -307,7 +308,7 @@ def main() -> None:  # noqa: D401
     
     chosen_layer, channels = load_layer_selection(layer_selection_path)
 
-    model = load_katago_pytorch(args.model_path)
+    model = load_katago_pytorch(args.ckpt_path)
     extractor = ActivationExtractor(model, chosen_layer, args.batch_size, args.device)
 
     # ── Enumerate positions ───────────────────────────────────────────
@@ -334,7 +335,7 @@ def main() -> None:  # noqa: D401
 
     meta = {
         "date": date.today().isoformat(),
-        "source_model": str(args.model_path),
+        "source_model": str(args.ckpt_path),
         "layer": chosen_layer,
         "positions": len(position_files),
         "channels": channels,

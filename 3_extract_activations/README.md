@@ -20,7 +20,7 @@ Extract pooled activations from a chosen layer of KataGo's *general* neural netw
    git clone https://github.com/lightvector/KataGo.git
    ```
 
-3. **Place the `.bin.gz` network** inside `models/` (e.g. `kata1-b28c512nbt-s9853922560-d5031756885.bin.gz`).  No conversion to `.ckpt` is needed – the script loads inference files directly.
+3. **Place the training checkpoint** inside `models/` in the format `models/kata1-b28c512nbt-sXXXXXXXXXX-dXXXXXXXXXX/model.ckpt`. These are PyTorch training checkpoints that preserve the internal layer structure needed for activation extraction.
 
 4. *(Optional – recommended for macOS)* **Verify your PyTorch back-end:**
    ```bash
@@ -40,7 +40,7 @@ Extract pooled activations from a chosen layer of KataGo's *general* neural netw
 cd 3_extract_activations
 python extract_pooled_activations.py \
   --positions-dir ../selfplay_out \
-  --model-path   ../models/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz \
+  --ckpt-path   ../models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt \
   --board-size   7 \
   --batch-size   512 \
   --device       mps        # mps (Apple Silicon), cpu, or cuda:0
@@ -49,7 +49,7 @@ python extract_pooled_activations.py \
 ## How It Works
 
 The script:
-1. **Loads the KataGo model** (supports `.bin.gz` inference files).
+1. **Loads the KataGo model** from PyTorch training checkpoints (`model.ckpt` files).
 2. **Requests exactly one intermediate tensor** via KataGo's `ExtraOutputs` API using the layer name stored in `layer_selection.yml`.
 3. **Processes 7 × 7 positions** in batches for efficiency.
 4. **Spatially pools each channel** (mean across 7 × 7 spatial dimensions).
