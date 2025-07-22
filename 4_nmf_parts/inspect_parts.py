@@ -10,6 +10,7 @@ positions for visual inspection.
 import numpy as np
 import json
 import os
+from datetime import datetime
 
 def load_nmf_results():
     """Load the NMF results from run_nmf.py."""
@@ -163,7 +164,6 @@ def main():
     analyze_parts(components, activations, npz_files)
     
     # Generate summary
-    from datetime import datetime
     generate_summary_report(components, activations, npz_files)
     
     print("=== Next Steps ===")
