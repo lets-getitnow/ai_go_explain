@@ -103,6 +103,119 @@ def generate_component_activations(activations: List[float]) -> str:
     
     return '\n'.join(activations_html)
 
+def parse_sgf_moves(sgf_content: str, target_turn: int) -> tuple:
+    """Parse SGF content and extract stone positions up to target turn."""
+    import re
+    
+    # Extract moves from SGF
+    moves = []
+    move_pattern = r'[BW]\[[a-z]{0,2}\]'
+    
+    for match in re.finditer(move_pattern, sgf_content):
+        move_text = match.group()
+        color = 'B' if move_text[0] == 'B' else 'W'
+        coord_text = move_text[2:-1]  # Extract coordinate between brackets
+        
+        if coord_text == '':  # Pass move
+            moves.append((color, None))
+        else:
+            # Convert SGF coordinates to board position (a=0, b=1, etc.)
+            if len(coord_text) == 2:
+                col = ord(coord_text[0]) - ord('a')
+                row = ord(coord_text[1]) - ord('a')
+                moves.append((color, (row, col)))
+            else:
+                moves.append((color, None))  # Invalid or pass
+    
+    # Build board state up to target turn
+    board = {}  # {(row, col): 'B' or 'W'}
+    move_of_interest = None
+    
+    for i, (color, pos) in enumerate(moves):
+        if i >= target_turn:
+            if i == target_turn and pos:
+                move_of_interest = pos
+            break
+        if pos:
+            board[pos] = color
+    
+    return board, move_of_interest, moves[:target_turn+1]
+
+def generate_grid_lines() -> str:
+    """Generate SVG grid lines for 9x9 Go board."""
+    lines = []
+    
+    # Horizontal lines
+    for i in range(9):
+        y = 60 + i * 40
+        lines.append(f'<line x1="60" y1="{y}" x2="340" y2="{y}" stroke="#8B4513" stroke-width="1"/>')
+    
+    # Vertical lines  
+    for i in range(9):
+        x = 60 + i * 40
+        lines.append(f'<line x1="{x}" y1="60" x2="{x}" y2="340" stroke="#8B4513" stroke-width="1"/>')
+    
+    # Star points (handicap points)
+    star_points = [(2, 2), (2, 6), (6, 2), (6, 6), (4, 4)]
+    for row, col in star_points:
+        x = 60 + col * 40
+        y = 60 + row * 40
+        lines.append(f'<circle cx="{x}" cy="{y}" r="3" fill="#8B4513"/>')
+    
+    return '\n'.join(lines)
+
+def generate_coord_labels() -> str:
+    """Generate coordinate labels for the board."""
+    labels = []
+    
+    # Column labels (A-I, skipping I traditionally)
+    cols = 'ABCDEFGHJ'
+    for i, letter in enumerate(cols[:9]):
+        x = 60 + i * 40
+        labels.append(f'<text x="{x}" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">{letter}</text>')
+        labels.append(f'<text x="{x}" y="360" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">{letter}</text>')
+    
+    # Row labels (1-9)
+    for i in range(9):
+        y = 60 + i * 40 + 4  # +4 for text baseline
+        row_num = 9 - i  # Go coordinates start from bottom
+        labels.append(f'<text x="45" y="{y}" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">{row_num}</text>')
+        labels.append(f'<text x="355" y="{y}" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">{row_num}</text>')
+    
+    return '\n'.join(labels)
+
+def generate_stones(board: dict) -> str:
+    """Generate SVG stones from board position."""
+    stones = []
+    
+    for (row, col), color in board.items():
+        if 0 <= row < 9 and 0 <= col < 9:
+            x = 60 + col * 40
+            y = 60 + row * 40
+            
+            if color == 'B':
+                stones.append(f'<circle cx="{x}" cy="{y}" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>')
+            else:  # White
+                stones.append(f'<circle cx="{x}" cy="{y}" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>')
+    
+    return '\n'.join(stones)
+
+def generate_move_marker(move_of_interest: tuple, move_coord: str) -> str:
+    """Generate marker for the move of interest."""
+    if not move_of_interest:
+        return ""
+    
+    row, col = move_of_interest
+    if 0 <= row < 9 and 0 <= col < 9:
+        x = 60 + col * 40
+        y = 60 + row * 40
+        
+        return f'''
+        <circle cx="{x}" cy="{y}" r="20" fill="none" stroke="#ff0000" stroke-width="3" opacity="0.8"/>
+        <text x="{x}" y="{y-25}" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#ff0000">← Move of Interest</text>
+        '''
+    return ""
+
 def get_html_template() -> str:
     """Return the embedded HTML template."""
     return '''<!DOCTYPE html>
@@ -111,8 +224,7 @@ def get_html_template() -> str:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{TITLE}}</title>
-    <link rel="stylesheet" href="https://yewang.github.io/besogo/css/besogo.css">
-    <link rel="stylesheet" href="https://yewang.github.io/besogo/css/board-wood.css">
+
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -233,10 +345,30 @@ def get_html_template() -> str:
             height: 100%;
             background: linear-gradient(90deg, #28a745, #20c997);
         }
-        .besogo-board {
+        .go-board-container {
             border: 2px solid #8B4513;
             border-radius: 8px;
             margin-bottom: 20px;
+            text-align: center;
+            background: #f4f4f4;
+            padding: 10px;
+        }
+        .go-board-svg {
+            margin: 0 auto;
+            display: block;
+            border-radius: 4px;
+        }
+        .board-info {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .board-info a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .board-info a:hover {
+            text-decoration: underline;
         }
         .position-highlight {
             background: #fff3cd;
@@ -266,12 +398,52 @@ def get_html_template() -> str:
                     <br><strong>Activation Strength:</strong> {{ACTIVATION_STRENGTH}}
                 </div>
                 
-                <div class="besogo-viewer" 
-                     panels="control+comment" 
-                     path="{{TURN_NUMBER}}"
-                     coord="western"
-                     realstones="on">
-{{SGF_CONTENT}}
+                <div id="go-board-{{GLOBAL_POS}}" class="go-board-container">
+                    <svg width="400" height="400" viewBox="0 0 400 400" class="go-board-svg">
+                        <!-- Board grid -->
+                        <defs>
+                            <pattern id="wood" patternUnits="userSpaceOnUse" width="40" height="40">
+                                <rect width="40" height="40" fill="#DEB887"/>
+                                <rect width="40" height="40" fill="url(#woodGrain)" opacity="0.3"/>
+                            </pattern>
+                            <linearGradient id="woodGrain" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#CD853F;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#F4A460;stop-opacity:1" />
+                            </linearGradient>
+                            <!-- Black stone gradient -->
+                            <radialGradient id="blackStone" cx="30%" cy="30%">
+                                <stop offset="0%" stop-color="#555"/>
+                                <stop offset="70%" stop-color="#222"/>
+                                <stop offset="100%" stop-color="#000"/>
+                            </radialGradient>
+                            <!-- White stone gradient -->
+                            <radialGradient id="whiteStone" cx="30%" cy="30%">
+                                <stop offset="0%" stop-color="#fff"/>
+                                <stop offset="70%" stop-color="#eee"/>
+                                <stop offset="100%" stop-color="#ccc"/>
+                            </radialGradient>
+                        </defs>
+                        
+                        <!-- Board background -->
+                        <rect x="20" y="20" width="360" height="360" fill="url(#wood)" stroke="#8B4513" stroke-width="2"/>
+                        
+                        <!-- Grid lines -->
+                        {{GRID_LINES}}
+                        
+                        <!-- Coordinate labels -->
+                        {{COORD_LABELS}}
+                        
+                        <!-- Stones -->
+                        {{STONES}}
+                        
+                        <!-- Move of interest marker -->
+                        {{MOVE_MARKER}}
+                    </svg>
+                    
+                    <div class="board-info">
+                        <p><strong>Game Position at Turn {{TURN_NUMBER}}</strong></p>
+                        <p>Move: {{MOVE_COORD}} | SGF: <a href="#" onclick="alert('{{SGF_CONTENT}}'); return false;">View SGF</a></p>
+                    </div>
                 </div>
             </div>
             
@@ -383,20 +555,10 @@ def get_html_template() -> str:
         </div>
     </div>
     
-    <script src="https://yewang.github.io/besogo/js/besogo.js"></script>
-    <script src="https://yewang.github.io/besogo/js/editor.js"></script>
-    <script src="https://yewang.github.io/besogo/js/gameRoot.js"></script>
-    <script src="https://yewang.github.io/besogo/js/boardDisplay.js"></script>
-    <script src="https://yewang.github.io/besogo/js/controlPanel.js"></script>
-    <script src="https://yewang.github.io/besogo/js/commentPanel.js"></script>
-    <script src="https://yewang.github.io/besogo/js/coord.js"></script>
-    <script src="https://yewang.github.io/besogo/js/svgUtil.js"></script>
-    <script src="https://yewang.github.io/besogo/js/parseSgf.js"></script>
-    <script src="https://yewang.github.io/besogo/js/loadSgf.js"></script>
     <script>
-        // Initialize BesoGo after page loads
+        // Simple board interaction
         document.addEventListener('DOMContentLoaded', function() {
-            besogo.autoInit();
+            console.log('Go board visualization loaded');
         });
     </script>
 </body>
@@ -440,6 +602,10 @@ def process_position(summary_row: Dict[str, str], output_dir: str) -> None:
     go_pattern = analysis_data.get('go_pattern_analysis', {})
     component_comp = analysis_data.get('component_comparison', {})
     
+    # Parse SGF and generate board
+    turn_number = int(position_info.get('turn_number', 0))
+    board_state, move_of_interest, moves = parse_sgf_moves(sgf_content, turn_number)
+    
     # Prepare template data
     template_data = {
         'TITLE': f"Position {global_pos} Analysis",
@@ -449,10 +615,16 @@ def process_position(summary_row: Dict[str, str], output_dir: str) -> None:
         'GLOBAL_POS': global_pos,
         'TURN_NUMBER': position_info.get('turn_number', '0'),
         'MOVE_COORD': position_info.get('move_coordinate', 'Unknown'),
-        'SGF_CONTENT': sgf_content,
+        'SGF_CONTENT': sgf_content.replace('\n', '').replace('"', '&quot;'),
         'SGF_FILE': summary_row['sgf_file'],
         'BOARD_NPY': summary_row['board_npy'],
         'NPZ_FILE': position_info.get('npz_file', 'Unknown'),
+        
+        # Board elements
+        'GRID_LINES': generate_grid_lines(),
+        'COORD_LABELS': generate_coord_labels(),
+        'STONES': generate_stones(board_state),
+        'MOVE_MARKER': generate_move_marker(move_of_interest, position_info.get('move_coordinate', 'Unknown')),
         
         # NMF Analysis
         'ACTIVATION_STRENGTH': format_activation_strength(nmf_analysis.get('activation_strength', 0)),

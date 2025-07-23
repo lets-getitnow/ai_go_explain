@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Position 1388 Analysis</title>
-    <link rel="stylesheet" href="https://yewang.github.io/besogo/css/besogo.css">
-    <link rel="stylesheet" href="https://yewang.github.io/besogo/css/board-wood.css">
+
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -126,10 +125,30 @@
             height: 100%;
             background: linear-gradient(90deg, #28a745, #20c997);
         }
-        .besogo-board {
+        .go-board-container {
             border: 2px solid #8B4513;
             border-radius: 8px;
             margin-bottom: 20px;
+            text-align: center;
+            background: #f4f4f4;
+            padding: 10px;
+        }
+        .go-board-svg {
+            margin: 0 auto;
+            display: block;
+            border-radius: 4px;
+        }
+        .board-info {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .board-info a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .board-info a:hover {
+            text-decoration: underline;
         }
         .position-highlight {
             background: #fff3cd;
@@ -159,12 +178,135 @@
                     <br><strong>Activation Strength:</strong> 1.0193
                 </div>
                 
-                <div class="besogo-viewer" 
-                     panels="control+comment" 
-                     path="27"
-                     coord="western"
-                     realstones="on">
-(;FF[4]GM[1]SZ[9]PB[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]PW[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]HA[0]KM[7]RU[koSITUATIONALscoreAREAtaxNONEsui1]RE[W+4]C[startTurnIdx=3,initTurnNum=0,gameHash=2725103AD8959970163EF5A2D1F291E2,gtype=normal];B[ee];W[cd];B[ec];W[df]C[0.56 0.44 0.00 0.3 v=100 weight=0.00];B[ef]C[0.56 0.44 0.00 0.4 v=100 weight=0.00];W[dg]C[0.57 0.43 0.00 0.4 v=100 weight=0.00];B[eg]C[0.57 0.43 0.00 0.4 v=100 weight=0.00];W[he]C[0.56 0.44 0.00 0.3 v=100 weight=0.00];B[dh]C[0.56 0.44 0.00 0.3 v=100 weight=0.00];W[bg]C[0.57 0.43 0.00 0.3 v=600 weight=0.84];B[gf]C[0.58 0.42 0.00 0.4 v=514 weight=0.59];W[hf]C[0.60 0.40 0.00 0.5 v=225 weight=0.00];B[ce]C[0.60 0.40 0.00 0.5 v=224 weight=0.00];W[de]C[0.60 0.40 0.00 0.5 v=155 weight=0.00];B[hd]C[0.62 0.38 0.00 1.1 v=600 weight=0.70];W[gd]C[0.61 0.39 0.00 0.8 v=149 weight=0.11];B[dd]C[0.63 0.37 0.00 0.9 v=120 weight=0.00];W[dc]C[0.70 0.30 0.00 2.6 v=100 weight=0.31];B[ed]C[0.76 0.24 0.00 3.6 v=100 weight=0.00];W[be]C[0.89 0.11 0.00 6.8 v=600 weight=1.12];B[hc]C[0.91 0.09 0.00 7.0 v=530 weight=0.00];W[gc]C[0.91 0.09 0.00 7.1 v=380 weight=0.00];B[gb]C[0.91 0.09 0.00 7.2 v=376 weight=0.00];W[ge]C[0.90 0.10 0.00 7.2 v=313 weight=0.00];B[cf]C[0.93 0.07 0.00 7.7 v=600 weight=1.35];W[cg]C[0.90 0.10 0.00 8.0 v=127 weight=0.07];B[cc]C[0.90 0.10 0.00 8.2 v=122 weight=0.11])
+                <div id="go-board-1388" class="go-board-container">
+                    <svg width="400" height="400" viewBox="0 0 400 400" class="go-board-svg">
+                        <!-- Board grid -->
+                        <defs>
+                            <pattern id="wood" patternUnits="userSpaceOnUse" width="40" height="40">
+                                <rect width="40" height="40" fill="#DEB887"/>
+                                <rect width="40" height="40" fill="url(#woodGrain)" opacity="0.3"/>
+                            </pattern>
+                            <linearGradient id="woodGrain" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#CD853F;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#F4A460;stop-opacity:1" />
+                            </linearGradient>
+                            <!-- Black stone gradient -->
+                            <radialGradient id="blackStone" cx="30%" cy="30%">
+                                <stop offset="0%" stop-color="#555"/>
+                                <stop offset="70%" stop-color="#222"/>
+                                <stop offset="100%" stop-color="#000"/>
+                            </radialGradient>
+                            <!-- White stone gradient -->
+                            <radialGradient id="whiteStone" cx="30%" cy="30%">
+                                <stop offset="0%" stop-color="#fff"/>
+                                <stop offset="70%" stop-color="#eee"/>
+                                <stop offset="100%" stop-color="#ccc"/>
+                            </radialGradient>
+                        </defs>
+                        
+                        <!-- Board background -->
+                        <rect x="20" y="20" width="360" height="360" fill="url(#wood)" stroke="#8B4513" stroke-width="2"/>
+                        
+                        <!-- Grid lines -->
+                        <line x1="60" y1="60" x2="340" y2="60" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="100" x2="340" y2="100" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="140" x2="340" y2="140" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="180" x2="340" y2="180" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="220" x2="340" y2="220" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="260" x2="340" y2="260" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="300" x2="340" y2="300" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="340" x2="340" y2="340" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="380" x2="340" y2="380" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="60" x2="60" y2="340" stroke="#8B4513" stroke-width="1"/>
+<line x1="100" y1="60" x2="100" y2="340" stroke="#8B4513" stroke-width="1"/>
+<line x1="140" y1="60" x2="140" y2="340" stroke="#8B4513" stroke-width="1"/>
+<line x1="180" y1="60" x2="180" y2="340" stroke="#8B4513" stroke-width="1"/>
+<line x1="220" y1="60" x2="220" y2="340" stroke="#8B4513" stroke-width="1"/>
+<line x1="260" y1="60" x2="260" y2="340" stroke="#8B4513" stroke-width="1"/>
+<line x1="300" y1="60" x2="300" y2="340" stroke="#8B4513" stroke-width="1"/>
+<line x1="340" y1="60" x2="340" y2="340" stroke="#8B4513" stroke-width="1"/>
+<line x1="380" y1="60" x2="380" y2="340" stroke="#8B4513" stroke-width="1"/>
+<circle cx="140" cy="140" r="3" fill="#8B4513"/>
+<circle cx="300" cy="140" r="3" fill="#8B4513"/>
+<circle cx="140" cy="300" r="3" fill="#8B4513"/>
+<circle cx="300" cy="300" r="3" fill="#8B4513"/>
+<circle cx="220" cy="220" r="3" fill="#8B4513"/>
+                        
+                        <!-- Coordinate labels -->
+                        <text x="60" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">A</text>
+<text x="60" y="360" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">A</text>
+<text x="100" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">B</text>
+<text x="100" y="360" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">B</text>
+<text x="140" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">C</text>
+<text x="140" y="360" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">C</text>
+<text x="180" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">D</text>
+<text x="180" y="360" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">D</text>
+<text x="220" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">E</text>
+<text x="220" y="360" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">E</text>
+<text x="260" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">F</text>
+<text x="260" y="360" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">F</text>
+<text x="300" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">G</text>
+<text x="300" y="360" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">G</text>
+<text x="340" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">H</text>
+<text x="340" y="360" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">H</text>
+<text x="380" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">J</text>
+<text x="380" y="360" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">J</text>
+<text x="45" y="64" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">9</text>
+<text x="355" y="64" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">9</text>
+<text x="45" y="104" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">8</text>
+<text x="355" y="104" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">8</text>
+<text x="45" y="144" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">7</text>
+<text x="355" y="144" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">7</text>
+<text x="45" y="184" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">6</text>
+<text x="355" y="184" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">6</text>
+<text x="45" y="224" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">5</text>
+<text x="355" y="224" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">5</text>
+<text x="45" y="264" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">4</text>
+<text x="355" y="264" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">4</text>
+<text x="45" y="304" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">3</text>
+<text x="355" y="304" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">3</text>
+<text x="45" y="344" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">2</text>
+<text x="355" y="344" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">2</text>
+<text x="45" y="384" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">1</text>
+<text x="355" y="384" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">1</text>
+                        
+                        <!-- Stones -->
+                        <circle cx="220" cy="220" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="140" cy="180" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="220" cy="140" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="180" cy="260" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="220" cy="260" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="180" cy="300" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="220" cy="300" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="340" cy="220" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="180" cy="340" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="100" cy="300" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="300" cy="260" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="340" cy="260" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="140" cy="220" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="180" cy="220" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="340" cy="180" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="300" cy="180" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="180" cy="180" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="180" cy="140" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="220" cy="180" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="100" cy="220" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="340" cy="140" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="300" cy="140" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="300" cy="100" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="300" cy="220" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="140" cy="260" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="140" cy="300" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="140" cy="140" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+                        
+                        <!-- Move of interest marker -->
+                        
+                    </svg>
+                    
+                    <div class="board-info">
+                        <p><strong>Game Position at Turn 27</strong></p>
+                        <p>Move: (3,1) | SGF: <a href="#" onclick="alert('(;FF[4]GM[1]SZ[9]PB[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]PW[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]HA[0]KM[7]RU[koSITUATIONALscoreAREAtaxNONEsui1]RE[W+4]C[startTurnIdx=3,initTurnNum=0,gameHash=2725103AD8959970163EF5A2D1F291E2,gtype=normal];B[ee];W[cd];B[ec];W[df]C[0.56 0.44 0.00 0.3 v=100 weight=0.00];B[ef]C[0.56 0.44 0.00 0.4 v=100 weight=0.00];W[dg]C[0.57 0.43 0.00 0.4 v=100 weight=0.00];B[eg]C[0.57 0.43 0.00 0.4 v=100 weight=0.00];W[he]C[0.56 0.44 0.00 0.3 v=100 weight=0.00];B[dh]C[0.56 0.44 0.00 0.3 v=100 weight=0.00];W[bg]C[0.57 0.43 0.00 0.3 v=600 weight=0.84];B[gf]C[0.58 0.42 0.00 0.4 v=514 weight=0.59];W[hf]C[0.60 0.40 0.00 0.5 v=225 weight=0.00];B[ce]C[0.60 0.40 0.00 0.5 v=224 weight=0.00];W[de]C[0.60 0.40 0.00 0.5 v=155 weight=0.00];B[hd]C[0.62 0.38 0.00 1.1 v=600 weight=0.70];W[gd]C[0.61 0.39 0.00 0.8 v=149 weight=0.11];B[dd]C[0.63 0.37 0.00 0.9 v=120 weight=0.00];W[dc]C[0.70 0.30 0.00 2.6 v=100 weight=0.31];B[ed]C[0.76 0.24 0.00 3.6 v=100 weight=0.00];W[be]C[0.89 0.11 0.00 6.8 v=600 weight=1.12];B[hc]C[0.91 0.09 0.00 7.0 v=530 weight=0.00];W[gc]C[0.91 0.09 0.00 7.1 v=380 weight=0.00];B[gb]C[0.91 0.09 0.00 7.2 v=376 weight=0.00];W[ge]C[0.90 0.10 0.00 7.2 v=313 weight=0.00];B[cf]C[0.93 0.07 0.00 7.7 v=600 weight=1.35];W[cg]C[0.90 0.10 0.00 8.0 v=127 weight=0.07];B[cc]C[0.90 0.10 0.00 8.2 v=122 weight=0.11])'); return false;">View SGF</a></p>
+                    </div>
                 </div>
             </div>
             
@@ -385,20 +527,10 @@
         </div>
     </div>
     
-    <script src="https://yewang.github.io/besogo/js/besogo.js"></script>
-    <script src="https://yewang.github.io/besogo/js/editor.js"></script>
-    <script src="https://yewang.github.io/besogo/js/gameRoot.js"></script>
-    <script src="https://yewang.github.io/besogo/js/boardDisplay.js"></script>
-    <script src="https://yewang.github.io/besogo/js/controlPanel.js"></script>
-    <script src="https://yewang.github.io/besogo/js/commentPanel.js"></script>
-    <script src="https://yewang.github.io/besogo/js/coord.js"></script>
-    <script src="https://yewang.github.io/besogo/js/svgUtil.js"></script>
-    <script src="https://yewang.github.io/besogo/js/parseSgf.js"></script>
-    <script src="https://yewang.github.io/besogo/js/loadSgf.js"></script>
     <script>
-        // Initialize BesoGo after page loads
+        // Simple board interaction
         document.addEventListener('DOMContentLoaded', function() {
-            besogo.autoInit();
+            console.log('Go board visualization loaded');
         });
     </script>
 </body>
