@@ -104,7 +104,11 @@ def generate_component_activations(activations: List[float]) -> str:
     return '\n'.join(activations_html)
 
 def parse_sgf_moves(sgf_content: str, target_turn: int) -> tuple:
-    """Parse SGF content and extract stone positions up to target turn."""
+    """Parse SGF content and extract stone positions up to target turn.
+    
+    SGF contains 9x9 coordinates, but analysis was done on 7x7.
+    Map 9x9 SGF coordinates to 7x7 analysis coordinates by taking center region.
+    """
     import re
     
     # Extract moves from SGF
@@ -121,9 +125,19 @@ def parse_sgf_moves(sgf_content: str, target_turn: int) -> tuple:
         else:
             # Convert SGF coordinates to board position (a=0, b=1, etc.)
             if len(coord_text) == 2:
-                col = ord(coord_text[0]) - ord('a')
-                row = ord(coord_text[1]) - ord('a')
-                moves.append((color, (row, col)))
+                sgf_col = ord(coord_text[0]) - ord('a')  # 0-8 for 9x9
+                sgf_row = ord(coord_text[1]) - ord('a')  # 0-8 for 9x9
+                
+                # Map 9x9 to 7x7 by taking center region (offset by 1)
+                # 9x9 coordinates b-h (1-7) -> 7x7 coordinates a-g (0-6)
+                col_7x7 = sgf_col - 1
+                row_7x7 = sgf_row - 1
+                
+                # Only include moves that fall within the 7x7 center region
+                if 0 <= col_7x7 < 7 and 0 <= row_7x7 < 7:
+                    moves.append((color, (row_7x7, col_7x7)))
+                else:
+                    moves.append((color, None))  # Outside 7x7 region
             else:
                 moves.append((color, None))  # Invalid or pass
     
@@ -142,21 +156,21 @@ def parse_sgf_moves(sgf_content: str, target_turn: int) -> tuple:
     return board, move_of_interest, moves[:target_turn+1]
 
 def generate_grid_lines() -> str:
-    """Generate SVG grid lines for 9x9 Go board."""
+    """Generate SVG grid lines for 7x7 Go board."""
     lines = []
     
     # Horizontal lines
-    for i in range(9):
+    for i in range(7):
         y = 60 + i * 40
-        lines.append(f'<line x1="60" y1="{y}" x2="340" y2="{y}" stroke="#8B4513" stroke-width="1"/>')
+        lines.append(f'<line x1="60" y1="{y}" x2="300" y2="{y}" stroke="#8B4513" stroke-width="1"/>')
     
     # Vertical lines  
-    for i in range(9):
+    for i in range(7):
         x = 60 + i * 40
-        lines.append(f'<line x1="{x}" y1="60" x2="{x}" y2="340" stroke="#8B4513" stroke-width="1"/>')
+        lines.append(f'<line x1="{x}" y1="60" x2="{x}" y2="300" stroke="#8B4513" stroke-width="1"/>')
     
-    # Star points (handicap points)
-    star_points = [(2, 2), (2, 6), (6, 2), (6, 6), (4, 4)]
+    # Star points (handicap points) for 7x7
+    star_points = [(1, 1), (1, 5), (5, 1), (5, 5), (3, 3)]
     for row, col in star_points:
         x = 60 + col * 40
         y = 60 + row * 40
@@ -165,22 +179,22 @@ def generate_grid_lines() -> str:
     return '\n'.join(lines)
 
 def generate_coord_labels() -> str:
-    """Generate coordinate labels for the board."""
+    """Generate coordinate labels for 7x7 board."""
     labels = []
     
-    # Column labels (A-I, skipping I traditionally)
-    cols = 'ABCDEFGHJ'
-    for i, letter in enumerate(cols[:9]):
+    # Column labels (A-G for 7x7)
+    cols = 'ABCDEFG'
+    for i, letter in enumerate(cols):
         x = 60 + i * 40
         labels.append(f'<text x="{x}" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">{letter}</text>')
-        labels.append(f'<text x="{x}" y="360" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">{letter}</text>')
+        labels.append(f'<text x="{x}" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">{letter}</text>')
     
-    # Row labels (1-9)
-    for i in range(9):
+    # Row labels (1-7)
+    for i in range(7):
         y = 60 + i * 40 + 4  # +4 for text baseline
-        row_num = 9 - i  # Go coordinates start from bottom
+        row_num = 7 - i  # Go coordinates start from bottom
         labels.append(f'<text x="45" y="{y}" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">{row_num}</text>')
-        labels.append(f'<text x="355" y="{y}" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">{row_num}</text>')
+        labels.append(f'<text x="315" y="{y}" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">{row_num}</text>')
     
     return '\n'.join(labels)
 
@@ -189,7 +203,7 @@ def generate_stones(board: dict) -> str:
     stones = []
     
     for (row, col), color in board.items():
-        if 0 <= row < 9 and 0 <= col < 9:
+        if 0 <= row < 7 and 0 <= col < 7:
             x = 60 + col * 40
             y = 60 + row * 40
             
@@ -206,7 +220,7 @@ def generate_move_marker(move_of_interest: tuple, move_coord: str) -> str:
         return ""
     
     row, col = move_of_interest
-    if 0 <= row < 9 and 0 <= col < 9:
+    if 0 <= row < 7 and 0 <= col < 7:
         x = 60 + col * 40
         y = 60 + row * 40
         
@@ -399,7 +413,7 @@ def get_html_template() -> str:
                 </div>
                 
                 <div id="go-board-{{GLOBAL_POS}}" class="go-board-container">
-                    <svg width="400" height="400" viewBox="0 0 400 400" class="go-board-svg">
+                    <svg width="360" height="360" viewBox="0 0 360 360" class="go-board-svg">
                         <!-- Board grid -->
                         <defs>
                             <pattern id="wood" patternUnits="userSpaceOnUse" width="40" height="40">
@@ -425,7 +439,7 @@ def get_html_template() -> str:
                         </defs>
                         
                         <!-- Board background -->
-                        <rect x="20" y="20" width="360" height="360" fill="url(#wood)" stroke="#8B4513" stroke-width="2"/>
+                        <rect x="20" y="20" width="280" height="280" fill="url(#wood)" stroke="#8B4513" stroke-width="2"/>
                         
                         <!-- Grid lines -->
                         {{GRID_LINES}}

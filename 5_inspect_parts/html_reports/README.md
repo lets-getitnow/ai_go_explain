@@ -72,7 +72,7 @@ Each position page displays:
 ## 🔧 Technical Details
 
 - **Go Library**: BesoGo (via CDN)
-- **Board Size**: 9x9 (7x7 coordinates)
+- **Board Size**: 7x7 (center region extracted from 9x9 SGF files)
 - **SGF Format**: Standard SGF with KataGo extensions
 - **Browser Compatibility**: Modern browsers (Chrome, Firefox, Safari, Edge)
 - **No Server Required**: Open files directly in browser
