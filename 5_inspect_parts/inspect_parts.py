@@ -6,9 +6,10 @@ Single-entry script that:
 1. Finds top-k strongest activations for each NMF component.
 2. Saves the corresponding packed board tensors as *.npy.
 3. Decodes the move played at each position.
-4. Clips the giant self-play .sgfs bundle so each position gets its own standalone
+4. Performs 3 types of analysis per position for NMF interpretation.
+5. Clips the giant self-play .sgfs bundle so each position gets its own standalone
    SGF file containing the header + exact moves up to (and including) that turn.
-5. Emits a consolidated CSV (`strong_positions_summary.csv`) linking everything.
+6. Emits a consolidated CSV (`strong_positions_summary.csv`) linking everything.
 
 STRICT CONTRACT (ZERO-FALLBACK):
 • Abort with RuntimeError on any missing file or inconsistency.
@@ -26,6 +27,20 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 import numpy as np
+
+# ---------------------------------------------------------------------------
+# JSON encoder for numpy types
+# ---------------------------------------------------------------------------
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
 
 # ---------------------------------------------------------------------------
 # Constants – adjust here if your dataset path changes
@@ -101,6 +116,133 @@ def split_sgfs_bundle(text: str) -> List[str]:
                 games.append("".join(buf))
                 buf = []
     return games
+
+# ---------------------------------------------------------------------------
+# Analysis functions
+# ---------------------------------------------------------------------------
+
+def analyze_nmf_features(pos: Dict[str, Any], activations: np.ndarray, board_data: np.ndarray) -> Dict[str, Any]:
+    """Analysis 1: Neural Network Feature Analysis"""
+    part_idx = pos["part"]
+    gpos = pos["global_pos"]
+    
+    # Current component activation strength
+    activation_strength = float(activations[gpos, part_idx])
+    
+    # Activations in other components for this position
+    other_activations = [float(activations[gpos, i]) for i in range(activations.shape[1])]
+    
+    # Channel importance - count bits set in each channel
+    channel_activity = []
+    for ch in range(board_data.shape[0]):
+        bit_count = sum(bin(c).count('1') for c in board_data[ch])
+        channel_activity.append(bit_count)
+    
+    # Find most active channels (top 5)
+    top_channels = sorted(enumerate(channel_activity), key=lambda x: x[1], reverse=True)[:5]
+    
+    return {
+        "activation_strength": activation_strength,
+        "rank_in_component": pos["rank"],
+        "activation_in_other_components": other_activations,
+        "channel_activity": channel_activity,
+        "top_active_channels": top_channels,
+        "total_board_activity": sum(channel_activity)
+    }
+
+
+def analyze_go_patterns(pos: Dict[str, Any], policy_data: np.ndarray) -> Dict[str, Any]:
+    """Analysis 2: Go-Specific Pattern Recognition"""
+    move_idx = pos["move_idx"]
+    coord = pos["coord"]
+    turn_num = pos.get("turn", 0)
+    
+    # Basic move classification
+    if move_idx == PASS_INDEX:
+        move_type = "pass"
+    else:
+        row, col = divmod(move_idx, BOARD_SIZE)
+        # Classify by board region
+        if row <= 2 or row >= BOARD_SIZE - 3 or col <= 2 or col >= BOARD_SIZE - 3:
+            if (row <= 2 and col <= 2) or (row <= 2 and col >= BOARD_SIZE - 3) or \
+               (row >= BOARD_SIZE - 3 and col <= 2) or (row >= BOARD_SIZE - 3 and col >= BOARD_SIZE - 3):
+                move_type = "corner"
+            else:
+                move_type = "side"
+        else:
+            move_type = "center"
+    
+    # Game phase estimation based on turn number
+    if turn_num < 30:  # Adjusted for 7x7 board
+        game_phase = "opening"
+    elif turn_num < 60:
+        game_phase = "middle_game"
+    else:
+        game_phase = "endgame"
+    
+    # Policy analysis
+    policy_counts = policy_data[1].astype(int)
+    total_counts = policy_counts.sum()
+    
+    # Calculate policy entropy
+    probs = policy_counts / total_counts if total_counts > 0 else policy_counts
+    probs = probs[probs > 0]  # Remove zeros for log calculation
+    entropy = -np.sum(probs * np.log2(probs)) if len(probs) > 0 else 0.0
+    
+    # Top policy moves
+    top5_idx = policy_counts.argsort()[-5:][::-1]
+    top_moves = []
+    for idx in top5_idx:
+        if policy_counts[idx] == 0:
+            continue
+        pct = 100.0 * policy_counts[idx] / total_counts if total_counts else 0
+        top_moves.append({
+            "coord": idx_to_coord(int(idx)), 
+            "percentage": round(pct, 1), 
+            "count": int(policy_counts[idx])
+        })
+    
+    return {
+        "move_type": move_type,
+        "game_phase": game_phase,
+        "turn_number": turn_num,
+        "policy_entropy": float(entropy),
+        "policy_confidence": float(policy_counts[move_idx] / total_counts) if total_counts > 0 else 0.0,
+        "top_policy_moves": top_moves,
+        "total_policy_counts": int(total_counts)
+    }
+
+
+def analyze_component_comparison(pos: Dict[str, Any], all_positions: List[Dict[str, Any]], activations: np.ndarray) -> Dict[str, Any]:
+    """Analysis 3: Comparative Component Behavior"""
+    part_idx = pos["part"]
+    gpos = pos["global_pos"]
+    
+    # Find positions where other components are most active
+    current_activation = activations[gpos, part_idx]
+    
+    # Component specialization: how unique is this activation?
+    other_component_activations = [activations[gpos, i] for i in range(activations.shape[1]) if i != part_idx]
+    max_other_activation = max(other_component_activations) if other_component_activations else 0.0
+    
+    uniqueness_score = current_activation / (current_activation + max_other_activation) if (current_activation + max_other_activation) > 0 else 0.0
+    
+    # Find similar positions (other high-activating positions for this component)
+    component_activations = activations[:, part_idx]
+    similar_position_indices = np.argsort(component_activations)[-10:][::-1]  # Top 10
+    similar_positions = [int(idx) for idx in similar_position_indices if idx != gpos][:5]  # Exclude self, take top 5
+    
+    # Ranking across all positions for this component
+    position_rank = np.sum(component_activations > current_activation) + 1
+    
+    return {
+        "uniqueness_score": float(uniqueness_score),
+        "similar_positions": similar_positions,
+        "component_rank": int(position_rank),
+        "max_other_component_activation": float(max_other_activation),
+        "activation_percentile": float(100 * (1 - position_rank / len(component_activations)))
+    }
+
 
 # ---------------------------------------------------------------------------
 # Main procedure
@@ -200,7 +342,51 @@ def main() -> None:
 
     print("SGF clipping done – individual files written\n")
 
-    # --- Stage 4: consolidated CSV ------------------------------------------
+    # --- Stage 4: Comprehensive Analysis ------------------------------------
+    print("=== Stage 4: Comprehensive Analysis ===")
+    
+    for pos in positions:
+        gpos = pos["global_pos"]
+        npz_path = TDATA_DIR / pos["npz_file"]
+        data = np.load(npz_path)
+        
+        # Load board data and policy data
+        board_data = data["binaryInputNCHWPacked"][pos["pos_in_file"]]
+        policy_data = data["policyTargetsNCMove"][pos["pos_in_file"]]
+        
+        # Perform all three analyses
+        nmf_analysis = analyze_nmf_features(pos, activ, board_data)
+        go_analysis = analyze_go_patterns(pos, policy_data)
+        comparison_analysis = analyze_component_comparison(pos, positions, activ)
+        
+        # Combine analyses
+        comprehensive_analysis = {
+            "position_info": {
+                "part": int(pos["part"]),
+                "rank": int(pos["rank"]),
+                "global_position": int(gpos),
+                "move_coordinate": pos["coord"],
+                "turn_number": int(pos["turn"]),
+                "npz_file": pos["npz_file"],
+                "board_tensor_file": pos["board_npy"],
+                "sgf_file": pos["sgf_file"]
+            },
+            "nmf_analysis": nmf_analysis,
+            "go_pattern_analysis": go_analysis,
+            "component_comparison": comparison_analysis
+        }
+        
+        # Save analysis to JSON file
+        analysis_file = f"analysis_pos{gpos}.json"
+        with open(analysis_file, 'w') as f:
+            json.dump(comprehensive_analysis, f, indent=2, cls=NumpyEncoder)
+        pos["analysis_file"] = analysis_file
+        
+        print(f"Analysis complete for Part {pos['part']} Rank {pos['rank']} (pos {gpos})")
+    
+    print("Comprehensive analysis complete\n")
+
+    # --- Stage 5: consolidated CSV ------------------------------------------
     csv_path = "strong_positions_summary.csv"
     with open(csv_path, "w", newline="") as csvf:
         writer = csv.writer(csvf)
@@ -213,6 +399,7 @@ def main() -> None:
                 "turn",
                 "sgf_file",
                 "board_npy",
+                "analysis_file",
             ]
         )
         for p in positions:
@@ -225,6 +412,7 @@ def main() -> None:
                     p["turn"],
                     p["sgf_file"],
                     p["board_npy"],
+                    p["analysis_file"]
                 ]
             )
     print(f"Summary written → {csv_path}\nAll tasks complete.")
