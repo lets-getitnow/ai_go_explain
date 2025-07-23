@@ -6,6 +6,7 @@ Examine the structure of .npz files to understand how to map
 board positions back to specific moves in SGF games.
 """
 
+# -*- coding: utf-8 -*-
 import numpy as np
 import os
 import json
@@ -220,56 +221,61 @@ if __name__ == "__main__":
         base_dir = "../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz"
         sgf_dir = os.path.join(base_dir, "sgfs") if os.path.isdir(base_dir) else "."
 
-    # determine sgf_file
-    if strong_positions and 'sgf' in strong_positions[0]:
-        sgf_file = strong_positions[0]['sgf']
-    else:
-        candidates = [f for f in os.listdir(sgf_dir) if f.endswith('.sgfs')]
-        sgf_file = candidates[0] if candidates else None
+    # determine sgf_file (single bundle with many games)
+    candidates = [f for f in os.listdir(sgf_dir) if f.endswith('.sgfs')]
+    if not candidates:
+        raise RuntimeError("No .sgfs file found in sgf_dir")
+    sgf_file = candidates[0]
 
-    # --- Save SGF snippets for each strong position ---
-    if strong_positions and sgf_file:
-        sgf_path = os.path.join(sgf_dir, sgf_file)
-        try:
-            with open(sgf_path, "r") as f:
-                sgf_raw = f.read()
-        except Exception as e:
-            print(f"Could not read {sgf_path}: {e}")
-            sgf_raw = None
+    sgf_path = os.path.join(sgf_dir, sgf_file)
+    with open(sgf_path, 'r') as f:
+        sgf_raw = f.read()
 
-        if sgf_raw:
-            # Split into individual SGF records. Each record starts with "(;".
-            import re
-            def split_games(text: str):
-                games = []
-                buf = []
-                depth = 0
-                for ch in text:
-                    if ch == '(':
-                        depth += 1
-                    if depth > 0:
-                        buf.append(ch)
-                    if ch == ')':
-                        depth -= 1
-                        if depth == 0 and buf:
-                            games.append(''.join(buf))
-                            buf = []
-                return games
+    # --- Split bundle into individual games ---
+    def split_games(text: str):
+        games = []
+        buf = []
+        depth = 0
+        for ch in text:
+            if ch == '(': depth += 1
+            if depth>0: buf.append(ch)
+            if ch == ')':
+                depth -= 1
+                if depth==0 and buf:
+                    games.append(''.join(buf))
+                    buf=[]
+        return games
 
-            parts = split_games(sgf_raw.strip())
-            print(f"Loaded {len(parts)} SGF snippets from {sgf_file}")
+    games = split_games(sgf_raw.strip())
+    print(f"Loaded {len(games)} SGF games from {sgf_file}")
 
-            for p in strong_positions:
-                gpos = p["global_pos"]
-                if gpos < len(parts):
-                    snippet = parts[gpos].strip()
-                    out_name = f"sgf_pos{gpos}.sgf"
-                    with open(out_name, "w") as out_f:
-                        out_f.write(snippet)
-                    print(f"  Wrote SGF snippet to {out_name}")
-                else:
-                    raise RuntimeError(
-                        f"No SGF snippet found for global position {gpos}. Parsed {len(parts)} games, but index requested is out of range. Aborting as per ZERO-FALLBACK mandate."
-                    )
+    import re
+    move_counts=[len(re.findall(r';[BW]\[',g)) for g in games]
+    cum=0
+    boundaries=[]
+    for c in move_counts:
+        boundaries.append(cum)
+        cum+=c
+    total_positions=cum
+    print(f"Total positions represented by games: {total_positions}")
+
+    # --- Save clipped SGFs ---
+    for pos in strong_positions:
+        gpos=pos['global_pos']
+        if gpos>=total_positions:
+            raise RuntimeError(f"global_pos {gpos} exceeds total positions {total_positions}")
+        # binary search for game index
+        import bisect
+        game_idx=bisect.bisect_right(boundaries,gpos)-1
+        turn=gpos-boundaries[game_idx]
+        game_text=games[game_idx]
+        parts=game_text.split(';')
+        header=parts[0]
+        moves=parts[1:turn+1]
+        clipped=';'.join([header]+moves)+')'
+        out_name=f"sgf_pos{gpos}.sgf"
+        with open(out_name,'w') as f:
+            f.write(clipped)
+        print(f"  Wrote SGF to {out_name} (game {game_idx}, turn {turn})")
     examine_sgf_structure()
     find_correlations() 
