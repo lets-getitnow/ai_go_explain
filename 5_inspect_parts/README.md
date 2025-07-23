@@ -10,16 +10,13 @@ This step takes the NMF components from step 4 and loads the actual board positi
 
 ### Core Scripts
 
-- **`correlate_sgf.py`**: SGF correlation / data-format explorer + **move decoder**
-  - Run once on a new dataset
-  - Prints a summary `(global_pos:coord)` for strong-activation positions
-  - Confirms move information in `policyTargetsNCMove`
-
-- **`examine_boards.py`**: Main extraction script
-  - Loads NMF activations
-  - Finds top-k strongest positions per part
-  - Saves each board as `part{N}_rank{R}_pos{GLOBAL}.npy`
-  - Prints table with GLOBAL indices
+- **`inspect_parts.py`**
+  - Single entry-point replacing the previous two scripts.
+  - Selects top‐k strongest activations for every NMF part.
+  - Saves board tensors (`part{N}_rank{R}_pos{GLOBAL}.npy`).
+  - Decodes the move actually played and its board coordinate.
+  - Clips the `.sgfs` bundle to a standalone SGF for *each* position (`sgf_pos{GLOBAL}.sgf`).
+  - Outputs `strong_positions_summary.csv` linking part, rank, coord, turn, SGF file, and board‐npy file.
 
 ### Output Files
 
@@ -33,11 +30,8 @@ This step takes the NMF components from step 4 and loads the actual board positi
 ```bash
 cd 5_inspect_parts
 
-# Run once on a new dataset to understand mapping and see moves
-python3 correlate_sgf.py
-
-# Extract strongest positions and save board arrays
-python3 examine_boards.py
+# Everything now happens in one go
+python3 inspect_parts.py
 ```
 
 ## Analysis Process
