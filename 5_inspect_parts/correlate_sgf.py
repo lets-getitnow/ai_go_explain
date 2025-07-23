@@ -8,6 +8,48 @@ board positions back to specific moves in SGF games.
 
 import numpy as np
 import os
+import json
+# SGF generation helper
+
+def coord_to_sgf(coord):
+    # coord as (row,col) zero-index -> sgf two letters a-g
+    letters = 'abcdefghijklmnopqrstuvwxyz'
+    return letters[coord[1]] + letters[coord[0]]
+
+def board_to_sgf(black_set, white_set, next_move_coord, board_size=7):
+    props = [f"(;FF[4]GM[1]SZ[{board_size}]KM[7.5]"]
+    if black_set:
+        ab = ''.join([f"[{coord_to_sgf(c)}]" for c in black_set])
+        props.append(f"AB{ab}")
+    if white_set:
+        aw = ''.join([f"[{coord_to_sgf(c)}]" for c in white_set])
+        props.append(f"AW{aw}")
+    # add next move as mainline
+    if next_move_coord is not None:
+        color = 'B' if len(black_set) == len(white_set) else 'W'
+        props.append(f"{')'.join([])}")
+    header = ''.join(props) + ")"
+    if next_move_coord is None:
+        return header
+    move_prop = f";{color}[{coord_to_sgf(next_move_coord)}])"
+    return header[:-1] + move_prop
+
+# --- helper functions for move decoding ---
+BOARD_SIZE = 7
+PASS_INDEX = BOARD_SIZE * BOARD_SIZE  # 49 for 7x7
+
+
+def decode_move(policy_targets: np.ndarray) -> int:
+    """Return move index with highest count from channel 1 (chosen move)."""
+    return int(policy_targets[1].argmax())
+
+
+def idx_to_coord(idx: int) -> str:
+    if idx == PASS_INDEX:
+        return "PASS"
+    row, col = divmod(idx, BOARD_SIZE)
+    return f"({row},{col})"
+
 
 def examine_npz_structure():
     """Examine what data is available in .npz files."""
@@ -88,7 +130,11 @@ def analyze_nmf_positions():
         {'part': 2, 'rank': 1, 'global_pos': 834, 'file': '4A3919085F2F7840.npz', 'pos_in_file': 546},
     ]
     
-    tdata_dir = "../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz/tdata"
+    base_dir = "../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz"
+    tdata_dir = os.path.join(base_dir, "tdata")
+    sgf_dir = os.path.join(base_dir, "sgfs")
+    sgf_files = [f for f in os.listdir(sgf_dir) if f.endswith(".sgfs")]
+    sgf_file = sgf_files[0] if sgf_files else "UNKNOWN.sgfs"
     
     for pos_info in strong_positions:
         print(f"\nPart {pos_info['part']}, Rank {pos_info['rank']}:")
@@ -101,18 +147,17 @@ def analyze_nmf_positions():
         
         pos_idx = pos_info['pos_in_file']
         
-        # Extract metadata for this position
-        global_input = data['globalInputNC'][pos_idx]
-        policy_target = data['policyTargetsNCMove'][pos_idx] 
-        qvalue_target = data['qValueTargetsNCMove'][pos_idx]
-        
-        print(f"  globalInputNC: {global_input}")
-        print(f"  policyTargetsNCMove: {policy_target}")
-        print(f"  qValueTargetsNCMove: {qvalue_target}")
-        
-        # Try to decode any obvious patterns
-        print(f"  Global input non-zero channels: {np.where(global_input != 0)[0]}")
-        print(f"  Global input non-zero values: {global_input[global_input != 0]}")
+        # Decode chosen move
+        policy_target = data['policyTargetsNCMove'][pos_idx]
+        move_idx = decode_move(policy_target)
+        coord = idx_to_coord(move_idx)
+
+        pos_info['move_idx'] = move_idx
+        pos_info['coord'] = coord
+        pos_info['sgf'] = sgf_file
+
+        # Print concise info
+        print(f"  Chosen move index: {move_idx}  -> coord {coord} (sgf {sgf_file})")
     
     return strong_positions
 
@@ -167,5 +212,64 @@ if __name__ == "__main__":
     examine_npz_structure()
     data = decode_metadata()
     strong_positions = analyze_nmf_positions()
+
+    # --- Determine SGF directory ---
+    try:
+        sgf_dir  # type: ignore  # already defined in analyze_nmf_positions
+    except NameError:
+        base_dir = "../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz"
+        sgf_dir = os.path.join(base_dir, "sgfs") if os.path.isdir(base_dir) else "."
+
+    # determine sgf_file
+    if strong_positions and 'sgf' in strong_positions[0]:
+        sgf_file = strong_positions[0]['sgf']
+    else:
+        candidates = [f for f in os.listdir(sgf_dir) if f.endswith('.sgfs')]
+        sgf_file = candidates[0] if candidates else None
+
+    # --- Save SGF snippets for each strong position ---
+    if strong_positions and sgf_file:
+        sgf_path = os.path.join(sgf_dir, sgf_file)
+        try:
+            with open(sgf_path, "r") as f:
+                sgf_raw = f.read()
+        except Exception as e:
+            print(f"Could not read {sgf_path}: {e}")
+            sgf_raw = None
+
+        if sgf_raw:
+            # Split into individual SGF records. Each record starts with "(;".
+            import re
+            def split_games(text: str):
+                games = []
+                buf = []
+                depth = 0
+                for ch in text:
+                    if ch == '(':
+                        depth += 1
+                    if depth > 0:
+                        buf.append(ch)
+                    if ch == ')':
+                        depth -= 1
+                        if depth == 0 and buf:
+                            games.append(''.join(buf))
+                            buf = []
+                return games
+
+            parts = split_games(sgf_raw.strip())
+            print(f"Loaded {len(parts)} SGF snippets from {sgf_file}")
+
+            for p in strong_positions:
+                gpos = p["global_pos"]
+                if gpos < len(parts):
+                    snippet = parts[gpos].strip()
+                    out_name = f"sgf_pos{gpos}.sgf"
+                    with open(out_name, "w") as out_f:
+                        out_f.write(snippet)
+                    print(f"  Wrote SGF snippet to {out_name}")
+                else:
+                    raise RuntimeError(
+                        f"No SGF snippet found for global position {gpos}. Parsed {len(parts)} games, but index requested is out of range. Aborting as per ZERO-FALLBACK mandate."
+                    )
     examine_sgf_structure()
     find_correlations() 

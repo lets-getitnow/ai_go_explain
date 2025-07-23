@@ -10,21 +10,16 @@ This step takes the NMF components from step 4 and loads the actual board positi
 
 ### Core Scripts
 
-- **`examine_boards.py`**: Main inspection script
-  - Loads NMF activations from step 4
-  - Maps global position indices to specific .npz files and positions within files
-  - Extracts and saves the raw board data for manual analysis
-  - Shows correlation between part activation strength and board positions
+- **`correlate_sgf.py`**: SGF correlation / data-format explorer + **move decoder**
+  - Run once on a new dataset
+  - Prints a summary `(global_pos:coord)` for strong-activation positions
+  - Confirms move information in `policyTargetsNCMove`
 
-- **`correlate_sgf.py`**: SGF correlation analysis script
-  - Examines .npz file structure to understand available metadata
-  - Analyzes SGF file format and game organization  
-  - Investigates how to map board positions back to specific SGF games and move numbers
-  - **Run this BEFORE examine_boards.py** to understand data structure
-  - **KEY DISCOVERY**: `.npz` files contain move information in `policyTargetsNCMove` array
-
-  Current Gap:
-examine_boards.py doesn't currently use the move information we discovered. It only extracts raw board states.
+- **`examine_boards.py`**: Main extraction script
+  - Loads NMF activations
+  - Finds top-k strongest positions per part
+  - Saves each board as `part{N}_rank{R}_pos{GLOBAL}.npy`
+  - Prints table with GLOBAL indices
 
 ### Output Files
 
@@ -38,13 +33,11 @@ examine_boards.py doesn't currently use the move information we discovered. It o
 ```bash
 cd 5_inspect_parts
 
-# First, understand the data structure and decode move information
+# Run once on a new dataset to understand mapping and see moves
 python3 correlate_sgf.py
 
-# Then extract board positions for analysis
+# Extract strongest positions and save board arrays
 python3 examine_boards.py
-
-# Analysis now includes actual move information for pattern identification
 ```
 
 ## Analysis Process
