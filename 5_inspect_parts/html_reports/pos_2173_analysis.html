@@ -138,16 +138,54 @@
             display: block;
             border-radius: 4px;
         }
-        .board-info {
-            margin-top: 10px;
+        .board-controls {
+            margin-top: 15px;
+        }
+        .control-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        .control-buttons button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .control-buttons button:hover {
+            transform: scale(1.1);
+        }
+        .control-buttons button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .move-display {
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0 10px;
+            font-family: 'Courier New', monospace;
+        }
+        .position-info {
+            text-align: center;
             font-size: 0.9em;
             color: #666;
         }
-        .board-info a {
+        .position-info a {
             color: #667eea;
             text-decoration: none;
         }
-        .board-info a:hover {
+        .position-info a:hover {
             text-decoration: underline;
         }
         .position-highlight {
@@ -289,9 +327,18 @@
                         
                     </svg>
                     
-                    <div class="board-info">
-                        <p><strong>Game Position at Turn 30</strong></p>
-                        <p>Move: (2,5) | SGF: <a href="#" onclick="alert('(;FF[4]GM[1]SZ[8:9]PB[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]PW[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]HA[0]KM[7]RU[koPOSITIONALscoreTERRITORYtaxSEKIsui1]RE[W+26]C[startTurnIdx=7,initTurnNum=0,gameHash=26135B54CFC31455300D675E84CFD219,gtype=normal];B[de];W[dc];B[eg];W[fd];B[cc];W[cd];B[dd];W[ec]C[0.61 0.39 0.00 0.4 v=100 weight=0.00];B[bc]C[0.62 0.38 0.00 0.5 v=100 weight=0.00];W[cg]C[0.64 0.36 0.00 0.6 v=100 weight=0.00];B[cf]C[0.61 0.39 0.00 0.5 v=600 weight=0.86];W[dg]C[0.59 0.41 0.00 0.1 v=490 weight=0.00];B[ef]C[0.59 0.41 0.00 0.1 v=329 weight=0.00];W[eh]C[0.59 0.41 0.00 0.1 v=327 weight=0.00];B[fh]C[0.49 0.51 0.00 -0.5 v=600 weight=0.59];W[ei]C[0.45 0.55 0.00 -1.0 v=600 weight=0.60];B[bh]C[0.50 0.50 0.00 -0.5 v=600 weight=1.28];W[bg]C[0.41 0.59 0.00 -1.2 v=301 weight=0.00];B[ch]C[0.40 0.60 0.00 -1.3 v=251 weight=0.00];W[dh]C[0.38 0.62 0.00 -1.4 v=220 weight=0.00];B[bf]C[0.39 0.61 0.00 -1.4 v=214 weight=0.00];W[ah]C[0.38 0.62 0.00 -1.4 v=211 weight=0.00];B[ge]C[0.39 0.61 0.00 -1.6 v=600 weight=0.96];W[gd]C[0.36 0.64 0.00 -1.9 v=507 weight=0.00];B[ci]C[0.43 0.57 0.00 -1.4 v=600 weight=0.75];W[bd]C[0.40 0.60 0.00 -1.6 v=521 weight=0.00];B[ce]C[0.44 0.56 0.00 -1.6 v=316 weight=0.00];W[bi]C[0.43 0.57 0.00 -1.7 v=247 weight=0.00];B[ai]C[0.45 0.55 0.00 -1.6 v=208 weight=0.00];W[cb]C[0.45 0.55 0.00 -1.7 v=198 weight=0.00])'); return false;">View SGF</a></p>
+                    <div class="board-controls">
+                        <div class="control-buttons">
+                            <button onclick="goToMove(0)" title="Go to start">⏮</button>
+                            <button onclick="previousMove()" title="Previous move">⏪</button>
+                            <span class="move-display">Move: <span id="current-move">30</span> / <span id="total-moves">29</span></span>
+                            <button onclick="nextMove()" title="Next move">⏩</button>
+                            <button onclick="goToMove(-1)" title="Go to end">⏭</button>
+                        </div>
+                        <div class="position-info">
+                            <p><strong>Move of Interest: Turn 30</strong> | <a href="#" onclick="goToMove(30); return false;">Jump to Move of Interest</a></p>
+                            <p>SGF: <a href="#" onclick="alert('(;FF[4]GM[1]SZ[8:9]PB[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]PW[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]HA[0]KM[7]RU[koPOSITIONALscoreTERRITORYtaxSEKIsui1]RE[W+26]C[startTurnIdx=7,initTurnNum=0,gameHash=26135B54CFC31455300D675E84CFD219,gtype=normal];B[de];W[dc];B[eg];W[fd];B[cc];W[cd];B[dd];W[ec]C[0.61 0.39 0.00 0.4 v=100 weight=0.00];B[bc]C[0.62 0.38 0.00 0.5 v=100 weight=0.00];W[cg]C[0.64 0.36 0.00 0.6 v=100 weight=0.00];B[cf]C[0.61 0.39 0.00 0.5 v=600 weight=0.86];W[dg]C[0.59 0.41 0.00 0.1 v=490 weight=0.00];B[ef]C[0.59 0.41 0.00 0.1 v=329 weight=0.00];W[eh]C[0.59 0.41 0.00 0.1 v=327 weight=0.00];B[fh]C[0.49 0.51 0.00 -0.5 v=600 weight=0.59];W[ei]C[0.45 0.55 0.00 -1.0 v=600 weight=0.60];B[bh]C[0.50 0.50 0.00 -0.5 v=600 weight=1.28];W[bg]C[0.41 0.59 0.00 -1.2 v=301 weight=0.00];B[ch]C[0.40 0.60 0.00 -1.3 v=251 weight=0.00];W[dh]C[0.38 0.62 0.00 -1.4 v=220 weight=0.00];B[bf]C[0.39 0.61 0.00 -1.4 v=214 weight=0.00];W[ah]C[0.38 0.62 0.00 -1.4 v=211 weight=0.00];B[ge]C[0.39 0.61 0.00 -1.6 v=600 weight=0.96];W[gd]C[0.36 0.64 0.00 -1.9 v=507 weight=0.00];B[ci]C[0.43 0.57 0.00 -1.4 v=600 weight=0.75];W[bd]C[0.40 0.60 0.00 -1.6 v=521 weight=0.00];B[ce]C[0.44 0.56 0.00 -1.6 v=316 weight=0.00];W[bi]C[0.43 0.57 0.00 -1.7 v=247 weight=0.00];B[ai]C[0.45 0.55 0.00 -1.6 v=208 weight=0.00];W[cb]C[0.45 0.55 0.00 -1.7 v=198 weight=0.00])'); return false;">View SGF</a></p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -518,9 +565,112 @@
     </div>
     
     <script>
-        // Simple board interaction
+        // Game state and moves
+        let allMoves = [{"color": "B", "pos": [3, 2]}, {"color": "W", "pos": [1, 2]}, {"color": "B", "pos": [5, 3]}, {"color": "W", "pos": [2, 4]}, {"color": "B", "pos": [1, 1]}, {"color": "W", "pos": [2, 1]}, {"color": "B", "pos": [2, 2]}, {"color": "W", "pos": [1, 3]}, {"color": "B", "pos": [1, 0]}, {"color": "W", "pos": [5, 1]}, {"color": "B", "pos": [4, 1]}, {"color": "W", "pos": [5, 2]}, {"color": "B", "pos": [4, 3]}, {"color": "W", "pos": [6, 3]}, {"color": "B", "pos": [6, 4]}, {"color": "W", "pos": null}, {"color": "B", "pos": [6, 0]}, {"color": "W", "pos": [5, 0]}, {"color": "B", "pos": [6, 1]}, {"color": "W", "pos": [6, 2]}, {"color": "B", "pos": [4, 0]}, {"color": "W", "pos": null}, {"color": "B", "pos": [3, 5]}, {"color": "W", "pos": [2, 5]}, {"color": "B", "pos": null}, {"color": "W", "pos": [2, 0]}, {"color": "B", "pos": [3, 1]}, {"color": "W", "pos": null}, {"color": "B", "pos": null}, {"color": "W", "pos": [0, 1]}];
+        let currentMoveIndex = 30;
+        let moveOfInterest = 30;
+        
+        function updateBoard(moveIndex) {
+            // Clear all stones
+            const svg = document.querySelector('.go-board-svg');
+            const existingStones = svg.querySelectorAll('circle[r="16"]');
+            existingStones.forEach(stone => stone.remove());
+            
+            // Clear move marker
+            const existingMarkers = svg.querySelectorAll('circle[r="20"]');
+            existingMarkers.forEach(marker => marker.remove());
+            const existingTexts = svg.querySelectorAll('text[font-weight="bold"]');
+            existingTexts.forEach(text => text.remove());
+            
+            // Play moves up to current index
+            const board = {};
+            for (let i = 0; i <= moveIndex && i < allMoves.length; i++) {
+                const move = allMoves[i];
+                if (move.pos) {
+                    board[move.pos[0] + ',' + move.pos[1]] = move.color;
+                }
+            }
+            
+            // Draw stones
+            for (const [posKey, color] of Object.entries(board)) {
+                const [row, col] = posKey.split(',').map(Number);
+                const x = 60 + col * 40;
+                const y = 60 + row * 40;
+                
+                const stone = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                stone.setAttribute('cx', x);
+                stone.setAttribute('cy', y);
+                stone.setAttribute('r', '16');
+                stone.setAttribute('fill', color === 'B' ? 'url(#blackStone)' : 'url(#whiteStone)');
+                stone.setAttribute('stroke', color === 'B' ? '#000' : '#666');
+                stone.setAttribute('stroke-width', '1');
+                svg.appendChild(stone);
+            }
+            
+            // Add move marker if this is the move of interest
+            if (moveIndex === moveOfInterest && moveIndex < allMoves.length) {
+                const move = allMoves[moveIndex];
+                if (move.pos) {
+                    const x = 60 + move.pos[1] * 40;
+                    const y = 60 + move.pos[0] * 40;
+                    
+                    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    marker.setAttribute('cx', x);
+                    marker.setAttribute('cy', y);
+                    marker.setAttribute('r', '20');
+                    marker.setAttribute('fill', 'none');
+                    marker.setAttribute('stroke', '#ff0000');
+                    marker.setAttribute('stroke-width', '3');
+                    marker.setAttribute('opacity', '0.8');
+                    svg.appendChild(marker);
+                    
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', x);
+                    text.setAttribute('y', y - 25);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('font-family', 'Arial');
+                    text.setAttribute('font-size', '12');
+                    text.setAttribute('font-weight', 'bold');
+                    text.setAttribute('fill', '#ff0000');
+                    text.textContent = '← Move of Interest';
+                    svg.appendChild(text);
+                }
+            }
+            
+            // Update UI
+            currentMoveIndex = moveIndex;
+            document.getElementById('current-move').textContent = moveIndex;
+            
+            // Update button states
+            const buttons = document.querySelectorAll('.control-buttons button');
+            buttons[0].disabled = moveIndex <= 0; // First
+            buttons[1].disabled = moveIndex <= 0; // Previous
+            buttons[3].disabled = moveIndex >= allMoves.length - 1; // Next
+            buttons[4].disabled = moveIndex >= allMoves.length - 1; // Last
+        }
+        
+        function goToMove(moveIndex) {
+            if (moveIndex === -1) moveIndex = allMoves.length - 1;
+            moveIndex = Math.max(0, Math.min(allMoves.length - 1, moveIndex));
+            updateBoard(moveIndex);
+        }
+        
+        function previousMove() {
+            if (currentMoveIndex > 0) {
+                updateBoard(currentMoveIndex - 1);
+            }
+        }
+        
+        function nextMove() {
+            if (currentMoveIndex < allMoves.length - 1) {
+                updateBoard(currentMoveIndex + 1);
+            }
+        }
+        
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Go board visualization loaded');
+            console.log('Go board visualization loaded with', allMoves.length, 'moves');
+            updateBoard(currentMoveIndex);
         });
     </script>
 </body>

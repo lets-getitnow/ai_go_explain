@@ -13,10 +13,12 @@ This directory contains interactive HTML visualizations for all positions of int
 Each position HTML file **automatically navigates** to the move of interest when the page loads. No manual navigation required - the Go board will display the exact position where the NMF component showed strong activation.
 
 ### **Interactive Go Board**
-- Full SGF game viewer powered by BesoGo
-- Navigate through the complete game using controls
-- Realistic stone rendering with wooden board theme
-- Coordinate labels for easy move reference
+- **Navigation Controls**: First/Previous/Next/Last move buttons
+- **Game Replay**: Step through the entire game move by move  
+- **Jump to Move of Interest**: Direct link to the NMF activation position
+- **Move Counter**: Shows current move number and total moves
+- **7x7 Board Display**: Proper coordinate mapping from 9x9 SGF to 7x7 analysis
+- **Custom SVG Rendering**: High-quality black and white stones with wooden board
 
 ### **Comprehensive Analysis Data**
 Each position page displays:
@@ -71,9 +73,10 @@ Each position page displays:
 
 ## 🔧 Technical Details
 
-- **Go Library**: BesoGo (via CDN)
+- **Rendering**: Custom SVG-based Go board with JavaScript navigation
 - **Board Size**: 7x7 (center region extracted from 9x9 SGF files)
-- **SGF Format**: Standard SGF with KataGo extensions
+- **SGF Format**: Standard SGF with KataGo extensions  
+- **Navigation**: Client-side JavaScript for move replay
 - **Browser Compatibility**: Modern browsers (Chrome, Firefox, Safari, Edge)
 - **No Server Required**: Open files directly in browser
 

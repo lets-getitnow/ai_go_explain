@@ -153,7 +153,7 @@ def parse_sgf_moves(sgf_content: str, target_turn: int) -> tuple:
         if pos:
             board[pos] = color
     
-    return board, move_of_interest, moves[:target_turn+1]
+    return board, move_of_interest, moves
 
 def generate_grid_lines() -> str:
     """Generate SVG grid lines for 7x7 Go board."""
@@ -229,6 +229,19 @@ def generate_move_marker(move_of_interest: tuple, move_coord: str) -> str:
         <text x="{x}" y="{y-25}" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#ff0000">← Move of Interest</text>
         '''
     return ""
+
+def generate_moves_javascript(moves: list) -> str:
+    """Convert moves list to JavaScript array format."""
+    js_moves = []
+    
+    for color, pos in moves:
+        if pos:
+            js_move = f'{{"color": "{color}", "pos": [{pos[0]}, {pos[1]}]}}'
+        else:
+            js_move = f'{{"color": "{color}", "pos": null}}'
+        js_moves.append(js_move)
+    
+    return '[' + ', '.join(js_moves) + ']'
 
 def get_html_template() -> str:
     """Return the embedded HTML template."""
@@ -372,16 +385,54 @@ def get_html_template() -> str:
             display: block;
             border-radius: 4px;
         }
-        .board-info {
-            margin-top: 10px;
+        .board-controls {
+            margin-top: 15px;
+        }
+        .control-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        .control-buttons button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .control-buttons button:hover {
+            transform: scale(1.1);
+        }
+        .control-buttons button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .move-display {
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0 10px;
+            font-family: 'Courier New', monospace;
+        }
+        .position-info {
+            text-align: center;
             font-size: 0.9em;
             color: #666;
         }
-        .board-info a {
+        .position-info a {
             color: #667eea;
             text-decoration: none;
         }
-        .board-info a:hover {
+        .position-info a:hover {
             text-decoration: underline;
         }
         .position-highlight {
@@ -454,9 +505,18 @@ def get_html_template() -> str:
                         {{MOVE_MARKER}}
                     </svg>
                     
-                    <div class="board-info">
-                        <p><strong>Game Position at Turn {{TURN_NUMBER}}</strong></p>
-                        <p>Move: {{MOVE_COORD}} | SGF: <a href="#" onclick="alert('{{SGF_CONTENT}}'); return false;">View SGF</a></p>
+                    <div class="board-controls">
+                        <div class="control-buttons">
+                            <button onclick="goToMove(0)" title="Go to start">⏮</button>
+                            <button onclick="previousMove()" title="Previous move">⏪</button>
+                            <span class="move-display">Move: <span id="current-move">{{TURN_NUMBER}}</span> / <span id="total-moves">{{TOTAL_MOVES}}</span></span>
+                            <button onclick="nextMove()" title="Next move">⏩</button>
+                            <button onclick="goToMove(-1)" title="Go to end">⏭</button>
+                        </div>
+                        <div class="position-info">
+                            <p><strong>Move of Interest: Turn {{TURN_NUMBER}}</strong> | <a href="#" onclick="goToMove({{TURN_NUMBER}}); return false;">Jump to Move of Interest</a></p>
+                            <p>SGF: <a href="#" onclick="alert('{{SGF_CONTENT}}'); return false;">View SGF</a></p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -570,9 +630,112 @@ def get_html_template() -> str:
     </div>
     
     <script>
-        // Simple board interaction
+        // Game state and moves
+        let allMoves = {{ALL_MOVES_JS}};
+        let currentMoveIndex = {{TURN_NUMBER}};
+        let moveOfInterest = {{TURN_NUMBER}};
+        
+        function updateBoard(moveIndex) {
+            // Clear all stones
+            const svg = document.querySelector('.go-board-svg');
+            const existingStones = svg.querySelectorAll('circle[r="16"]');
+            existingStones.forEach(stone => stone.remove());
+            
+            // Clear move marker
+            const existingMarkers = svg.querySelectorAll('circle[r="20"]');
+            existingMarkers.forEach(marker => marker.remove());
+            const existingTexts = svg.querySelectorAll('text[font-weight="bold"]');
+            existingTexts.forEach(text => text.remove());
+            
+            // Play moves up to current index
+            const board = {};
+            for (let i = 0; i <= moveIndex && i < allMoves.length; i++) {
+                const move = allMoves[i];
+                if (move.pos) {
+                    board[move.pos[0] + ',' + move.pos[1]] = move.color;
+                }
+            }
+            
+            // Draw stones
+            for (const [posKey, color] of Object.entries(board)) {
+                const [row, col] = posKey.split(',').map(Number);
+                const x = 60 + col * 40;
+                const y = 60 + row * 40;
+                
+                const stone = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                stone.setAttribute('cx', x);
+                stone.setAttribute('cy', y);
+                stone.setAttribute('r', '16');
+                stone.setAttribute('fill', color === 'B' ? 'url(#blackStone)' : 'url(#whiteStone)');
+                stone.setAttribute('stroke', color === 'B' ? '#000' : '#666');
+                stone.setAttribute('stroke-width', '1');
+                svg.appendChild(stone);
+            }
+            
+            // Add move marker if this is the move of interest
+            if (moveIndex === moveOfInterest && moveIndex < allMoves.length) {
+                const move = allMoves[moveIndex];
+                if (move.pos) {
+                    const x = 60 + move.pos[1] * 40;
+                    const y = 60 + move.pos[0] * 40;
+                    
+                    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    marker.setAttribute('cx', x);
+                    marker.setAttribute('cy', y);
+                    marker.setAttribute('r', '20');
+                    marker.setAttribute('fill', 'none');
+                    marker.setAttribute('stroke', '#ff0000');
+                    marker.setAttribute('stroke-width', '3');
+                    marker.setAttribute('opacity', '0.8');
+                    svg.appendChild(marker);
+                    
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', x);
+                    text.setAttribute('y', y - 25);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('font-family', 'Arial');
+                    text.setAttribute('font-size', '12');
+                    text.setAttribute('font-weight', 'bold');
+                    text.setAttribute('fill', '#ff0000');
+                    text.textContent = '← Move of Interest';
+                    svg.appendChild(text);
+                }
+            }
+            
+            // Update UI
+            currentMoveIndex = moveIndex;
+            document.getElementById('current-move').textContent = moveIndex;
+            
+            // Update button states
+            const buttons = document.querySelectorAll('.control-buttons button');
+            buttons[0].disabled = moveIndex <= 0; // First
+            buttons[1].disabled = moveIndex <= 0; // Previous
+            buttons[3].disabled = moveIndex >= allMoves.length - 1; // Next
+            buttons[4].disabled = moveIndex >= allMoves.length - 1; // Last
+        }
+        
+        function goToMove(moveIndex) {
+            if (moveIndex === -1) moveIndex = allMoves.length - 1;
+            moveIndex = Math.max(0, Math.min(allMoves.length - 1, moveIndex));
+            updateBoard(moveIndex);
+        }
+        
+        function previousMove() {
+            if (currentMoveIndex > 0) {
+                updateBoard(currentMoveIndex - 1);
+            }
+        }
+        
+        function nextMove() {
+            if (currentMoveIndex < allMoves.length - 1) {
+                updateBoard(currentMoveIndex + 1);
+            }
+        }
+        
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Go board visualization loaded');
+            console.log('Go board visualization loaded with', allMoves.length, 'moves');
+            updateBoard(currentMoveIndex);
         });
     </script>
 </body>
@@ -618,7 +781,15 @@ def process_position(summary_row: Dict[str, str], output_dir: str) -> None:
     
     # Parse SGF and generate board
     turn_number = int(position_info.get('turn_number', 0))
-    board_state, move_of_interest, moves = parse_sgf_moves(sgf_content, turn_number)
+    board_state, move_of_interest, all_moves = parse_sgf_moves(sgf_content, turn_number)
+    
+    # Generate board state up to target turn for initial display
+    initial_board = {}
+    for i, (color, pos) in enumerate(all_moves):
+        if i >= turn_number:
+            break
+        if pos:
+            initial_board[pos] = color
     
     # Prepare template data
     template_data = {
@@ -634,11 +805,15 @@ def process_position(summary_row: Dict[str, str], output_dir: str) -> None:
         'BOARD_NPY': summary_row['board_npy'],
         'NPZ_FILE': position_info.get('npz_file', 'Unknown'),
         
-        # Board elements
+        # Board elements (initial state)
         'GRID_LINES': generate_grid_lines(),
         'COORD_LABELS': generate_coord_labels(),
-        'STONES': generate_stones(board_state),
+        'STONES': generate_stones(initial_board),
         'MOVE_MARKER': generate_move_marker(move_of_interest, position_info.get('move_coordinate', 'Unknown')),
+        
+        # JavaScript game data
+        'ALL_MOVES_JS': generate_moves_javascript(all_moves),
+        'TOTAL_MOVES': len(all_moves) - 1,
         
         # NMF Analysis
         'ACTIVATION_STRENGTH': format_activation_strength(nmf_analysis.get('activation_strength', 0)),
