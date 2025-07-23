@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Position 1414 Analysis</title>
+    <link rel="stylesheet" href="https://yewang.github.io/besogo/css/besogo.css">
+    <link rel="stylesheet" href="https://yewang.github.io/besogo/css/board-wood.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .header .subtitle {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+        .board-section {
+            display: flex;
+            flex-direction: column;
+        }
+        .analysis-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .analysis-card {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .analysis-card h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .data-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .data-value {
+            color: #6c757d;
+            font-family: 'Courier New', monospace;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        .policy-moves {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .policy-move {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            margin: 2px 0;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        .channel-activity {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(30px, 1fr));
+            gap: 2px;
+            margin: 10px 0;
+        }
+        .channel-bar {
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+        .channel-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+        .besogo-board {
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .position-highlight {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Position 1414 Analysis</h1>
+            <div class="subtitle">Part 0, Rank 3 - NMF Component Analysis</div>
+        </div>
+        
+        <div class="content">
+            <div class="board-section">
+                <div class="position-highlight">
+                    <strong>Move of Interest:</strong> (2,3) at Turn 53
+                    <br><strong>Activation Strength:</strong> 0.9839
+                </div>
+                
+                <div class="besogo-viewer" 
+                     panels="control+comment" 
+                     path="53"
+                     coord="western"
+                     realstones="on">
+(;FF[4]GM[1]SZ[9]PB[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]PW[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]HA[0]KM[7]RU[koSITUATIONALscoreAREAtaxNONEsui1]RE[W+4]C[startTurnIdx=3,initTurnNum=0,gameHash=2725103AD8959970163EF5A2D1F291E2,gtype=normal];B[ee];W[cd];B[ec];W[df]C[0.56 0.44 0.00 0.3 v=100 weight=0.00];B[ef]C[0.56 0.44 0.00 0.4 v=100 weight=0.00];W[dg]C[0.57 0.43 0.00 0.4 v=100 weight=0.00];B[eg]C[0.57 0.43 0.00 0.4 v=100 weight=0.00];W[he]C[0.56 0.44 0.00 0.3 v=100 weight=0.00];B[dh]C[0.56 0.44 0.00 0.3 v=100 weight=0.00];W[bg]C[0.57 0.43 0.00 0.3 v=600 weight=0.84];B[gf]C[0.58 0.42 0.00 0.4 v=514 weight=0.59];W[hf]C[0.60 0.40 0.00 0.5 v=225 weight=0.00];B[ce]C[0.60 0.40 0.00 0.5 v=224 weight=0.00];W[de]C[0.60 0.40 0.00 0.5 v=155 weight=0.00];B[hd]C[0.62 0.38 0.00 1.1 v=600 weight=0.70];W[gd]C[0.61 0.39 0.00 0.8 v=149 weight=0.11];B[dd]C[0.63 0.37 0.00 0.9 v=120 weight=0.00];W[dc]C[0.70 0.30 0.00 2.6 v=100 weight=0.31];B[ed]C[0.76 0.24 0.00 3.6 v=100 weight=0.00];W[be]C[0.89 0.11 0.00 6.8 v=600 weight=1.12];B[hc]C[0.91 0.09 0.00 7.0 v=530 weight=0.00];W[gc]C[0.91 0.09 0.00 7.1 v=380 weight=0.00];B[gb]C[0.91 0.09 0.00 7.2 v=376 weight=0.00];W[ge]C[0.90 0.10 0.00 7.2 v=313 weight=0.00];B[cf]C[0.93 0.07 0.00 7.7 v=600 weight=1.35];W[cg]C[0.90 0.10 0.00 8.0 v=127 weight=0.07];B[cc]C[0.90 0.10 0.00 8.2 v=122 weight=0.11];W[bd]C[0.95 0.05 0.00 7.0 v=100 weight=0.00];B[hb]C[0.96 0.04 0.00 7.1 v=100 weight=0.00];W[gg]C[0.99 0.01 0.00 5.3 v=100 weight=0.00];B[gh]C[0.99 0.01 0.00 5.7 v=600 weight=0.91];W[hh]C[0.99 0.01 0.00 4.7 v=423 weight=0.00];B[fh]C[1.00 0.00 0.00 4.8 v=387 weight=0.00];W[ff]C[0.98 0.02 0.00 4.4 v=229 weight=0.22];B[bc]C[1.00 0.00 0.00 5.3 v=445 weight=0.46];W[ac]C[0.99 0.01 0.00 4.5 v=445 weight=0.41];B[ab]C[1.00 0.00 0.00 4.8 v=193 weight=0.00];W[ad]C[0.99 0.01 0.00 4.7 v=100 weight=0.00];B[hi]C[1.00 0.00 0.00 5.4 v=255 weight=0.31];W[fc]C[1.00 0.00 0.00 4.6 v=100 weight=0.00];B[fb]C[1.00 0.00 0.00 5.6 v=203 weight=0.16];W[ih]C[1.00 0.00 0.00 4.4 v=127 weight=0.00];B[bb]C[1.00 0.00 0.00 4.4 v=126 weight=0.00];W[ch]C[1.00 0.00 0.00 4.3 v=100 weight=0.00];B[fg]C[1.00 0.00 0.00 4.3 v=100 weight=0.00];W[fe]C[1.00 0.00 0.00 4.1 v=100 weight=0.00];B[ci]C[1.00 0.00 0.00 4.7 v=151 weight=0.11];W[bi]C[1.00 0.00 0.00 4.1 v=100 weight=0.00];B[di]C[1.00 0.00 0.00 4.6 v=153 weight=0.11];W[id]C[1.00 0.00 0.00 3.8 v=100 weight=0.00];B[ic]C[1.00 0.00 0.00 3.8 v=100 weight=0.00];W[ie]C[1.00 0.00 0.00 3.7 v=100 weight=0.00];B[gi]C[1.00 0.00 0.00 3.7 v=100 weight=0.00])
+                </div>
+            </div>
+            
+            <div class="analysis-section">
+                <div class="analysis-card">
+                    <h3>🧠 NMF Component Analysis</h3>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="data-label">Part:</span>
+                            <span class="data-value">0</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Rank:</span>
+                            <span class="data-value">3</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Global Position:</span>
+                            <span class="data-value">1414</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Activation Percentile:</span>
+                            <span class="data-value">99.89%</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong>Activation Strength: 0.9839</strong>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 98.4%"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <strong>Channel Activity (56 active channels)</strong>
+                        <div class="channel-activity">
+                            <div class="channel-bar" title="Channel 0: 49">
+            <div class="channel-fill" style="width: 100.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 1: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" title="Channel 2: 2">
+            <div class="channel-fill" style="width: 4.081632653061225%"></div>
+        </div>
+<div class="channel-bar" title="Channel 3: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 4: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 5: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" title="Channel 6: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 7: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 8: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 9: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" title="Channel 10: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" title="Channel 11: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" title="Channel 12: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 13: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 14: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 15: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 16: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 17: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 18: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 19: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 20: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 21: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3>🎯 Go Pattern Analysis</h3>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="data-label">Move Type:</span>
+                            <span class="data-value">Side</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Game Phase:</span>
+                            <span class="data-value">Middle Game</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Policy Entropy:</span>
+                            <span class="data-value">0.568</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Policy Confidence:</span>
+                            <span class="data-value">0.8661567877629063%</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong>Top Policy Moves:</strong>
+                        <div class="policy-moves">
+                            <div class="policy-move">
+            <span><strong>(2,3)</strong></span>
+            <span>86.6% (453)</span>
+        </div>
+<div class="policy-move">
+            <span><strong>(1,4)</strong></span>
+            <span>13.4% (70)</span>
+        </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3>📊 Component Comparison</h3>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="data-label">Uniqueness Score:</span>
+                            <span class="data-value">0.8145</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Component Rank:</span>
+                            <span class="data-value">3</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Max Other Activation:</span>
+                            <span class="data-value">0.2241</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong>Activation in All Components:</strong>
+                        
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Component 0:</span>
+                <span>0.9839</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 98.4%"></div>
+            </div>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Component 1:</span>
+                <span>0.2241</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 22.4%"></div>
+            </div>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Component 2:</span>
+                <span>0.0000</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 0.0%"></div>
+            </div>
+        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3>📁 File References</h3>
+                    <div class="data-item">
+                        <span class="data-label">SGF File:</span>
+                        <span class="data-value">sgf_pos1414.sgf</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">Board Tensor:</span>
+                        <span class="data-value">part0_rank3_pos1414.npy</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">NPZ Source:</span>
+                        <span class="data-value">5DC45ABC0B69CCEF.npz</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://yewang.github.io/besogo/js/besogo.js"></script>
+    <script src="https://yewang.github.io/besogo/js/editor.js"></script>
+    <script src="https://yewang.github.io/besogo/js/gameRoot.js"></script>
+    <script src="https://yewang.github.io/besogo/js/boardDisplay.js"></script>
+    <script src="https://yewang.github.io/besogo/js/controlPanel.js"></script>
+    <script src="https://yewang.github.io/besogo/js/commentPanel.js"></script>
+    <script src="https://yewang.github.io/besogo/js/coord.js"></script>
+    <script src="https://yewang.github.io/besogo/js/svgUtil.js"></script>
+    <script src="https://yewang.github.io/besogo/js/parseSgf.js"></script>
+    <script src="https://yewang.github.io/besogo/js/loadSgf.js"></script>
+    <script>
+        // Initialize BesoGo after page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            besogo.autoInit();
+        });
+    </script>
+</body>
+</html>

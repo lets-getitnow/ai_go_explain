@@ -1,0 +1,708 @@
+#!/usr/bin/env python3
+"""
+Generate HTML visualization reports for each position of interest from step 5.
+
+This script creates an HTML file for each analyzed position, displaying:
+- Interactive Go board automatically positioned at the move of interest
+- Complete NMF analysis data
+- Go pattern analysis
+- Component comparison data
+
+Requirements: The Go board must automatically navigate to the specific move when the page loads.
+"""
+
+import json
+import os
+import csv
+from typing import Dict, Any, List
+
+def load_sgf_content(sgf_file: str) -> str:
+    """Load SGF content from file."""
+    try:
+        with open(sgf_file, 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    except Exception as e:
+        print(f"Error loading SGF file {sgf_file}: {e}")
+        return ""
+
+def load_analysis_data(analysis_file: str) -> Dict[str, Any]:
+    """Load analysis JSON data from file."""
+    try:
+        with open(analysis_file, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error loading analysis file {analysis_file}: {e}")
+        return {}
+
+def format_activation_strength(strength: float) -> str:
+    """Format activation strength as percentage."""
+    return f"{strength:.4f}"
+
+def format_percentage(value: float) -> str:
+    """Format value as percentage."""
+    return f"{value * 100:.1f}"
+
+def generate_channel_bars(channel_activity: List[int]) -> str:
+    """Generate HTML for channel activity visualization."""
+    if not channel_activity:
+        return ""
+    
+    max_activity = max(channel_activity) if channel_activity else 1
+    bars = []
+    
+    for i, activity in enumerate(channel_activity):
+        if max_activity > 0:
+            height_percent = (activity / max_activity) * 100
+        else:
+            height_percent = 0
+        
+        bar_html = f'''<div class="channel-bar" title="Channel {i}: {activity}">
+            <div class="channel-fill" style="width: {height_percent}%"></div>
+        </div>'''
+        bars.append(bar_html)
+    
+    return '\n'.join(bars)
+
+def generate_policy_moves(policy_moves: List[Dict[str, Any]]) -> str:
+    """Generate HTML for top policy moves."""
+    if not policy_moves:
+        return "<div>No policy moves available</div>"
+    
+    moves_html = []
+    for move in policy_moves:
+        coord = move.get('coord', 'Unknown')
+        percentage = move.get('percentage', 0)
+        count = move.get('count', 0)
+        
+        move_html = f'''<div class="policy-move">
+            <span><strong>{coord}</strong></span>
+            <span>{percentage}% ({count})</span>
+        </div>'''
+        moves_html.append(move_html)
+    
+    return '\n'.join(moves_html)
+
+def generate_component_activations(activations: List[float]) -> str:
+    """Generate HTML for component activation visualization."""
+    if not activations:
+        return "<div>No activation data available</div>"
+    
+    activations_html = []
+    for i, activation in enumerate(activations):
+        percent = activation * 100
+        activations_html.append(f'''
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Component {i}:</span>
+                <span>{activation:.4f}</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {percent:.1f}%"></div>
+            </div>
+        </div>''')
+    
+    return '\n'.join(activations_html)
+
+def get_html_template() -> str:
+    """Return the embedded HTML template."""
+    return '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}}</title>
+    <link rel="stylesheet" href="https://yewang.github.io/besogo/css/besogo.css">
+    <link rel="stylesheet" href="https://yewang.github.io/besogo/css/board-wood.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .header .subtitle {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+        .board-section {
+            display: flex;
+            flex-direction: column;
+        }
+        .analysis-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .analysis-card {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .analysis-card h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .data-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .data-value {
+            color: #6c757d;
+            font-family: 'Courier New', monospace;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        .policy-moves {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .policy-move {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            margin: 2px 0;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        .channel-activity {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(30px, 1fr));
+            gap: 2px;
+            margin: 10px 0;
+        }
+        .channel-bar {
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+        .channel-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+        .besogo-board {
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .position-highlight {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{TITLE}}</h1>
+            <div class="subtitle">{{SUBTITLE}}</div>
+        </div>
+        
+        <div class="content">
+            <div class="board-section">
+                <div class="position-highlight">
+                    <strong>Move of Interest:</strong> {{MOVE_COORD}} at Turn {{TURN_NUMBER}}
+                    <br><strong>Activation Strength:</strong> {{ACTIVATION_STRENGTH}}
+                </div>
+                
+                <div class="besogo-viewer" 
+                     panels="control+comment" 
+                     path="{{TURN_NUMBER}}"
+                     coord="western"
+                     realstones="on">
+{{SGF_CONTENT}}
+                </div>
+            </div>
+            
+            <div class="analysis-section">
+                <div class="analysis-card">
+                    <h3>🧠 NMF Component Analysis</h3>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="data-label">Part:</span>
+                            <span class="data-value">{{PART}}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Rank:</span>
+                            <span class="data-value">{{RANK}}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Global Position:</span>
+                            <span class="data-value">{{GLOBAL_POS}}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Activation Percentile:</span>
+                            <span class="data-value">{{ACTIVATION_PERCENTILE}}%</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong>Activation Strength: {{ACTIVATION_STRENGTH}}</strong>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ACTIVATION_PERCENT}}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <strong>Channel Activity ({{TOTAL_BOARD_ACTIVITY}} active channels)</strong>
+                        <div class="channel-activity">
+                            {{CHANNEL_BARS}}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3>🎯 Go Pattern Analysis</h3>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="data-label">Move Type:</span>
+                            <span class="data-value">{{MOVE_TYPE}}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Game Phase:</span>
+                            <span class="data-value">{{GAME_PHASE}}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Policy Entropy:</span>
+                            <span class="data-value">{{POLICY_ENTROPY}}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Policy Confidence:</span>
+                            <span class="data-value">{{POLICY_CONFIDENCE}}%</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong>Top Policy Moves:</strong>
+                        <div class="policy-moves">
+                            {{POLICY_MOVES}}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3>📊 Component Comparison</h3>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="data-label">Uniqueness Score:</span>
+                            <span class="data-value">{{UNIQUENESS_SCORE}}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Component Rank:</span>
+                            <span class="data-value">{{COMPONENT_RANK}}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Max Other Activation:</span>
+                            <span class="data-value">{{MAX_OTHER_ACTIVATION}}</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong>Activation in All Components:</strong>
+                        {{COMPONENT_ACTIVATIONS}}
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3>📁 File References</h3>
+                    <div class="data-item">
+                        <span class="data-label">SGF File:</span>
+                        <span class="data-value">{{SGF_FILE}}</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">Board Tensor:</span>
+                        <span class="data-value">{{BOARD_NPY}}</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">NPZ Source:</span>
+                        <span class="data-value">{{NPZ_FILE}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://yewang.github.io/besogo/js/besogo.js"></script>
+    <script src="https://yewang.github.io/besogo/js/editor.js"></script>
+    <script src="https://yewang.github.io/besogo/js/gameRoot.js"></script>
+    <script src="https://yewang.github.io/besogo/js/boardDisplay.js"></script>
+    <script src="https://yewang.github.io/besogo/js/controlPanel.js"></script>
+    <script src="https://yewang.github.io/besogo/js/commentPanel.js"></script>
+    <script src="https://yewang.github.io/besogo/js/coord.js"></script>
+    <script src="https://yewang.github.io/besogo/js/svgUtil.js"></script>
+    <script src="https://yewang.github.io/besogo/js/parseSgf.js"></script>
+    <script src="https://yewang.github.io/besogo/js/loadSgf.js"></script>
+    <script>
+        // Initialize BesoGo after page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            besogo.autoInit();
+        });
+    </script>
+</body>
+</html>'''
+
+def generate_html_file(output_path: str, data: Dict[str, Any]) -> None:
+    """Generate HTML file from template and data."""
+    try:
+        template = get_html_template()
+        
+        # Replace all template variables
+        for key, value in data.items():
+            placeholder = f"{{{{{key}}}}}"
+            template = template.replace(placeholder, str(value))
+        
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(template)
+        
+        print(f"Generated: {output_path}")
+        
+    except Exception as e:
+        print(f"Error generating HTML file {output_path}: {e}")
+
+def process_position(summary_row: Dict[str, str], output_dir: str) -> None:
+    """Process a single position and generate its HTML file."""
+    global_pos = summary_row['global_pos']
+    part = summary_row['part']
+    rank = summary_row['rank']
+    
+    # Load data files
+    sgf_content = load_sgf_content(summary_row['sgf_file'])
+    analysis_data = load_analysis_data(summary_row['analysis_file'])
+    
+    if not analysis_data:
+        print(f"Skipping position {global_pos} - no analysis data")
+        return
+    
+    # Extract data for template
+    position_info = analysis_data.get('position_info', {})
+    nmf_analysis = analysis_data.get('nmf_analysis', {})
+    go_pattern = analysis_data.get('go_pattern_analysis', {})
+    component_comp = analysis_data.get('component_comparison', {})
+    
+    # Prepare template data
+    template_data = {
+        'TITLE': f"Position {global_pos} Analysis",
+        'SUBTITLE': f"Part {part}, Rank {rank} - NMF Component Analysis",
+        'PART': part,
+        'RANK': rank,
+        'GLOBAL_POS': global_pos,
+        'TURN_NUMBER': position_info.get('turn_number', '0'),
+        'MOVE_COORD': position_info.get('move_coordinate', 'Unknown'),
+        'SGF_CONTENT': sgf_content,
+        'SGF_FILE': summary_row['sgf_file'],
+        'BOARD_NPY': summary_row['board_npy'],
+        'NPZ_FILE': position_info.get('npz_file', 'Unknown'),
+        
+        # NMF Analysis
+        'ACTIVATION_STRENGTH': format_activation_strength(nmf_analysis.get('activation_strength', 0)),
+        'ACTIVATION_PERCENT': format_percentage(nmf_analysis.get('activation_strength', 0)),
+        'ACTIVATION_PERCENTILE': f"{component_comp.get('activation_percentile', 0):.2f}",
+        'TOTAL_BOARD_ACTIVITY': nmf_analysis.get('total_board_activity', 0),
+        'CHANNEL_BARS': generate_channel_bars(nmf_analysis.get('channel_activity', [])),
+        
+        # Go Pattern Analysis
+        'MOVE_TYPE': go_pattern.get('move_type', 'Unknown').title(),
+        'GAME_PHASE': go_pattern.get('game_phase', 'Unknown').replace('_', ' ').title(),
+        'POLICY_ENTROPY': f"{go_pattern.get('policy_entropy', 0):.3f}",
+        'POLICY_CONFIDENCE': go_pattern.get('policy_confidence', 0),
+        'POLICY_MOVES': generate_policy_moves(go_pattern.get('top_policy_moves', [])),
+        
+        # Component Comparison
+        'UNIQUENESS_SCORE': f"{component_comp.get('uniqueness_score', 0):.4f}",
+        'COMPONENT_RANK': component_comp.get('component_rank', 'Unknown'),
+        'MAX_OTHER_ACTIVATION': f"{component_comp.get('max_other_component_activation', 0):.4f}",
+        'COMPONENT_ACTIVATIONS': generate_component_activations(
+            nmf_analysis.get('activation_in_other_components', [])
+        )
+    }
+    
+    # Generate output filename
+    output_filename = f"pos_{global_pos}_analysis.html"
+    output_path = os.path.join(output_dir, output_filename)
+    
+    # Generate HTML file
+    generate_html_file(output_path, template_data)
+
+def generate_index_page(summary_data: List[Dict[str, str]], output_dir: str) -> None:
+    """Generate index page linking to all position analyses."""
+    index_html = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Position Analysis - Step 5 Results</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin: 0 0 10px 0;
+        }
+        .header p {
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+        .positions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .position-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .position-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .position-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .position-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .detail-value {
+            color: #6c757d;
+            font-family: 'Courier New', monospace;
+        }
+        .view-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .view-button:hover {
+            transform: scale(1.05);
+            text-decoration: none;
+            color: white;
+        }
+        .part-section {
+            margin-bottom: 40px;
+        }
+        .part-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .part-header h2 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Go Position Analysis Results</h1>
+            <p>Step 5: NMF Component Analysis - Positions of Interest</p>
+            <p>9 positions analyzed across 3 NMF parts, each showing the top 3 strongest activations</p>
+        </div>
+        
+'''
+    
+    # Group positions by part
+    parts = {}
+    for row in summary_data:
+        part = row['part']
+        if part not in parts:
+            parts[part] = []
+        parts[part].append(row)
+    
+    # Generate sections for each part
+    for part_num in sorted(parts.keys()):
+        positions = parts[part_num]
+        index_html += f'''
+        <div class="part-section">
+            <div class="part-header">
+                <h2>NMF Part {part_num}</h2>
+            </div>
+            <div class="positions-grid">
+'''
+        
+        # Sort by rank
+        positions.sort(key=lambda x: int(x['rank']))
+        
+        for pos in positions:
+            index_html += f'''
+                <div class="position-card">
+                    <div class="position-title">Position {pos['global_pos']}</div>
+                    <div class="position-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Rank:</span>
+                            <span class="detail-value">{pos['rank']}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Move:</span>
+                            <span class="detail-value">{pos['coord']}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Turn:</span>
+                            <span class="detail-value">{pos['turn']}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Part:</span>
+                            <span class="detail-value">{pos['part']}</span>
+                        </div>
+                    </div>
+                    <a href="pos_{pos['global_pos']}_analysis.html" class="view-button">
+                        View Analysis →
+                    </a>
+                </div>
+'''
+        
+        index_html += '''
+            </div>
+        </div>
+'''
+    
+    index_html += '''
+    </div>
+</body>
+</html>
+'''
+    
+    index_path = os.path.join(output_dir, 'index.html')
+    with open(index_path, 'w', encoding='utf-8') as f:
+        f.write(index_html)
+    
+    print(f"Generated index page: {index_path}")
+
+def main():
+    """Main function to generate all HTML reports."""
+    # Set up paths
+    base_dir = os.path.dirname(__file__)
+    summary_file = os.path.join(base_dir, 'strong_positions_summary.csv')
+    output_dir = os.path.join(base_dir, 'html_reports')
+    
+    # Create output directory
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Load summary data
+    try:
+        with open(summary_file, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            summary_data = list(reader)
+    except Exception as e:
+        print(f"Error loading summary file: {e}")
+        return
+    
+    print(f"Processing {len(summary_data)} positions...")
+    
+    # Process each position
+    os.chdir(base_dir)  # Change to base directory for relative file paths
+    
+    for row in summary_data:
+        process_position(row, output_dir)
+    
+    # Generate index page
+    generate_index_page(summary_data, output_dir)
+    
+    print(f"\nAll HTML reports generated in: {output_dir}")
+    print("Open index.html to view all analyses")
+
+if __name__ == "__main__":
+    main() 
