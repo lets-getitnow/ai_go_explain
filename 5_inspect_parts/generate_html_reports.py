@@ -56,7 +56,7 @@ def generate_channel_bars(channel_activity: List[int]) -> str:
         else:
             height_percent = 0
         
-        bar_html = f'''<div class="channel-bar" title="Channel {i}: {activity}">
+        bar_html = f'''<div class="channel-bar" data-tooltip="Channel {i}: {activity}">
             <div class="channel-fill" style="width: {height_percent}%"></div>
         </div>'''
         bars.append(bar_html)
@@ -231,6 +231,41 @@ def get_html_template() -> str:
         .data-label {
             font-weight: 600;
             color: #495057;
+            cursor: help;
+        }
+        
+        .tooltip-icon {
+            color: #667eea;
+            font-size: 0.8em;
+            margin-left: 4px;
+            cursor: help;
+        }
+        
+        /* Ensure tooltips are visible */
+        [data-tooltip] {
+            position: relative;
+        }
+        
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f0f0f0;
+            color: #333;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: normal;
+            max-width: 300px;
+            width: max-content;
+            z-index: 10000;
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            word-wrap: break-word;
+            line-height: 1.4;
+            border: 1px solid #ccc;
         }
         .data-value {
             color: #6c757d;
@@ -357,9 +392,9 @@ def get_html_template() -> str:
         </div>
         
         <div class="position-navigation">
-            <a href="{{PREV_POS_HTML}}" class="nav-button" {{PREV_DISABLED}} title="{{PREV_TITLE}}">← Previous Position</a>
+            <a href="{{PREV_POS_HTML}}" class="nav-button" {{PREV_DISABLED}} data-tooltip="{{PREV_TITLE}}">← Previous Position</a>
             <span class="position-counter">Position {{CURRENT_INDEX}} of {{TOTAL_POSITIONS}}</span>
-            <a href="{{NEXT_POS_HTML}}" class="nav-button" {{NEXT_DISABLED}} title="{{NEXT_TITLE}}">Next Position →</a>
+            <a href="{{NEXT_POS_HTML}}" class="nav-button" {{NEXT_DISABLED}} data-tooltip="{{NEXT_TITLE}}">Next Position →</a>
         </div>
         
         <div class="content">
@@ -384,32 +419,32 @@ def get_html_template() -> str:
                     <h3>🧠 NMF Component Analysis</h3>
                     <div class="data-grid">
                         <div class="data-item">
-                            <span class="data-label">Part:</span>
+                            <span class="data-label" data-tooltip="Index of the NMF part (group of components) that this activation belongs to. Parts partition the model into sets of interpretable patterns.">Part: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{PART}}</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Rank:</span>
+                            <span class="data-label" data-tooltip="Rank of this position within the part, ordered by activation strength (1 = strongest example of this component).">Rank: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{RANK}}</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Global Position:</span>
+                            <span class="data-label" data-tooltip="Unique identifier for this position in the entire dataset, useful for cross-referencing analyses and SGF files.">Global Position: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{GLOBAL_POS}}</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Activation Percentile:</span>
+                            <span class="data-label" data-tooltip="Percentile of the activation strength when compared with ALL positions in the dataset (e.g. 99 % means stronger than 99 % of positions).">Activation Percentile: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{ACTIVATION_PERCENTILE}}%</span>
                         </div>
                     </div>
                     
                     <div>
-                        <strong>Activation Strength: {{ACTIVATION_STRENGTH}}</strong>
+                        <strong data-tooltip="Raw activation value (0-1) output by the model for this component at this move; higher values indicate the pattern is strongly present in the board position.">Activation Strength: {{ACTIVATION_STRENGTH}} <span class="tooltip-icon">ⓘ</span></strong>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: {{ACTIVATION_PERCENT}}%"></div>
                         </div>
                     </div>
                     
                     <div style="margin-top: 15px;">
-                        <strong>Channel Activity ({{TOTAL_BOARD_ACTIVITY}} active channels)</strong>
+                        <strong data-tooltip="How many convolutional channels fired above threshold and which ones; gives a low-level view of network attention on the board.">Channel Activity ({{TOTAL_BOARD_ACTIVITY}} active channels) <span class="tooltip-icon">ⓘ</span></strong>
                         <div class="channel-activity">
                             {{CHANNEL_BARS}}
                         </div>
@@ -420,25 +455,25 @@ def get_html_template() -> str:
                     <h3>🎯 Go Pattern Analysis</h3>
                     <div class="data-grid">
                         <div class="data-item">
-                            <span class="data-label">Move Type:</span>
+                            <span class="data-label" data-tooltip="Categorisation of the move (normal play, pass, resign) to understand strategic intent or special game events.">Move Type: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{MOVE_TYPE}}</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Game Phase:</span>
+                            <span class="data-label" data-tooltip="Stage of the game inferred from move number and board state: opening, middle-game or endgame.">Game Phase: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{GAME_PHASE}}</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Policy Entropy:</span>
+                            <span class="data-label" data-tooltip="Shannon entropy of the model's move probability distribution; low entropy indicates high confidence concentrated on a few moves.">Policy Entropy: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{POLICY_ENTROPY}}</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Policy Confidence:</span>
+                            <span class="data-label" data-tooltip="Probability assigned by the neural network to the selected move – effectively its confidence in that play.">Policy Confidence: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{POLICY_CONFIDENCE}}%</span>
                         </div>
                     </div>
                     
                     <div>
-                        <strong>Top Policy Moves:</strong>
+                        <strong data-tooltip="List of moves the policy network thinks are best, with their probabilities and visit counts; helps explain the AI's tactical choices.">Top Policy Moves: <span class="tooltip-icon">ⓘ</span></strong>
                         <div class="policy-moves">
                             {{POLICY_MOVES}}
                         </div>
@@ -449,21 +484,21 @@ def get_html_template() -> str:
                     <h3>📊 Component Comparison</h3>
                     <div class="data-grid">
                         <div class="data-item">
-                            <span class="data-label">Uniqueness Score:</span>
+                            <span class="data-label" data-tooltip="Measure (0-1) of how distinct this component's activation pattern is compared to other components – higher means less overlap.">Uniqueness Score: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{UNIQUENESS_SCORE}}</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Component Rank:</span>
+                            <span class="data-label" data-tooltip="Ordering of components by average activation strength across all positions, where 1 is the most frequently strongest pattern.">Component Rank: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{COMPONENT_RANK}}</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Max Other Activation:</span>
+                            <span class="data-label" data-tooltip="Highest activation value among ALL other components at this position – used to assess selectivity of the current component.">Max Other Activation: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{MAX_OTHER_ACTIVATION}}</span>
                         </div>
                     </div>
                     
                     <div>
-                        <strong>Activation in All Components:</strong>
+                        <strong data-tooltip="Bar chart of activation values for EVERY component so you can see the full activation profile of this position.">Activation in All Components: <span class="tooltip-icon">ⓘ</span></strong>
                         {{COMPONENT_ACTIVATIONS}}
                     </div>
                 </div>
@@ -471,15 +506,15 @@ def get_html_template() -> str:
                 <div class="analysis-card">
                     <h3>📁 File References</h3>
                     <div class="data-item">
-                        <span class="data-label">SGF File:</span>
+                        <span class="data-label" data-tooltip="Original Smart-Game-Format game file from which this position was extracted.">SGF File: <span class="tooltip-icon">ⓘ</span></span>
                         <span class="data-value">{{SGF_FILE}}</span>
                     </div>
                     <div class="data-item">
-                        <span class="data-label">Board Tensor:</span>
+                        <span class="data-label" data-tooltip="NumPy binary file containing the encoded board tensor used as input to the model.">Board Tensor: <span class="tooltip-icon">ⓘ</span></span>
                         <span class="data-value">{{BOARD_NPY}}</span>
                     </div>
                     <div class="data-item">
-                        <span class="data-label">NPZ Source:</span>
+                        <span class="data-label" data-tooltip="Compressed KataGo self-play NPZ file that provided raw tensors and move statistics for this position.">NPZ Source: <span class="tooltip-icon">ⓘ</span></span>
                         <span class="data-value">{{NPZ_FILE}}</span>
                     </div>
                 </div>

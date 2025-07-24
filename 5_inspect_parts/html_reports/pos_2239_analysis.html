@@ -92,25 +92,30 @@
         }
         
         /* Ensure tooltips are visible */
-        [title] {
+        [data-tooltip] {
             position: relative;
         }
         
-        [title]:hover::after {
-            content: attr(title);
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
             position: absolute;
             bottom: 100%;
             left: 50%;
             transform: translateX(-50%);
-            background: #333;
-            color: white;
+            background: #f0f0f0;
+            color: #333;
             padding: 8px 12px;
             border-radius: 4px;
             font-size: 12px;
-            white-space: nowrap;
+            white-space: normal;
+            max-width: 300px;
+            width: max-content;
             z-index: 10000;
             pointer-events: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            word-wrap: break-word;
+            line-height: 1.4;
+            border: 1px solid #ccc;
         }
         .data-value {
             color: #6c757d;
@@ -237,9 +242,9 @@
         </div>
         
         <div class="position-navigation">
-            <a href="pos_2020_analysis.html" class="nav-button"  title="Position 2020 (Part 2, Rank 2)">← Previous Position</a>
+            <a href="pos_2020_analysis.html" class="nav-button"  data-tooltip="Position 2020 (Part 2, Rank 2)">← Previous Position</a>
             <span class="position-counter">Position 9 of 9</span>
-            <a href="#" class="nav-button" style="opacity: 0.5; pointer-events: none;" title="None">Next Position →</a>
+            <a href="#" class="nav-button" style="opacity: 0.5; pointer-events: none;" data-tooltip="None">Next Position →</a>
         </div>
         
         <div class="content">
@@ -264,97 +269,97 @@
                     <h3>🧠 NMF Component Analysis</h3>
                     <div class="data-grid">
                         <div class="data-item">
-                            <span class="data-label" title="Index of the NMF part (group of components) that this activation belongs to. Parts partition the model into sets of interpretable patterns.">Part: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Index of the NMF part (group of components) that this activation belongs to. Parts partition the model into sets of interpretable patterns.">Part: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">2</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label" title="Rank of this position within the part, ordered by activation strength (1 = strongest example of this component).">Rank: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Rank of this position within the part, ordered by activation strength (1 = strongest example of this component).">Rank: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">3</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label" title="Unique identifier for this position in the entire dataset, useful for cross-referencing analyses and SGF files.">Global Position: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Unique identifier for this position in the entire dataset, useful for cross-referencing analyses and SGF files.">Global Position: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">2239</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label" title="Percentile of the activation strength when compared with ALL positions in the dataset (e.g. 99 % means stronger than 99 % of positions).">Activation Percentile: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Percentile of the activation strength when compared with ALL positions in the dataset (e.g. 99 % means stronger than 99 % of positions).">Activation Percentile: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">99.95%</span>
                         </div>
                     </div>
                     
                     <div>
-                        <strong title="Raw activation value (0-1) output by the model for this component at this move; higher values indicate the pattern is strongly present in the board position.">Activation Strength: 0.9410 <span class="tooltip-icon">ⓘ</span></strong>
+                        <strong data-tooltip="Raw activation value (0-1) output by the model for this component at this move; higher values indicate the pattern is strongly present in the board position.">Activation Strength: 0.9410 <span class="tooltip-icon">ⓘ</span></strong>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: 94.1%"></div>
                         </div>
                     </div>
                     
                     <div style="margin-top: 15px;">
-                        <strong title="How many convolutional channels fired above threshold and which ones; gives a low-level view of network attention on the board.">Channel Activity (57 active channels) <span class="tooltip-icon">ⓘ</span></strong>
+                        <strong data-tooltip="How many convolutional channels fired above threshold and which ones; gives a low-level view of network attention on the board.">Channel Activity (57 active channels) <span class="tooltip-icon">ⓘ</span></strong>
                         <div class="channel-activity">
-                            <div class="channel-bar" title="Channel 0: 49">
+                            <div class="channel-bar" data-tooltip="Channel 0: 49">
             <div class="channel-fill" style="width: 100.0%"></div>
         </div>
-<div class="channel-bar" title="Channel 1: 1">
+<div class="channel-bar" data-tooltip="Channel 1: 1">
             <div class="channel-fill" style="width: 2.0408163265306123%"></div>
         </div>
-<div class="channel-bar" title="Channel 2: 1">
+<div class="channel-bar" data-tooltip="Channel 2: 1">
             <div class="channel-fill" style="width: 2.0408163265306123%"></div>
         </div>
-<div class="channel-bar" title="Channel 3: 0">
+<div class="channel-bar" data-tooltip="Channel 3: 0">
             <div class="channel-fill" style="width: 0.0%"></div>
         </div>
-<div class="channel-bar" title="Channel 4: 0">
+<div class="channel-bar" data-tooltip="Channel 4: 0">
             <div class="channel-fill" style="width: 0.0%"></div>
         </div>
-<div class="channel-bar" title="Channel 5: 2">
+<div class="channel-bar" data-tooltip="Channel 5: 2">
             <div class="channel-fill" style="width: 4.081632653061225%"></div>
         </div>
-<div class="channel-bar" title="Channel 6: 0">
+<div class="channel-bar" data-tooltip="Channel 6: 0">
             <div class="channel-fill" style="width: 0.0%"></div>
         </div>
-<div class="channel-bar" title="Channel 7: 0">
+<div class="channel-bar" data-tooltip="Channel 7: 0">
             <div class="channel-fill" style="width: 0.0%"></div>
         </div>
-<div class="channel-bar" title="Channel 8: 0">
+<div class="channel-bar" data-tooltip="Channel 8: 0">
             <div class="channel-fill" style="width: 0.0%"></div>
         </div>
-<div class="channel-bar" title="Channel 9: 1">
+<div class="channel-bar" data-tooltip="Channel 9: 1">
             <div class="channel-fill" style="width: 2.0408163265306123%"></div>
         </div>
-<div class="channel-bar" title="Channel 10: 1">
+<div class="channel-bar" data-tooltip="Channel 10: 1">
             <div class="channel-fill" style="width: 2.0408163265306123%"></div>
         </div>
-<div class="channel-bar" title="Channel 11: 0">
+<div class="channel-bar" data-tooltip="Channel 11: 0">
             <div class="channel-fill" style="width: 0.0%"></div>
         </div>
-<div class="channel-bar" title="Channel 12: 0">
+<div class="channel-bar" data-tooltip="Channel 12: 0">
             <div class="channel-fill" style="width: 0.0%"></div>
         </div>
-<div class="channel-bar" title="Channel 13: 0">
+<div class="channel-bar" data-tooltip="Channel 13: 0">
             <div class="channel-fill" style="width: 0.0%"></div>
         </div>
-<div class="channel-bar" title="Channel 14: 0">
+<div class="channel-bar" data-tooltip="Channel 14: 0">
             <div class="channel-fill" style="width: 0.0%"></div>
         </div>
-<div class="channel-bar" title="Channel 15: 0">
+<div class="channel-bar" data-tooltip="Channel 15: 0">
             <div class="channel-fill" style="width: 0.0%"></div>
         </div>
-<div class="channel-bar" title="Channel 16: 0">
+<div class="channel-bar" data-tooltip="Channel 16: 0">
             <div class="channel-fill" style="width: 0.0%"></div>
         </div>
-<div class="channel-bar" title="Channel 17: 0">
+<div class="channel-bar" data-tooltip="Channel 17: 0">
             <div class="channel-fill" style="width: 0.0%"></div>
         </div>
-<div class="channel-bar" title="Channel 18: 1">
+<div class="channel-bar" data-tooltip="Channel 18: 1">
             <div class="channel-fill" style="width: 2.0408163265306123%"></div>
         </div>
-<div class="channel-bar" title="Channel 19: 1">
+<div class="channel-bar" data-tooltip="Channel 19: 1">
             <div class="channel-fill" style="width: 2.0408163265306123%"></div>
         </div>
-<div class="channel-bar" title="Channel 20: 0">
+<div class="channel-bar" data-tooltip="Channel 20: 0">
             <div class="channel-fill" style="width: 0.0%"></div>
         </div>
-<div class="channel-bar" title="Channel 21: 0">
+<div class="channel-bar" data-tooltip="Channel 21: 0">
             <div class="channel-fill" style="width: 0.0%"></div>
         </div>
                         </div>
@@ -365,25 +370,25 @@
                     <h3>🎯 Go Pattern Analysis</h3>
                     <div class="data-grid">
                         <div class="data-item">
-                            <span class="data-label" title="Categorisation of the move (normal play, pass, resign) to understand strategic intent or special game events.">Move Type: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Categorisation of the move (normal play, pass, resign) to understand strategic intent or special game events.">Move Type: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">Side</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label" title="Stage of the game inferred from move number and board state: opening, middle-game or endgame.">Game Phase: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Stage of the game inferred from move number and board state: opening, middle-game or endgame.">Game Phase: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">Opening</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label" title="Shannon entropy of the model's move probability distribution; low entropy indicates high confidence concentrated on a few moves.">Policy Entropy: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Shannon entropy of the model's move probability distribution; low entropy indicates high confidence concentrated on a few moves.">Policy Entropy: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">-0.000</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label" title="Probability assigned by the neural network to the selected move – effectively its confidence in that play.">Policy Confidence: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Probability assigned by the neural network to the selected move – effectively its confidence in that play.">Policy Confidence: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">1.0%</span>
                         </div>
                     </div>
                     
                     <div>
-                        <strong title="List of moves the policy network thinks are best, with their probabilities and visit counts; helps explain the AI's tactical choices.">Top Policy Moves: <span class="tooltip-icon">ⓘ</span></strong>
+                        <strong data-tooltip="List of moves the policy network thinks are best, with their probabilities and visit counts; helps explain the AI's tactical choices.">Top Policy Moves: <span class="tooltip-icon">ⓘ</span></strong>
                         <div class="policy-moves">
                             <div class="policy-move">
             <span><strong>(4,3)</strong></span>
@@ -397,21 +402,21 @@
                     <h3>📊 Component Comparison</h3>
                     <div class="data-grid">
                         <div class="data-item">
-                            <span class="data-label" title="Measure (0-1) of how distinct this component's activation pattern is compared to other components – higher means less overlap.">Uniqueness Score: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Measure (0-1) of how distinct this component's activation pattern is compared to other components – higher means less overlap.">Uniqueness Score: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">0.8034</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label" title="Ordering of components by average activation strength across all positions, where 1 is the most frequently strongest pattern.">Component Rank: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Ordering of components by average activation strength across all positions, where 1 is the most frequently strongest pattern.">Component Rank: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">3</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label" title="Highest activation value among ALL other components at this position – used to assess selectivity of the current component.">Max Other Activation: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Highest activation value among ALL other components at this position – used to assess selectivity of the current component.">Max Other Activation: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">0.2303</span>
                         </div>
                     </div>
                     
                     <div>
-                        <strong title="Bar chart of activation values for EVERY component so you can see the full activation profile of this position.">Activation in All Components: <span class="tooltip-icon">ⓘ</span></strong>
+                        <strong data-tooltip="Bar chart of activation values for EVERY component so you can see the full activation profile of this position.">Activation in All Components: <span class="tooltip-icon">ⓘ</span></strong>
                         
         <div style="margin: 5px 0;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -448,15 +453,15 @@
                 <div class="analysis-card">
                     <h3>📁 File References</h3>
                     <div class="data-item">
-                        <span class="data-label" title="Original Smart-Game-Format game file from which this position was extracted.">SGF File: <span class="tooltip-icon">ⓘ</span></span>
+                        <span class="data-label" data-tooltip="Original Smart-Game-Format game file from which this position was extracted.">SGF File: <span class="tooltip-icon">ⓘ</span></span>
                         <span class="data-value">sgf_pos2239.sgf</span>
                     </div>
                     <div class="data-item">
-                        <span class="data-label" title="NumPy binary file containing the encoded board tensor used as input to the model.">Board Tensor: <span class="tooltip-icon">ⓘ</span></span>
+                        <span class="data-label" data-tooltip="NumPy binary file containing the encoded board tensor used as input to the model.">Board Tensor: <span class="tooltip-icon">ⓘ</span></span>
                         <span class="data-value">part2_rank3_pos2239.npy</span>
                     </div>
                     <div class="data-item">
-                        <span class="data-label" title="Compressed KataGo self-play NPZ file that provided raw tensors and move statistics for this position.">NPZ Source: <span class="tooltip-icon">ⓘ</span></span>
+                        <span class="data-label" data-tooltip="Compressed KataGo self-play NPZ file that provided raw tensors and move statistics for this position.">NPZ Source: <span class="tooltip-icon">ⓘ</span></span>
                         <span class="data-value">76F9EC3EB6A76AA0.npz</span>
                     </div>
                 </div>
