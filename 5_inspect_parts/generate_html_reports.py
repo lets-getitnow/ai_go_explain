@@ -125,17 +125,12 @@ def parse_sgf_moves(sgf_content: str, target_turn: int) -> tuple:
         else:
             # Convert SGF coordinates to board position (a=0, b=1, etc.)
             if len(coord_text) == 2:
-                sgf_col = ord(coord_text[0]) - ord('a')  # 0-8 for 9x9
-                sgf_row = ord(coord_text[1]) - ord('a')  # 0-8 for 9x9
+                sgf_col = ord(coord_text[0]) - ord('a')  # 0-6 for 7x7
+                sgf_row = ord(coord_text[1]) - ord('a')  # 0-6 for 7x7
                 
-                # Map 9x9 to 7x7 by taking center region (offset by 1)
-                # 9x9 coordinates b-h (1-7) -> 7x7 coordinates a-g (0-6)
-                col_7x7 = sgf_col - 1
-                row_7x7 = sgf_row - 1
-                
-                # Only include moves that fall within the 7x7 center region
-                if 0 <= col_7x7 < 7 and 0 <= row_7x7 < 7:
-                    moves.append((color, (row_7x7, col_7x7)))
+                # Direct mapping for 7x7 board - no offset needed
+                if 0 <= sgf_col < 7 and 0 <= sgf_row < 7:
+                    moves.append((color, (sgf_row, sgf_col)))
                 else:
                     moves.append((color, None))  # Outside 7x7 region
             else:
