@@ -331,7 +331,15 @@ def get_html_template() -> str:
             height: 600px;
             border: 2px solid #8B4513;
             border-radius: 8px;
-            overflow: hidden;
+            overflow: visible !important;
+            position: relative;
+            z-index: 1000;
+        }
+        
+        /* Fix Besogo control visibility */
+        .besogo-viewer * {
+            position: relative !important;
+            z-index: 1001 !important;
         }
         
         @media (max-width: 1024px) {
@@ -488,6 +496,7 @@ def get_html_template() -> str:
     </script>
 </body>
 </html>'''
+
 
 def generate_html_file(output_path: str, data: Dict[str, Any]) -> None:
     """Generate HTML file from template and data."""
