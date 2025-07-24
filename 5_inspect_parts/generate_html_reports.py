@@ -326,9 +326,9 @@ def get_html_template() -> str:
         }
         
         /* Besogo board styling */
-        .besogo-editor {
-            max-width: 100%;
-            height: 500px;
+        .besogo-viewer {
+            width: 100%;
+            height: 600px;
             border: 2px solid #8B4513;
             border-radius: 8px;
             overflow: hidden;
@@ -362,10 +362,12 @@ def get_html_template() -> str:
                 </div>
                 
                 <!-- Besogo Go Board -->
-                <div class="besogo-editor" 
+                <div class="besogo-viewer" 
                      size="7" 
                      coord="western"
-                     panels="control+comment"
+                     panels="control+names"
+                     orient="portrait"
+                     portratio="none"
                      path="{{TURN_NUMBER}}">{{SGF_CONTENT}}</div>
             </div>
             
