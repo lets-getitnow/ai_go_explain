@@ -583,6 +583,148 @@
     </div>
     
     <script>
+        // JavaScript implementation of Go rules
+        class GoBoard {
+            constructor(size = 7) {
+                this.size = size;
+                this.board = new Map(); // Map<string, string> for (row,col) -> color
+            }
+            
+            getStoneDict() {
+                const result = {};
+                for (const [key, value] of this.board) {
+                    result[key] = value;
+                }
+                return result;
+            }
+            
+            isOnBoard(row, col) {
+                return row >= 0 && row < this.size && col >= 0 && col < this.size;
+            }
+            
+            getNeighbors(row, col) {
+                const neighbors = [];
+                const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+                for (const [dr, dc] of directions) {
+                    const nr = row + dr;
+                    const nc = col + dc;
+                    if (this.isOnBoard(nr, nc)) {
+                        neighbors.push([nr, nc]);
+                    }
+                }
+                return neighbors;
+            }
+            
+            getGroup(row, col) {
+                const key = row + ',' + col;
+                if (!this.board.has(key)) {
+                    return new Set();
+                }
+                
+                const color = this.board.get(key);
+                const group = new Set();
+                const stack = [[row, col]];
+                
+                while (stack.length > 0) {
+                    const [r, c] = stack.pop();
+                    const posKey = r + ',' + c;
+                    if (group.has(posKey)) {
+                        continue;
+                    }
+                    group.add(posKey);
+                    
+                    for (const [nr, nc] of this.getNeighbors(r, c)) {
+                        const nKey = nr + ',' + nc;
+                        if (this.board.has(nKey) && this.board.get(nKey) === color && !group.has(nKey)) {
+                            stack.push([nr, nc]);
+                        }
+                    }
+                }
+                
+                return group;
+            }
+            
+            getLiberties(group) {
+                const liberties = new Set();
+                for (const posKey of group) {
+                    const [row, col] = posKey.split(',').map(Number);
+                    for (const [nr, nc] of this.getNeighbors(row, col)) {
+                        const nKey = nr + ',' + nc;
+                        if (!this.board.has(nKey)) {
+                            liberties.add(nKey);
+                        }
+                    }
+                }
+                return liberties;
+            }
+            
+            hasLiberties(row, col) {
+                const group = this.getGroup(row, col);
+                const liberties = this.getLiberties(group);
+                return liberties.size > 0;
+            }
+            
+            captureGroup(group) {
+                for (const posKey of group) {
+                    this.board.delete(posKey);
+                }
+            }
+            
+            getCapturedGroups(opponentColor) {
+                const capturedGroups = [];
+                const checked = new Set();
+                
+                for (const [posKey, color] of this.board) {
+                    if (color === opponentColor && !checked.has(posKey)) {
+                        const group = this.getGroup(...posKey.split(',').map(Number));
+                        for (const pos of group) {
+                            checked.add(pos);
+                        }
+                        
+                        if (this.getLiberties(group).size === 0) {
+                            capturedGroups.push(group);
+                        }
+                    }
+                }
+                
+                return capturedGroups;
+            }
+            
+            playMove(color, pos) {
+                const [row, col] = pos;
+                const key = row + ',' + col;
+                
+                if (!this.isOnBoard(row, col)) {
+                    return false;
+                }
+                
+                if (this.board.has(key)) {
+                    return false; // Position already occupied
+                }
+                
+                // Place the stone
+                this.board.set(key, color);
+                
+                // Determine opponent color
+                const opponentColor = color === 'B' ? 'W' : 'B';
+                
+                // Check for and remove captured opponent groups
+                const capturedGroups = this.getCapturedGroups(opponentColor);
+                for (const group of capturedGroups) {
+                    this.captureGroup(group);
+                }
+                
+                // Check if this move is suicide (illegal if it doesn't capture anything)
+                if (!this.hasLiberties(row, col) && capturedGroups.length === 0) {
+                    // This is suicide - remove the stone and return false
+                    this.board.delete(key);
+                    return false;
+                }
+                
+                return true;
+            }
+        }
+        
         // Game state and moves
         let allMoves = [{"color": "B", "pos": [3, 3]}, {"color": "W", "pos": [2, 3]}, {"color": "B", "pos": [3, 2]}, {"color": "W", "pos": [2, 4]}, {"color": "B", "pos": [3, 4]}, {"color": "W", "pos": [2, 2]}, {"color": "B", "pos": [2, 1]}, {"color": "W", "pos": [3, 1]}, {"color": "B", "pos": [4, 1]}, {"color": "W", "pos": [1, 1]}, {"color": "B", "pos": [3, 0]}, {"color": "W", "pos": [3, 5]}, {"color": "B", "pos": [4, 5]}, {"color": "W", "pos": [2, 5]}, {"color": "B", "pos": [3, 6]}, {"color": "W", "pos": [2, 6]}];
         let currentMoveIndex = 16;
@@ -600,14 +742,15 @@
             const existingTexts = svg.querySelectorAll('text[font-weight="bold"]');
             existingTexts.forEach(text => text.remove());
             
-            // Play moves up to current index
-            const board = {};
+            // Play moves up to current index with proper Go rules
+            const goBoard = new GoBoard();
             for (let i = 0; i <= moveIndex && i < allMoves.length; i++) {
                 const move = allMoves[i];
                 if (move.pos) {
-                    board[move.pos[0] + ',' + move.pos[1]] = move.color;
+                    goBoard.playMove(move.color, move.pos);
                 }
             }
+            const board = goBoard.getStoneDict();
             
             // Draw stones
             for (const [posKey, color] of Object.entries(board)) {

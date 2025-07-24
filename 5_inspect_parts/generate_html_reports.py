@@ -136,8 +136,8 @@ def parse_sgf_moves(sgf_content: str, target_turn: int) -> tuple:
             else:
                 moves.append((color, None))  # Invalid or pass
     
-    # Build board state up to target turn
-    board = {}  # {(row, col): 'B' or 'W'}
+    # Build board state up to target turn WITH PROPER GO CAPTURE LOGIC
+    board = GoBoard()
     move_of_interest = None
     
     for i, (color, pos) in enumerate(moves):
@@ -146,9 +146,120 @@ def parse_sgf_moves(sgf_content: str, target_turn: int) -> tuple:
                 move_of_interest = pos
             break
         if pos:
-            board[pos] = color
+            board.play_move(color, pos)
     
-    return board, move_of_interest, moves
+    return board.get_stone_dict(), move_of_interest, moves
+
+
+class GoBoard:
+    """Implements proper Go rules including captures and liberties."""
+    
+    def __init__(self, size: int = 7):
+        self.size = size
+        self.board = {}  # {(row, col): 'B' or 'W'}
+    
+    def get_stone_dict(self) -> dict:
+        """Return current board state as dictionary."""
+        return self.board.copy()
+    
+    def is_on_board(self, row: int, col: int) -> bool:
+        """Check if coordinates are on the board."""
+        return 0 <= row < self.size and 0 <= col < self.size
+    
+    def get_neighbors(self, row: int, col: int) -> list:
+        """Get all valid neighboring coordinates."""
+        neighbors = []
+        for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            nr, nc = row + dr, col + dc
+            if self.is_on_board(nr, nc):
+                neighbors.append((nr, nc))
+        return neighbors
+    
+    def get_group(self, row: int, col: int) -> set:
+        """Get all stones connected to the stone at (row, col)."""
+        if (row, col) not in self.board:
+            return set()
+        
+        color = self.board[(row, col)]
+        group = set()
+        stack = [(row, col)]
+        
+        while stack:
+            r, c = stack.pop()
+            if (r, c) in group:
+                continue
+            group.add((r, c))
+            
+            for nr, nc in self.get_neighbors(r, c):
+                if (nr, nc) in self.board and self.board[(nr, nc)] == color and (nr, nc) not in group:
+                    stack.append((nr, nc))
+        
+        return group
+    
+    def get_liberties(self, group: set) -> set:
+        """Get all empty spaces adjacent to a group of stones."""
+        liberties = set()
+        for row, col in group:
+            for nr, nc in self.get_neighbors(row, col):
+                if (nr, nc) not in self.board:
+                    liberties.add((nr, nc))
+        return liberties
+    
+    def has_liberties(self, row: int, col: int) -> bool:
+        """Check if the group containing (row, col) has any liberties."""
+        group = self.get_group(row, col)
+        liberties = self.get_liberties(group)
+        return len(liberties) > 0
+    
+    def capture_group(self, group: set) -> None:
+        """Remove all stones in a group from the board."""
+        for row, col in group:
+            if (row, col) in self.board:
+                del self.board[(row, col)]
+    
+    def get_captured_groups(self, opponent_color: str) -> list:
+        """Find all groups of opponent_color that have no liberties."""
+        captured_groups = []
+        checked = set()
+        
+        for (row, col), color in self.board.items():
+            if color == opponent_color and (row, col) not in checked:
+                group = self.get_group(row, col)
+                checked.update(group)
+                
+                if len(self.get_liberties(group)) == 0:
+                    captured_groups.append(group)
+        
+        return captured_groups
+    
+    def play_move(self, color: str, pos: tuple) -> bool:
+        """Play a move with proper Go rules. Returns True if move is legal."""
+        row, col = pos
+        
+        if not self.is_on_board(row, col):
+            return False
+        
+        if (row, col) in self.board:
+            return False  # Position already occupied
+        
+        # Place the stone
+        self.board[(row, col)] = color
+        
+        # Determine opponent color
+        opponent_color = 'W' if color == 'B' else 'B'
+        
+        # Check for and remove captured opponent groups
+        captured_groups = self.get_captured_groups(opponent_color)
+        for group in captured_groups:
+            self.capture_group(group)
+        
+        # Check if this move is suicide (illegal if it doesn't capture anything)
+        if not self.has_liberties(row, col) and not captured_groups:
+            # This is suicide - remove the stone and return False
+            del self.board[(row, col)]
+            return False
+        
+        return True
 
 def generate_grid_lines() -> str:
     """Generate SVG grid lines for 7x7 Go board."""
@@ -668,6 +779,148 @@ def get_html_template() -> str:
     </div>
     
     <script>
+        // JavaScript implementation of Go rules
+        class GoBoard {
+            constructor(size = 7) {
+                this.size = size;
+                this.board = new Map(); // Map<string, string> for (row,col) -> color
+            }
+            
+            getStoneDict() {
+                const result = {};
+                for (const [key, value] of this.board) {
+                    result[key] = value;
+                }
+                return result;
+            }
+            
+            isOnBoard(row, col) {
+                return row >= 0 && row < this.size && col >= 0 && col < this.size;
+            }
+            
+            getNeighbors(row, col) {
+                const neighbors = [];
+                const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+                for (const [dr, dc] of directions) {
+                    const nr = row + dr;
+                    const nc = col + dc;
+                    if (this.isOnBoard(nr, nc)) {
+                        neighbors.push([nr, nc]);
+                    }
+                }
+                return neighbors;
+            }
+            
+            getGroup(row, col) {
+                const key = row + ',' + col;
+                if (!this.board.has(key)) {
+                    return new Set();
+                }
+                
+                const color = this.board.get(key);
+                const group = new Set();
+                const stack = [[row, col]];
+                
+                while (stack.length > 0) {
+                    const [r, c] = stack.pop();
+                    const posKey = r + ',' + c;
+                    if (group.has(posKey)) {
+                        continue;
+                    }
+                    group.add(posKey);
+                    
+                    for (const [nr, nc] of this.getNeighbors(r, c)) {
+                        const nKey = nr + ',' + nc;
+                        if (this.board.has(nKey) && this.board.get(nKey) === color && !group.has(nKey)) {
+                            stack.push([nr, nc]);
+                        }
+                    }
+                }
+                
+                return group;
+            }
+            
+            getLiberties(group) {
+                const liberties = new Set();
+                for (const posKey of group) {
+                    const [row, col] = posKey.split(',').map(Number);
+                    for (const [nr, nc] of this.getNeighbors(row, col)) {
+                        const nKey = nr + ',' + nc;
+                        if (!this.board.has(nKey)) {
+                            liberties.add(nKey);
+                        }
+                    }
+                }
+                return liberties;
+            }
+            
+            hasLiberties(row, col) {
+                const group = this.getGroup(row, col);
+                const liberties = this.getLiberties(group);
+                return liberties.size > 0;
+            }
+            
+            captureGroup(group) {
+                for (const posKey of group) {
+                    this.board.delete(posKey);
+                }
+            }
+            
+            getCapturedGroups(opponentColor) {
+                const capturedGroups = [];
+                const checked = new Set();
+                
+                for (const [posKey, color] of this.board) {
+                    if (color === opponentColor && !checked.has(posKey)) {
+                        const group = this.getGroup(...posKey.split(',').map(Number));
+                        for (const pos of group) {
+                            checked.add(pos);
+                        }
+                        
+                        if (this.getLiberties(group).size === 0) {
+                            capturedGroups.push(group);
+                        }
+                    }
+                }
+                
+                return capturedGroups;
+            }
+            
+            playMove(color, pos) {
+                const [row, col] = pos;
+                const key = row + ',' + col;
+                
+                if (!this.isOnBoard(row, col)) {
+                    return false;
+                }
+                
+                if (this.board.has(key)) {
+                    return false; // Position already occupied
+                }
+                
+                // Place the stone
+                this.board.set(key, color);
+                
+                // Determine opponent color
+                const opponentColor = color === 'B' ? 'W' : 'B';
+                
+                // Check for and remove captured opponent groups
+                const capturedGroups = this.getCapturedGroups(opponentColor);
+                for (const group of capturedGroups) {
+                    this.captureGroup(group);
+                }
+                
+                // Check if this move is suicide (illegal if it doesn't capture anything)
+                if (!this.hasLiberties(row, col) && capturedGroups.length === 0) {
+                    // This is suicide - remove the stone and return false
+                    this.board.delete(key);
+                    return false;
+                }
+                
+                return true;
+            }
+        }
+        
         // Game state and moves
         let allMoves = {{ALL_MOVES_JS}};
         let currentMoveIndex = {{TURN_NUMBER}};
@@ -685,14 +938,15 @@ def get_html_template() -> str:
             const existingTexts = svg.querySelectorAll('text[font-weight="bold"]');
             existingTexts.forEach(text => text.remove());
             
-            // Play moves up to current index
-            const board = {};
+            // Play moves up to current index with proper Go rules
+            const goBoard = new GoBoard();
             for (let i = 0; i <= moveIndex && i < allMoves.length; i++) {
                 const move = allMoves[i];
                 if (move.pos) {
-                    board[move.pos[0] + ',' + move.pos[1]] = move.color;
+                    goBoard.playMove(move.color, move.pos);
                 }
             }
+            const board = goBoard.getStoneDict();
             
             // Draw stones
             for (const [posKey, color] of Object.entries(board)) {
