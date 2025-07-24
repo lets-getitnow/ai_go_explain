@@ -106,12 +106,12 @@ def generate_component_activations(activations: List[float]) -> str:
 def parse_sgf_moves(sgf_content: str, target_turn: int) -> tuple:
     """Parse SGF content and extract stone positions up to target turn.
     
-    SGF contains 9x9 coordinates, but analysis was done on 7x7.
-    Map 9x9 SGF coordinates to 7x7 analysis coordinates by taking center region.
+    Since we're now using Besogo which handles SGF directly, we only need to 
+    extract the move of interest for highlighting purposes.
     """
     import re
     
-    # Extract moves from SGF
+    # Extract moves from SGF for move highlighting purposes
     moves = []
     move_pattern = r'[BW]\[[a-z]{0,2}\]'
     
@@ -136,227 +136,29 @@ def parse_sgf_moves(sgf_content: str, target_turn: int) -> tuple:
             else:
                 moves.append((color, None))  # Invalid or pass
     
-    # Build board state up to target turn WITH PROPER GO CAPTURE LOGIC
-    board = GoBoard()
+    # Find move of interest
     move_of_interest = None
+    if target_turn < len(moves):
+        _, move_of_interest = moves[target_turn]
     
-    for i, (color, pos) in enumerate(moves):
-        if i >= target_turn:
-            if i == target_turn and pos:
-                move_of_interest = pos
-            break
-        if pos:
-            board.play_move(color, pos)
-    
-    return board.get_stone_dict(), move_of_interest, moves
+    return {}, move_of_interest, moves
 
 
-class GoBoard:
-    """Implements proper Go rules including captures and liberties."""
-    
-    def __init__(self, size: int = 7):
-        self.size = size
-        self.board = {}  # {(row, col): 'B' or 'W'}
-    
-    def get_stone_dict(self) -> dict:
-        """Return current board state as dictionary."""
-        return self.board.copy()
-    
-    def is_on_board(self, row: int, col: int) -> bool:
-        """Check if coordinates are on the board."""
-        return 0 <= row < self.size and 0 <= col < self.size
-    
-    def get_neighbors(self, row: int, col: int) -> list:
-        """Get all valid neighboring coordinates."""
-        neighbors = []
-        for dr, dc in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
-            nr, nc = row + dr, col + dc
-            if self.is_on_board(nr, nc):
-                neighbors.append((nr, nc))
-        return neighbors
-    
-    def get_group(self, row: int, col: int) -> set:
-        """Get all stones connected to the stone at (row, col)."""
-        if (row, col) not in self.board:
-            return set()
-        
-        color = self.board[(row, col)]
-        group = set()
-        stack = [(row, col)]
-        
-        while stack:
-            r, c = stack.pop()
-            if (r, c) in group:
-                continue
-            group.add((r, c))
-            
-            for nr, nc in self.get_neighbors(r, c):
-                if (nr, nc) in self.board and self.board[(nr, nc)] == color and (nr, nc) not in group:
-                    stack.append((nr, nc))
-        
-        return group
-    
-    def get_liberties(self, group: set) -> set:
-        """Get all empty spaces adjacent to a group of stones."""
-        liberties = set()
-        for row, col in group:
-            for nr, nc in self.get_neighbors(row, col):
-                if (nr, nc) not in self.board:
-                    liberties.add((nr, nc))
-        return liberties
-    
-    def has_liberties(self, row: int, col: int) -> bool:
-        """Check if the group containing (row, col) has any liberties."""
-        group = self.get_group(row, col)
-        liberties = self.get_liberties(group)
-        return len(liberties) > 0
-    
-    def capture_group(self, group: set) -> None:
-        """Remove all stones in a group from the board."""
-        for row, col in group:
-            if (row, col) in self.board:
-                del self.board[(row, col)]
-    
-    def get_captured_groups(self, opponent_color: str) -> list:
-        """Find all groups of opponent_color that have no liberties."""
-        captured_groups = []
-        checked = set()
-        
-        for (row, col), color in self.board.items():
-            if color == opponent_color and (row, col) not in checked:
-                group = self.get_group(row, col)
-                checked.update(group)
-                
-                if len(self.get_liberties(group)) == 0:
-                    captured_groups.append(group)
-        
-        return captured_groups
-    
-    def play_move(self, color: str, pos: tuple) -> bool:
-        """Play a move with proper Go rules. Returns True if move is legal."""
-        row, col = pos
-        
-        if not self.is_on_board(row, col):
-            return False
-        
-        if (row, col) in self.board:
-            return False  # Position already occupied
-        
-        # Place the stone
-        self.board[(row, col)] = color
-        
-        # Determine opponent color
-        opponent_color = 'W' if color == 'B' else 'B'
-        
-        # Check for and remove captured opponent groups
-        captured_groups = self.get_captured_groups(opponent_color)
-        for group in captured_groups:
-            self.capture_group(group)
-        
-        # Check if this move is suicide (illegal if it doesn't capture anything)
-        if not self.has_liberties(row, col) and not captured_groups:
-            # This is suicide - remove the stone and return False
-            del self.board[(row, col)]
-            return False
-        
-        return True
-
-def generate_grid_lines() -> str:
-    """Generate SVG grid lines for 7x7 Go board."""
-    lines = []
-    
-    # Horizontal lines
-    for i in range(7):
-        y = 60 + i * 40
-        lines.append(f'<line x1="60" y1="{y}" x2="300" y2="{y}" stroke="#8B4513" stroke-width="1"/>')
-    
-    # Vertical lines  
-    for i in range(7):
-        x = 60 + i * 40
-        lines.append(f'<line x1="{x}" y1="60" x2="{x}" y2="300" stroke="#8B4513" stroke-width="1"/>')
-    
-    # Star points (handicap points) for 7x7
-    star_points = [(1, 1), (1, 5), (5, 1), (5, 5), (3, 3)]
-    for row, col in star_points:
-        x = 60 + col * 40
-        y = 60 + row * 40
-        lines.append(f'<circle cx="{x}" cy="{y}" r="3" fill="#8B4513"/>')
-    
-    return '\n'.join(lines)
-
-def generate_coord_labels() -> str:
-    """Generate coordinate labels for 7x7 board."""
-    labels = []
-    
-    # Column labels (A-G for 7x7)
-    cols = 'ABCDEFG'
-    for i, letter in enumerate(cols):
-        x = 60 + i * 40
-        labels.append(f'<text x="{x}" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">{letter}</text>')
-        labels.append(f'<text x="{x}" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">{letter}</text>')
-    
-    # Row labels (1-7)
-    for i in range(7):
-        y = 60 + i * 40 + 4  # +4 for text baseline
-        row_num = 7 - i  # Go coordinates start from bottom
-        labels.append(f'<text x="45" y="{y}" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">{row_num}</text>')
-        labels.append(f'<text x="315" y="{y}" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">{row_num}</text>')
-    
-    return '\n'.join(labels)
-
-def generate_stones(board: dict) -> str:
-    """Generate SVG stones from board position."""
-    stones = []
-    
-    for (row, col), color in board.items():
-        if 0 <= row < 7 and 0 <= col < 7:
-            x = 60 + col * 40
-            y = 60 + row * 40
-            
-            if color == 'B':
-                stones.append(f'<circle cx="{x}" cy="{y}" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>')
-            else:  # White
-                stones.append(f'<circle cx="{x}" cy="{y}" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>')
-    
-    return '\n'.join(stones)
-
-def generate_move_marker(move_of_interest: tuple, move_coord: str) -> str:
-    """Generate marker for the move of interest."""
-    if not move_of_interest:
-        return ""
-    
-    row, col = move_of_interest
-    if 0 <= row < 7 and 0 <= col < 7:
-        x = 60 + col * 40
-        y = 60 + row * 40
-        
-        return f'''
-        <circle cx="{x}" cy="{y}" r="20" fill="none" stroke="#ff0000" stroke-width="3" opacity="0.8"/>
-        <text x="{x}" y="{y-25}" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#ff0000">← Move of Interest</text>
-        '''
-    return ""
-
-def generate_moves_javascript(moves: list) -> str:
-    """Convert moves list to JavaScript array format."""
-    js_moves = []
-    
-    for color, pos in moves:
-        if pos:
-            js_move = f'{{"color": "{color}", "pos": [{pos[0]}, {pos[1]}]}}'
-        else:
-            js_move = f'{{"color": "{color}", "pos": null}}'
-        js_moves.append(js_move)
-    
-    return '[' + ', '.join(js_moves) + ']'
+# SVG generation functions removed - now using Besogo
 
 def get_html_template() -> str:
-    """Return the embedded HTML template."""
+    """Return the embedded HTML template using Besogo."""
     return '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{TITLE}}</title>
+    
+    <!-- Besogo CSS and JS -->
+    <link rel="stylesheet" href="besogo/besogo.css">
+    <link rel="stylesheet" href="besogo/board-flat.css">
+    <script src="besogo/besogo.all.js"></script>
 
     <style>
         body {
@@ -478,69 +280,6 @@ def get_html_template() -> str:
             height: 100%;
             background: linear-gradient(90deg, #28a745, #20c997);
         }
-        .go-board-container {
-            border: 2px solid #8B4513;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            background: #f4f4f4;
-            padding: 10px;
-        }
-        .go-board-svg {
-            margin: 0 auto;
-            display: block;
-            border-radius: 4px;
-        }
-        .board-controls {
-            margin-top: 15px;
-        }
-        .control-buttons {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border: 1px solid #dee2e6;
-        }
-        .control-buttons button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: transform 0.2s, opacity 0.2s;
-        }
-        .control-buttons button:hover {
-            transform: scale(1.1);
-        }
-        .control-buttons button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .move-display {
-            font-weight: bold;
-            color: #2c3e50;
-            margin: 0 10px;
-            font-family: 'Courier New', monospace;
-        }
-        .position-info {
-            text-align: center;
-            font-size: 0.9em;
-            color: #666;
-        }
-        .position-info a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        .position-info a:hover {
-            text-decoration: underline;
-        }
         .position-highlight {
             background: #fff3cd;
             border: 2px solid #ffc107;
@@ -585,6 +324,16 @@ def get_html_template() -> str:
             color: #2c3e50;
             font-family: 'Courier New', monospace;
         }
+        
+        /* Besogo board styling */
+        .besogo-editor {
+            max-width: 100%;
+            height: 500px;
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
         @media (max-width: 1024px) {
             .content {
                 grid-template-columns: 1fr;
@@ -612,62 +361,12 @@ def get_html_template() -> str:
                     <br><strong>Activation Strength:</strong> {{ACTIVATION_STRENGTH}}
                 </div>
                 
-                <div id="go-board-{{GLOBAL_POS}}" class="go-board-container">
-                    <svg width="360" height="360" viewBox="0 0 360 360" class="go-board-svg">
-                        <!-- Board grid -->
-                        <defs>
-                            <pattern id="wood" patternUnits="userSpaceOnUse" width="40" height="40">
-                                <rect width="40" height="40" fill="#DEB887"/>
-                                <rect width="40" height="40" fill="url(#woodGrain)" opacity="0.3"/>
-                            </pattern>
-                            <linearGradient id="woodGrain" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#CD853F;stop-opacity:1" />
-                                <stop offset="100%" style="stop-color:#F4A460;stop-opacity:1" />
-                            </linearGradient>
-                            <!-- Black stone gradient -->
-                            <radialGradient id="blackStone" cx="30%" cy="30%">
-                                <stop offset="0%" stop-color="#555"/>
-                                <stop offset="70%" stop-color="#222"/>
-                                <stop offset="100%" stop-color="#000"/>
-                            </radialGradient>
-                            <!-- White stone gradient -->
-                            <radialGradient id="whiteStone" cx="30%" cy="30%">
-                                <stop offset="0%" stop-color="#fff"/>
-                                <stop offset="70%" stop-color="#eee"/>
-                                <stop offset="100%" stop-color="#ccc"/>
-                            </radialGradient>
-                        </defs>
-                        
-                        <!-- Board background -->
-                        <rect x="20" y="20" width="320" height="320" fill="url(#wood)" stroke="#8B4513" stroke-width="2"/>
-                        
-                        <!-- Grid lines -->
-                        {{GRID_LINES}}
-                        
-                        <!-- Coordinate labels -->
-                        {{COORD_LABELS}}
-                        
-                        <!-- Stones -->
-                        {{STONES}}
-                        
-                        <!-- Move of interest marker -->
-                        {{MOVE_MARKER}}
-                    </svg>
-                    
-                    <div class="board-controls">
-                        <div class="control-buttons">
-                            <button onclick="goToMove(0)" title="Go to start">⏮</button>
-                            <button onclick="previousMove()" title="Previous move">⏪</button>
-                            <span class="move-display">Move: <span id="current-move">{{TURN_NUMBER}}</span> / <span id="total-moves">{{TOTAL_MOVES}}</span></span>
-                            <button onclick="nextMove()" title="Next move">⏩</button>
-                            <button onclick="goToMove(-1)" title="Go to end">⏭</button>
-                        </div>
-                        <div class="position-info">
-                            <p><strong>Move of Interest: Turn {{TURN_NUMBER}}</strong> | <a href="#" onclick="goToMove({{TURN_NUMBER}}); return false;">Jump to Move of Interest</a></p>
-                            <p>SGF: <a href="#" onclick="alert('{{SGF_CONTENT}}'); return false;">View SGF</a></p>
-                        </div>
-                    </div>
-                </div>
+                <!-- Besogo Go Board -->
+                <div class="besogo-editor" 
+                     size="7" 
+                     coord="western"
+                     panels="control+comment"
+                     path="{{TURN_NUMBER}}">{{SGF_CONTENT}}</div>
             </div>
             
             <div class="analysis-section">
@@ -779,255 +478,10 @@ def get_html_template() -> str:
     </div>
     
     <script>
-        // JavaScript implementation of Go rules
-        class GoBoard {
-            constructor(size = 7) {
-                this.size = size;
-                this.board = new Map(); // Map<string, string> for (row,col) -> color
-            }
-            
-            getStoneDict() {
-                const result = {};
-                for (const [key, value] of this.board) {
-                    result[key] = value;
-                }
-                return result;
-            }
-            
-            isOnBoard(row, col) {
-                return row >= 0 && row < this.size && col >= 0 && col < this.size;
-            }
-            
-            getNeighbors(row, col) {
-                const neighbors = [];
-                const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
-                for (const [dr, dc] of directions) {
-                    const nr = row + dr;
-                    const nc = col + dc;
-                    if (this.isOnBoard(nr, nc)) {
-                        neighbors.push([nr, nc]);
-                    }
-                }
-                return neighbors;
-            }
-            
-            getGroup(row, col) {
-                const key = row + ',' + col;
-                if (!this.board.has(key)) {
-                    return new Set();
-                }
-                
-                const color = this.board.get(key);
-                const group = new Set();
-                const stack = [[row, col]];
-                
-                while (stack.length > 0) {
-                    const [r, c] = stack.pop();
-                    const posKey = r + ',' + c;
-                    if (group.has(posKey)) {
-                        continue;
-                    }
-                    group.add(posKey);
-                    
-                    for (const [nr, nc] of this.getNeighbors(r, c)) {
-                        const nKey = nr + ',' + nc;
-                        if (this.board.has(nKey) && this.board.get(nKey) === color && !group.has(nKey)) {
-                            stack.push([nr, nc]);
-                        }
-                    }
-                }
-                
-                return group;
-            }
-            
-            getLiberties(group) {
-                const liberties = new Set();
-                for (const posKey of group) {
-                    const [row, col] = posKey.split(',').map(Number);
-                    for (const [nr, nc] of this.getNeighbors(row, col)) {
-                        const nKey = nr + ',' + nc;
-                        if (!this.board.has(nKey)) {
-                            liberties.add(nKey);
-                        }
-                    }
-                }
-                return liberties;
-            }
-            
-            hasLiberties(row, col) {
-                const group = this.getGroup(row, col);
-                const liberties = this.getLiberties(group);
-                return liberties.size > 0;
-            }
-            
-            captureGroup(group) {
-                for (const posKey of group) {
-                    this.board.delete(posKey);
-                }
-            }
-            
-            getCapturedGroups(opponentColor) {
-                const capturedGroups = [];
-                const checked = new Set();
-                
-                for (const [posKey, color] of this.board) {
-                    if (color === opponentColor && !checked.has(posKey)) {
-                        const group = this.getGroup(...posKey.split(',').map(Number));
-                        for (const pos of group) {
-                            checked.add(pos);
-                        }
-                        
-                        if (this.getLiberties(group).size === 0) {
-                            capturedGroups.push(group);
-                        }
-                    }
-                }
-                
-                return capturedGroups;
-            }
-            
-            playMove(color, pos) {
-                const [row, col] = pos;
-                const key = row + ',' + col;
-                
-                if (!this.isOnBoard(row, col)) {
-                    return false;
-                }
-                
-                if (this.board.has(key)) {
-                    return false; // Position already occupied
-                }
-                
-                // Place the stone
-                this.board.set(key, color);
-                
-                // Determine opponent color
-                const opponentColor = color === 'B' ? 'W' : 'B';
-                
-                // Check for and remove captured opponent groups
-                const capturedGroups = this.getCapturedGroups(opponentColor);
-                for (const group of capturedGroups) {
-                    this.captureGroup(group);
-                }
-                
-                // Check if this move is suicide (illegal if it doesn't capture anything)
-                if (!this.hasLiberties(row, col) && capturedGroups.length === 0) {
-                    // This is suicide - remove the stone and return false
-                    this.board.delete(key);
-                    return false;
-                }
-                
-                return true;
-            }
-        }
-        
-        // Game state and moves
-        let allMoves = {{ALL_MOVES_JS}};
-        let currentMoveIndex = {{TURN_NUMBER}};
-        let moveOfInterest = {{TURN_NUMBER}};
-        
-        function updateBoard(moveIndex) {
-            // Clear all stones
-            const svg = document.querySelector('.go-board-svg');
-            const existingStones = svg.querySelectorAll('circle[r="16"]');
-            existingStones.forEach(stone => stone.remove());
-            
-            // Clear move marker
-            const existingMarkers = svg.querySelectorAll('circle[r="20"]');
-            existingMarkers.forEach(marker => marker.remove());
-            const existingTexts = svg.querySelectorAll('text[font-weight="bold"]');
-            existingTexts.forEach(text => text.remove());
-            
-            // Play moves up to current index with proper Go rules
-            const goBoard = new GoBoard();
-            for (let i = 0; i <= moveIndex && i < allMoves.length; i++) {
-                const move = allMoves[i];
-                if (move.pos) {
-                    goBoard.playMove(move.color, move.pos);
-                }
-            }
-            const board = goBoard.getStoneDict();
-            
-            // Draw stones
-            for (const [posKey, color] of Object.entries(board)) {
-                const [row, col] = posKey.split(',').map(Number);
-                const x = 60 + col * 40;
-                const y = 60 + row * 40;
-                
-                const stone = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                stone.setAttribute('cx', x);
-                stone.setAttribute('cy', y);
-                stone.setAttribute('r', '16');
-                stone.setAttribute('fill', color === 'B' ? 'url(#blackStone)' : 'url(#whiteStone)');
-                stone.setAttribute('stroke', color === 'B' ? '#000' : '#666');
-                stone.setAttribute('stroke-width', '1');
-                svg.appendChild(stone);
-            }
-            
-            // Add move marker if this is the move of interest
-            if (moveIndex === moveOfInterest && moveIndex < allMoves.length) {
-                const move = allMoves[moveIndex];
-                if (move.pos) {
-                    const x = 60 + move.pos[1] * 40;
-                    const y = 60 + move.pos[0] * 40;
-                    
-                    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    marker.setAttribute('cx', x);
-                    marker.setAttribute('cy', y);
-                    marker.setAttribute('r', '20');
-                    marker.setAttribute('fill', 'none');
-                    marker.setAttribute('stroke', '#ff0000');
-                    marker.setAttribute('stroke-width', '3');
-                    marker.setAttribute('opacity', '0.8');
-                    svg.appendChild(marker);
-                    
-                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    text.setAttribute('x', x);
-                    text.setAttribute('y', y - 25);
-                    text.setAttribute('text-anchor', 'middle');
-                    text.setAttribute('font-family', 'Arial');
-                    text.setAttribute('font-size', '12');
-                    text.setAttribute('font-weight', 'bold');
-                    text.setAttribute('fill', '#ff0000');
-                    text.textContent = '← Move of Interest';
-                    svg.appendChild(text);
-                }
-            }
-            
-            // Update UI
-            currentMoveIndex = moveIndex;
-            document.getElementById('current-move').textContent = moveIndex;
-            
-            // Update button states
-            const buttons = document.querySelectorAll('.control-buttons button');
-            buttons[0].disabled = moveIndex <= 0; // First
-            buttons[1].disabled = moveIndex <= 0; // Previous
-            buttons[3].disabled = moveIndex >= allMoves.length - 1; // Next
-            buttons[4].disabled = moveIndex >= allMoves.length - 1; // Last
-        }
-        
-        function goToMove(moveIndex) {
-            if (moveIndex === -1) moveIndex = allMoves.length - 1;
-            moveIndex = Math.max(0, Math.min(allMoves.length - 1, moveIndex));
-            updateBoard(moveIndex);
-        }
-        
-        function previousMove() {
-            if (currentMoveIndex > 0) {
-                updateBoard(currentMoveIndex - 1);
-            }
-        }
-        
-        function nextMove() {
-            if (currentMoveIndex < allMoves.length - 1) {
-                updateBoard(currentMoveIndex + 1);
-            }
-        }
-        
-        // Initialize on page load
+        // Initialize Besogo after page load
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Go board visualization loaded with', allMoves.length, 'moves');
-            updateBoard(currentMoveIndex);
+            besogo.autoInit();
+            console.log('Besogo Go board initialized for position {{GLOBAL_POS}}');
         });
     </script>
 </body>
@@ -1082,17 +536,9 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     go_pattern = analysis_data.get('go_pattern_analysis', {})
     component_comp = analysis_data.get('component_comparison', {})
     
-    # Parse SGF and generate board
+    # Parse SGF for move information (Besogo handles the board display)
     turn_number = int(position_info.get('turn_number', 0))
     board_state, move_of_interest, all_moves = parse_sgf_moves(sgf_content, turn_number)
-    
-    # Generate board state up to target turn for initial display
-    initial_board = {}
-    for i, (color, pos) in enumerate(all_moves):
-        if i >= turn_number:
-            break
-        if pos:
-            initial_board[pos] = color
     
     # Prepare template data
     template_data = {
@@ -1113,20 +559,10 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
         'GLOBAL_POS': global_pos,
         'TURN_NUMBER': position_info.get('turn_number', '0'),
         'MOVE_COORD': position_info.get('move_coordinate', 'Unknown'),
-        'SGF_CONTENT': sgf_content.replace('\n', '').replace('"', '&quot;'),
+        'SGF_CONTENT': sgf_content,  # Raw SGF for Besogo
         'SGF_FILE': summary_row['sgf_file'],
         'BOARD_NPY': summary_row['board_npy'],
         'NPZ_FILE': position_info.get('npz_file', 'Unknown'),
-        
-        # Board elements (initial state)
-        'GRID_LINES': generate_grid_lines(),
-        'COORD_LABELS': generate_coord_labels(),
-        'STONES': generate_stones(initial_board),
-        'MOVE_MARKER': generate_move_marker(move_of_interest, position_info.get('move_coordinate', 'Unknown')),
-        
-        # JavaScript game data
-        'ALL_MOVES_JS': generate_moves_javascript(all_moves),
-        'TOTAL_MOVES': len(all_moves) - 1,
         
         # NMF Analysis
         'ACTIVATION_STRENGTH': format_activation_strength(nmf_analysis.get('activation_strength', 0)),

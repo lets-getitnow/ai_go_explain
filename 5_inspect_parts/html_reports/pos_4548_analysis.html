@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Position 4548 Analysis</title>
+    
+    <!-- Besogo CSS and JS -->
+    <link rel="stylesheet" href="besogo/besogo.css">
+    <link rel="stylesheet" href="besogo/board-flat.css">
+    <script src="besogo/besogo.all.js"></script>
 
     <style>
         body {
@@ -125,69 +130,6 @@
             height: 100%;
             background: linear-gradient(90deg, #28a745, #20c997);
         }
-        .go-board-container {
-            border: 2px solid #8B4513;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            background: #f4f4f4;
-            padding: 10px;
-        }
-        .go-board-svg {
-            margin: 0 auto;
-            display: block;
-            border-radius: 4px;
-        }
-        .board-controls {
-            margin-top: 15px;
-        }
-        .control-buttons {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            border: 1px solid #dee2e6;
-        }
-        .control-buttons button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: transform 0.2s, opacity 0.2s;
-        }
-        .control-buttons button:hover {
-            transform: scale(1.1);
-        }
-        .control-buttons button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .move-display {
-            font-weight: bold;
-            color: #2c3e50;
-            margin: 0 10px;
-            font-family: 'Courier New', monospace;
-        }
-        .position-info {
-            text-align: center;
-            font-size: 0.9em;
-            color: #666;
-        }
-        .position-info a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        .position-info a:hover {
-            text-decoration: underline;
-        }
         .position-highlight {
             background: #fff3cd;
             border: 2px solid #ffc107;
@@ -232,6 +174,16 @@
             color: #2c3e50;
             font-family: 'Courier New', monospace;
         }
+        
+        /* Besogo board styling */
+        .besogo-editor {
+            max-width: 100%;
+            height: 500px;
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
         @media (max-width: 1024px) {
             .content {
                 grid-template-columns: 1fr;
@@ -259,130 +211,12 @@
                     <br><strong>Activation Strength:</strong> 0.8408
                 </div>
                 
-                <div id="go-board-4548" class="go-board-container">
-                    <svg width="360" height="360" viewBox="0 0 360 360" class="go-board-svg">
-                        <!-- Board grid -->
-                        <defs>
-                            <pattern id="wood" patternUnits="userSpaceOnUse" width="40" height="40">
-                                <rect width="40" height="40" fill="#DEB887"/>
-                                <rect width="40" height="40" fill="url(#woodGrain)" opacity="0.3"/>
-                            </pattern>
-                            <linearGradient id="woodGrain" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#CD853F;stop-opacity:1" />
-                                <stop offset="100%" style="stop-color:#F4A460;stop-opacity:1" />
-                            </linearGradient>
-                            <!-- Black stone gradient -->
-                            <radialGradient id="blackStone" cx="30%" cy="30%">
-                                <stop offset="0%" stop-color="#555"/>
-                                <stop offset="70%" stop-color="#222"/>
-                                <stop offset="100%" stop-color="#000"/>
-                            </radialGradient>
-                            <!-- White stone gradient -->
-                            <radialGradient id="whiteStone" cx="30%" cy="30%">
-                                <stop offset="0%" stop-color="#fff"/>
-                                <stop offset="70%" stop-color="#eee"/>
-                                <stop offset="100%" stop-color="#ccc"/>
-                            </radialGradient>
-                        </defs>
-                        
-                        <!-- Board background -->
-                        <rect x="20" y="20" width="320" height="320" fill="url(#wood)" stroke="#8B4513" stroke-width="2"/>
-                        
-                        <!-- Grid lines -->
-                        <line x1="60" y1="60" x2="300" y2="60" stroke="#8B4513" stroke-width="1"/>
-<line x1="60" y1="100" x2="300" y2="100" stroke="#8B4513" stroke-width="1"/>
-<line x1="60" y1="140" x2="300" y2="140" stroke="#8B4513" stroke-width="1"/>
-<line x1="60" y1="180" x2="300" y2="180" stroke="#8B4513" stroke-width="1"/>
-<line x1="60" y1="220" x2="300" y2="220" stroke="#8B4513" stroke-width="1"/>
-<line x1="60" y1="260" x2="300" y2="260" stroke="#8B4513" stroke-width="1"/>
-<line x1="60" y1="300" x2="300" y2="300" stroke="#8B4513" stroke-width="1"/>
-<line x1="60" y1="60" x2="60" y2="300" stroke="#8B4513" stroke-width="1"/>
-<line x1="100" y1="60" x2="100" y2="300" stroke="#8B4513" stroke-width="1"/>
-<line x1="140" y1="60" x2="140" y2="300" stroke="#8B4513" stroke-width="1"/>
-<line x1="180" y1="60" x2="180" y2="300" stroke="#8B4513" stroke-width="1"/>
-<line x1="220" y1="60" x2="220" y2="300" stroke="#8B4513" stroke-width="1"/>
-<line x1="260" y1="60" x2="260" y2="300" stroke="#8B4513" stroke-width="1"/>
-<line x1="300" y1="60" x2="300" y2="300" stroke="#8B4513" stroke-width="1"/>
-<circle cx="100" cy="100" r="3" fill="#8B4513"/>
-<circle cx="260" cy="100" r="3" fill="#8B4513"/>
-<circle cx="100" cy="260" r="3" fill="#8B4513"/>
-<circle cx="260" cy="260" r="3" fill="#8B4513"/>
-<circle cx="180" cy="180" r="3" fill="#8B4513"/>
-                        
-                        <!-- Coordinate labels -->
-                        <text x="60" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">A</text>
-<text x="60" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">A</text>
-<text x="100" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">B</text>
-<text x="100" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">B</text>
-<text x="140" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">C</text>
-<text x="140" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">C</text>
-<text x="180" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">D</text>
-<text x="180" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">D</text>
-<text x="220" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">E</text>
-<text x="220" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">E</text>
-<text x="260" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">F</text>
-<text x="260" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">F</text>
-<text x="300" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">G</text>
-<text x="300" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">G</text>
-<text x="45" y="64" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">7</text>
-<text x="315" y="64" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">7</text>
-<text x="45" y="104" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">6</text>
-<text x="315" y="104" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">6</text>
-<text x="45" y="144" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">5</text>
-<text x="315" y="144" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">5</text>
-<text x="45" y="184" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">4</text>
-<text x="315" y="184" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">4</text>
-<text x="45" y="224" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">3</text>
-<text x="315" y="224" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">3</text>
-<text x="45" y="264" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">2</text>
-<text x="315" y="264" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">2</text>
-<text x="45" y="304" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">1</text>
-<text x="315" y="304" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">1</text>
-                        
-                        <!-- Stones -->
-                        <circle cx="260" cy="220" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
-<circle cx="180" cy="180" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
-<circle cx="180" cy="140" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
-<circle cx="220" cy="180" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
-<circle cx="140" cy="180" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
-<circle cx="140" cy="220" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
-<circle cx="220" cy="140" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
-<circle cx="140" cy="140" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
-<circle cx="100" cy="180" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
-<circle cx="260" cy="140" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
-<circle cx="140" cy="100" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
-<circle cx="260" cy="180" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
-<circle cx="100" cy="220" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
-<circle cx="180" cy="260" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
-<circle cx="140" cy="260" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
-<circle cx="180" cy="220" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
-<circle cx="260" cy="100" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
-<circle cx="300" cy="100" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
-<circle cx="100" cy="260" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
-<circle cx="220" cy="100" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
-<circle cx="180" cy="100" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
-<circle cx="220" cy="60" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
-<circle cx="180" cy="300" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
-<circle cx="220" cy="300" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
-                        
-                        <!-- Move of interest marker -->
-                        
-                    </svg>
-                    
-                    <div class="board-controls">
-                        <div class="control-buttons">
-                            <button onclick="goToMove(0)" title="Go to start">⏮</button>
-                            <button onclick="previousMove()" title="Previous move">⏪</button>
-                            <span class="move-display">Move: <span id="current-move">24</span> / <span id="total-moves">23</span></span>
-                            <button onclick="nextMove()" title="Next move">⏩</button>
-                            <button onclick="goToMove(-1)" title="Go to end">⏭</button>
-                        </div>
-                        <div class="position-info">
-                            <p><strong>Move of Interest: Turn 24</strong> | <a href="#" onclick="goToMove(24); return false;">Jump to Move of Interest</a></p>
-                            <p>SGF: <a href="#" onclick="alert('(;FF[4]GM[1]SZ[7]PB[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]PW[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]HA[0]KM[8.5]RU[koSITUATIONALscoreTERRITORYtaxALLsui0]RE[W+7.5]C[startTurnIdx=7,initTurnNum=0,gameHash=E4515ACE7239E252071CC8C67362E47F,gtype=normal];B[fe];W[dd];B[dc];W[ed];B[cd];W[ce];B[ec];W[cc]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];B[bd]C[1.00 0.00 0.00 8.4 v=100 weight=0.00];W[fc]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];B[cb]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];W[fd]C[1.00 0.00 0.00 7.7 v=100 weight=0.00];B[be]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];W[df]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];B[cf]C[1.00 0.00 0.00 7.2 v=100 weight=0.00];W[de]C[1.00 0.00 0.00 6.8 v=100 weight=0.00];B[fb]C[1.00 0.00 0.00 7.6 v=130 weight=0.15];W[gb]C[1.00 0.00 0.00 7.5 v=100 weight=0.00];B[bf]C[1.00 0.00 0.00 8.0 v=130 weight=0.15];W[eb]C[1.00 0.00 0.00 7.1 v=100 weight=0.00];B[db]C[1.00 0.00 0.00 8.6 v=114 weight=0.13];W[ea]C[0.99 0.01 0.00 6.7 v=114 weight=0.13];B[dg]C[1.00 0.00 0.00 7.1 v=100 weight=0.00];W[eg]C[1.00 0.00 0.00 7.1 v=100 weight=0.00])'); return false;">View SGF</a></p>
-                        </div>
-                    </div>
-                </div>
+                <!-- Besogo Go Board -->
+                <div class="besogo-editor" 
+                     size="7" 
+                     coord="western"
+                     panels="control+comment"
+                     path="24">(;FF[4]GM[1]SZ[7]PB[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]PW[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]HA[0]KM[8.5]RU[koSITUATIONALscoreTERRITORYtaxALLsui0]RE[W+7.5]C[startTurnIdx=7,initTurnNum=0,gameHash=E4515ACE7239E252071CC8C67362E47F,gtype=normal];B[fe];W[dd];B[dc];W[ed];B[cd];W[ce];B[ec];W[cc]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];B[bd]C[1.00 0.00 0.00 8.4 v=100 weight=0.00];W[fc]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];B[cb]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];W[fd]C[1.00 0.00 0.00 7.7 v=100 weight=0.00];B[be]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];W[df]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];B[cf]C[1.00 0.00 0.00 7.2 v=100 weight=0.00];W[de]C[1.00 0.00 0.00 6.8 v=100 weight=0.00];B[fb]C[1.00 0.00 0.00 7.6 v=130 weight=0.15];W[gb]C[1.00 0.00 0.00 7.5 v=100 weight=0.00];B[bf]C[1.00 0.00 0.00 8.0 v=130 weight=0.15];W[eb]C[1.00 0.00 0.00 7.1 v=100 weight=0.00];B[db]C[1.00 0.00 0.00 8.6 v=114 weight=0.13];W[ea]C[0.99 0.01 0.00 6.7 v=114 weight=0.13];B[dg]C[1.00 0.00 0.00 7.1 v=100 weight=0.00];W[eg]C[1.00 0.00 0.00 7.1 v=100 weight=0.00])</div>
             </div>
             
             <div class="analysis-section">
@@ -607,255 +441,10 @@
     </div>
     
     <script>
-        // JavaScript implementation of Go rules
-        class GoBoard {
-            constructor(size = 7) {
-                this.size = size;
-                this.board = new Map(); // Map<string, string> for (row,col) -> color
-            }
-            
-            getStoneDict() {
-                const result = {};
-                for (const [key, value] of this.board) {
-                    result[key] = value;
-                }
-                return result;
-            }
-            
-            isOnBoard(row, col) {
-                return row >= 0 && row < this.size && col >= 0 && col < this.size;
-            }
-            
-            getNeighbors(row, col) {
-                const neighbors = [];
-                const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
-                for (const [dr, dc] of directions) {
-                    const nr = row + dr;
-                    const nc = col + dc;
-                    if (this.isOnBoard(nr, nc)) {
-                        neighbors.push([nr, nc]);
-                    }
-                }
-                return neighbors;
-            }
-            
-            getGroup(row, col) {
-                const key = row + ',' + col;
-                if (!this.board.has(key)) {
-                    return new Set();
-                }
-                
-                const color = this.board.get(key);
-                const group = new Set();
-                const stack = [[row, col]];
-                
-                while (stack.length > 0) {
-                    const [r, c] = stack.pop();
-                    const posKey = r + ',' + c;
-                    if (group.has(posKey)) {
-                        continue;
-                    }
-                    group.add(posKey);
-                    
-                    for (const [nr, nc] of this.getNeighbors(r, c)) {
-                        const nKey = nr + ',' + nc;
-                        if (this.board.has(nKey) && this.board.get(nKey) === color && !group.has(nKey)) {
-                            stack.push([nr, nc]);
-                        }
-                    }
-                }
-                
-                return group;
-            }
-            
-            getLiberties(group) {
-                const liberties = new Set();
-                for (const posKey of group) {
-                    const [row, col] = posKey.split(',').map(Number);
-                    for (const [nr, nc] of this.getNeighbors(row, col)) {
-                        const nKey = nr + ',' + nc;
-                        if (!this.board.has(nKey)) {
-                            liberties.add(nKey);
-                        }
-                    }
-                }
-                return liberties;
-            }
-            
-            hasLiberties(row, col) {
-                const group = this.getGroup(row, col);
-                const liberties = this.getLiberties(group);
-                return liberties.size > 0;
-            }
-            
-            captureGroup(group) {
-                for (const posKey of group) {
-                    this.board.delete(posKey);
-                }
-            }
-            
-            getCapturedGroups(opponentColor) {
-                const capturedGroups = [];
-                const checked = new Set();
-                
-                for (const [posKey, color] of this.board) {
-                    if (color === opponentColor && !checked.has(posKey)) {
-                        const group = this.getGroup(...posKey.split(',').map(Number));
-                        for (const pos of group) {
-                            checked.add(pos);
-                        }
-                        
-                        if (this.getLiberties(group).size === 0) {
-                            capturedGroups.push(group);
-                        }
-                    }
-                }
-                
-                return capturedGroups;
-            }
-            
-            playMove(color, pos) {
-                const [row, col] = pos;
-                const key = row + ',' + col;
-                
-                if (!this.isOnBoard(row, col)) {
-                    return false;
-                }
-                
-                if (this.board.has(key)) {
-                    return false; // Position already occupied
-                }
-                
-                // Place the stone
-                this.board.set(key, color);
-                
-                // Determine opponent color
-                const opponentColor = color === 'B' ? 'W' : 'B';
-                
-                // Check for and remove captured opponent groups
-                const capturedGroups = this.getCapturedGroups(opponentColor);
-                for (const group of capturedGroups) {
-                    this.captureGroup(group);
-                }
-                
-                // Check if this move is suicide (illegal if it doesn't capture anything)
-                if (!this.hasLiberties(row, col) && capturedGroups.length === 0) {
-                    // This is suicide - remove the stone and return false
-                    this.board.delete(key);
-                    return false;
-                }
-                
-                return true;
-            }
-        }
-        
-        // Game state and moves
-        let allMoves = [{"color": "B", "pos": [4, 5]}, {"color": "W", "pos": [3, 3]}, {"color": "B", "pos": [2, 3]}, {"color": "W", "pos": [3, 4]}, {"color": "B", "pos": [3, 2]}, {"color": "W", "pos": [4, 2]}, {"color": "B", "pos": [2, 4]}, {"color": "W", "pos": [2, 2]}, {"color": "B", "pos": [3, 1]}, {"color": "W", "pos": [2, 5]}, {"color": "B", "pos": [1, 2]}, {"color": "W", "pos": [3, 5]}, {"color": "B", "pos": [4, 1]}, {"color": "W", "pos": [5, 3]}, {"color": "B", "pos": [5, 2]}, {"color": "W", "pos": [4, 3]}, {"color": "B", "pos": [1, 5]}, {"color": "W", "pos": [1, 6]}, {"color": "B", "pos": [5, 1]}, {"color": "W", "pos": [1, 4]}, {"color": "B", "pos": [1, 3]}, {"color": "W", "pos": [0, 4]}, {"color": "B", "pos": [6, 3]}, {"color": "W", "pos": [6, 4]}];
-        let currentMoveIndex = 24;
-        let moveOfInterest = 24;
-        
-        function updateBoard(moveIndex) {
-            // Clear all stones
-            const svg = document.querySelector('.go-board-svg');
-            const existingStones = svg.querySelectorAll('circle[r="16"]');
-            existingStones.forEach(stone => stone.remove());
-            
-            // Clear move marker
-            const existingMarkers = svg.querySelectorAll('circle[r="20"]');
-            existingMarkers.forEach(marker => marker.remove());
-            const existingTexts = svg.querySelectorAll('text[font-weight="bold"]');
-            existingTexts.forEach(text => text.remove());
-            
-            // Play moves up to current index with proper Go rules
-            const goBoard = new GoBoard();
-            for (let i = 0; i <= moveIndex && i < allMoves.length; i++) {
-                const move = allMoves[i];
-                if (move.pos) {
-                    goBoard.playMove(move.color, move.pos);
-                }
-            }
-            const board = goBoard.getStoneDict();
-            
-            // Draw stones
-            for (const [posKey, color] of Object.entries(board)) {
-                const [row, col] = posKey.split(',').map(Number);
-                const x = 60 + col * 40;
-                const y = 60 + row * 40;
-                
-                const stone = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                stone.setAttribute('cx', x);
-                stone.setAttribute('cy', y);
-                stone.setAttribute('r', '16');
-                stone.setAttribute('fill', color === 'B' ? 'url(#blackStone)' : 'url(#whiteStone)');
-                stone.setAttribute('stroke', color === 'B' ? '#000' : '#666');
-                stone.setAttribute('stroke-width', '1');
-                svg.appendChild(stone);
-            }
-            
-            // Add move marker if this is the move of interest
-            if (moveIndex === moveOfInterest && moveIndex < allMoves.length) {
-                const move = allMoves[moveIndex];
-                if (move.pos) {
-                    const x = 60 + move.pos[1] * 40;
-                    const y = 60 + move.pos[0] * 40;
-                    
-                    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    marker.setAttribute('cx', x);
-                    marker.setAttribute('cy', y);
-                    marker.setAttribute('r', '20');
-                    marker.setAttribute('fill', 'none');
-                    marker.setAttribute('stroke', '#ff0000');
-                    marker.setAttribute('stroke-width', '3');
-                    marker.setAttribute('opacity', '0.8');
-                    svg.appendChild(marker);
-                    
-                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    text.setAttribute('x', x);
-                    text.setAttribute('y', y - 25);
-                    text.setAttribute('text-anchor', 'middle');
-                    text.setAttribute('font-family', 'Arial');
-                    text.setAttribute('font-size', '12');
-                    text.setAttribute('font-weight', 'bold');
-                    text.setAttribute('fill', '#ff0000');
-                    text.textContent = '← Move of Interest';
-                    svg.appendChild(text);
-                }
-            }
-            
-            // Update UI
-            currentMoveIndex = moveIndex;
-            document.getElementById('current-move').textContent = moveIndex;
-            
-            // Update button states
-            const buttons = document.querySelectorAll('.control-buttons button');
-            buttons[0].disabled = moveIndex <= 0; // First
-            buttons[1].disabled = moveIndex <= 0; // Previous
-            buttons[3].disabled = moveIndex >= allMoves.length - 1; // Next
-            buttons[4].disabled = moveIndex >= allMoves.length - 1; // Last
-        }
-        
-        function goToMove(moveIndex) {
-            if (moveIndex === -1) moveIndex = allMoves.length - 1;
-            moveIndex = Math.max(0, Math.min(allMoves.length - 1, moveIndex));
-            updateBoard(moveIndex);
-        }
-        
-        function previousMove() {
-            if (currentMoveIndex > 0) {
-                updateBoard(currentMoveIndex - 1);
-            }
-        }
-        
-        function nextMove() {
-            if (currentMoveIndex < allMoves.length - 1) {
-                updateBoard(currentMoveIndex + 1);
-            }
-        }
-        
-        // Initialize on page load
+        // Initialize Besogo after page load
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Go board visualization loaded with', allMoves.length, 'moves');
-            updateBoard(currentMoveIndex);
+            besogo.autoInit();
+            console.log('Besogo Go board initialized for position 4548');
         });
     </script>
 </body>
