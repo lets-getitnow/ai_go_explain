@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Position Analysis - Step 5 Results</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin: 0 0 10px 0;
+        }
+        .header p {
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+        .positions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .position-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .position-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .position-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .position-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .detail-value {
+            color: #6c757d;
+            font-family: 'Courier New', monospace;
+        }
+        .view-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .view-button:hover {
+            transform: scale(1.05);
+            text-decoration: none;
+            color: white;
+        }
+        .part-section {
+            margin-bottom: 40px;
+        }
+        .part-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .part-header h2 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Go Position Analysis Results</h1>
+            <p>Step 5: NMF Component Analysis - Positions of Interest</p>
+            <p>9 positions analyzed across 3 NMF parts, each showing the top 3 strongest activations</p>
+        </div>
+        
+
+        <div class="part-section">
+            <div class="part-header">
+                <h2>NMF Part 0</h2>
+            </div>
+            <div class="positions-grid">
+
+                <div class="position-card">
+                    <div class="position-title">Position 4683</div>
+                    <div class="position-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Rank:</span>
+                            <span class="detail-value">1</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Move:</span>
+                            <span class="detail-value">(2,2)</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Turn:</span>
+                            <span class="detail-value">13</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Part:</span>
+                            <span class="detail-value">0</span>
+                        </div>
+                    </div>
+                    <a href="pos_4683_analysis.html" class="view-button">
+                        View Analysis →
+                    </a>
+                </div>
+
+                <div class="position-card">
+                    <div class="position-title">Position 89</div>
+                    <div class="position-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Rank:</span>
+                            <span class="detail-value">2</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Move:</span>
+                            <span class="detail-value">(2,4)</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Turn:</span>
+                            <span class="detail-value">16</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Part:</span>
+                            <span class="detail-value">0</span>
+                        </div>
+                    </div>
+                    <a href="pos_89_analysis.html" class="view-button">
+                        View Analysis →
+                    </a>
+                </div>
+
+                <div class="position-card">
+                    <div class="position-title">Position 4109</div>
+                    <div class="position-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Rank:</span>
+                            <span class="detail-value">3</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Move:</span>
+                            <span class="detail-value">(2,2)</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Turn:</span>
+                            <span class="detail-value">12</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Part:</span>
+                            <span class="detail-value">0</span>
+                        </div>
+                    </div>
+                    <a href="pos_4109_analysis.html" class="view-button">
+                        View Analysis →
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="part-section">
+            <div class="part-header">
+                <h2>NMF Part 1</h2>
+            </div>
+            <div class="positions-grid">
+
+                <div class="position-card">
+                    <div class="position-title">Position 1062</div>
+                    <div class="position-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Rank:</span>
+                            <span class="detail-value">1</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Move:</span>
+                            <span class="detail-value">PASS</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Turn:</span>
+                            <span class="detail-value">12</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Part:</span>
+                            <span class="detail-value">1</span>
+                        </div>
+                    </div>
+                    <a href="pos_1062_analysis.html" class="view-button">
+                        View Analysis →
+                    </a>
+                </div>
+
+                <div class="position-card">
+                    <div class="position-title">Position 4548</div>
+                    <div class="position-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Rank:</span>
+                            <span class="detail-value">2</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Move:</span>
+                            <span class="detail-value">(0,0)</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Turn:</span>
+                            <span class="detail-value">24</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Part:</span>
+                            <span class="detail-value">1</span>
+                        </div>
+                    </div>
+                    <a href="pos_4548_analysis.html" class="view-button">
+                        View Analysis →
+                    </a>
+                </div>
+
+                <div class="position-card">
+                    <div class="position-title">Position 3950</div>
+                    <div class="position-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Rank:</span>
+                            <span class="detail-value">3</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Move:</span>
+                            <span class="detail-value">PASS</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Turn:</span>
+                            <span class="detail-value">10</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Part:</span>
+                            <span class="detail-value">1</span>
+                        </div>
+                    </div>
+                    <a href="pos_3950_analysis.html" class="view-button">
+                        View Analysis →
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="part-section">
+            <div class="part-header">
+                <h2>NMF Part 2</h2>
+            </div>
+            <div class="positions-grid">
+
+                <div class="position-card">
+                    <div class="position-title">Position 1067</div>
+                    <div class="position-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Rank:</span>
+                            <span class="detail-value">1</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Move:</span>
+                            <span class="detail-value">(2,2)</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Turn:</span>
+                            <span class="detail-value">17</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Part:</span>
+                            <span class="detail-value">2</span>
+                        </div>
+                    </div>
+                    <a href="pos_1067_analysis.html" class="view-button">
+                        View Analysis →
+                    </a>
+                </div>
+
+                <div class="position-card">
+                    <div class="position-title">Position 2020</div>
+                    <div class="position-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Rank:</span>
+                            <span class="detail-value">2</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Move:</span>
+                            <span class="detail-value">(4,4)</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Turn:</span>
+                            <span class="detail-value">37</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Part:</span>
+                            <span class="detail-value">2</span>
+                        </div>
+                    </div>
+                    <a href="pos_2020_analysis.html" class="view-button">
+                        View Analysis →
+                    </a>
+                </div>
+
+                <div class="position-card">
+                    <div class="position-title">Position 2239</div>
+                    <div class="position-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Rank:</span>
+                            <span class="detail-value">3</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Move:</span>
+                            <span class="detail-value">(4,3)</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Turn:</span>
+                            <span class="detail-value">16</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Part:</span>
+                            <span class="detail-value">2</span>
+                        </div>
+                    </div>
+                    <a href="pos_2239_analysis.html" class="view-button">
+                        View Analysis →
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

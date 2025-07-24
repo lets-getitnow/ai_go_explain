@@ -490,7 +490,7 @@ def get_html_template() -> str:
                         </defs>
                         
                         <!-- Board background -->
-                        <rect x="20" y="20" width="280" height="280" fill="url(#wood)" stroke="#8B4513" stroke-width="2"/>
+                        <rect x="20" y="20" width="320" height="320" fill="url(#wood)" stroke="#8B4513" stroke-width="2"/>
                         
                         <!-- Grid lines -->
                         {{GRID_LINES}}

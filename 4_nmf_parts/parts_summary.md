@@ -1,20 +1,20 @@
 # NMF Parts Summary Report
-Generated: "2025-07-22T13:38:03.043174"
+Generated: "2025-07-24T11:06:10.901847"
 
 ## Part 0
-- Sparsity: 1.95%
-- Max weight: 0.8609
-- Strongest activation: Position 1388 (1.0193)
-- File: 5DC45ABC0B69CCEF.npz
+- Sparsity: 3.91%
+- Max weight: 0.8739
+- Strongest activation: Position 4683 (0.9353)
+- File: B330F9C802154800.npz
 
 ## Part 1
-- Sparsity: 4.49%
-- Max weight: 1.0723
-- Strongest activation: Position 1256 (0.8897)
-- File: 4A3919085F2F7840.npz
+- Sparsity: 1.76%
+- Max weight: 0.9918
+- Strongest activation: Position 1062 (0.8431)
+- File: 1D638D50844BD930.npz
 
 ## Part 2
-- Sparsity: 3.71%
-- Max weight: 0.9435
-- Strongest activation: Position 834 (0.9234)
-- File: 4A3919085F2F7840.npz
+- Sparsity: 4.69%
+- Max weight: 0.9418
+- Strongest activation: Position 1067 (0.9429)
+- File: 1D638D50844BD930.npz

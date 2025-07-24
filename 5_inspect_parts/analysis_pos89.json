@@ -1,0 +1,111 @@
+{
+  "position_info": {
+    "part": 0,
+    "rank": 2,
+    "global_position": 89,
+    "move_coordinate": "(2,4)",
+    "turn_number": 16,
+    "npz_file": "1906C337F5CDAFA9.npz",
+    "board_tensor_file": "part0_rank2_pos89.npy",
+    "sgf_file": "sgf_pos89.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.9326722025871277,
+    "rank_in_component": 2,
+    "activation_in_other_components": [
+      0.9326722025871277,
+      0.021229811012744904,
+      0.26893824338912964
+    ],
+    "channel_activity": [
+      49,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      49,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        19,
+        49
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        9,
+        1
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "total_board_activity": 100
+  },
+  "go_pattern_analysis": {
+    "move_type": "corner",
+    "game_phase": "opening",
+    "turn_number": 16,
+    "policy_entropy": 1.8107347185197216,
+    "policy_confidence": 0.40476190476190477,
+    "top_policy_moves": [
+      {
+        "coord": "(2,4)",
+        "percentage": 40.5,
+        "count": 51
+      },
+      {
+        "coord": "(4,4)",
+        "percentage": 34.1,
+        "count": 43
+      },
+      {
+        "coord": "(4,3)",
+        "percentage": 14.3,
+        "count": 18
+      },
+      {
+        "coord": "(2,3)",
+        "percentage": 11.1,
+        "count": 14
+      }
+    ],
+    "total_policy_counts": 126
+  },
+  "component_comparison": {
+    "uniqueness_score": 0.776185154914856,
+    "similar_positions": [
+      4683,
+      4109,
+      5036,
+      4684,
+      1317
+    ],
+    "component_rank": 2,
+    "max_other_component_activation": 0.26893824338912964,
+    "activation_percentile": 99.96971073754354
+  }
+}

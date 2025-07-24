@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Position 4683 Analysis</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .header .subtitle {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+        .board-section {
+            display: flex;
+            flex-direction: column;
+        }
+        .analysis-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .analysis-card {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .analysis-card h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .data-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .data-value {
+            color: #6c757d;
+            font-family: 'Courier New', monospace;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        .policy-moves {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .policy-move {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            margin: 2px 0;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        .channel-activity {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(30px, 1fr));
+            gap: 2px;
+            margin: 10px 0;
+        }
+        .channel-bar {
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+        .channel-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+        .go-board-container {
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            background: #f4f4f4;
+            padding: 10px;
+        }
+        .go-board-svg {
+            margin: 0 auto;
+            display: block;
+            border-radius: 4px;
+        }
+        .board-controls {
+            margin-top: 15px;
+        }
+        .control-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        .control-buttons button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .control-buttons button:hover {
+            transform: scale(1.1);
+        }
+        .control-buttons button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .move-display {
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0 10px;
+            font-family: 'Courier New', monospace;
+        }
+        .position-info {
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .position-info a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .position-info a:hover {
+            text-decoration: underline;
+        }
+        .position-highlight {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Position 4683 Analysis</h1>
+            <div class="subtitle">Part 0, Rank 1 - NMF Component Analysis</div>
+        </div>
+        
+        <div class="content">
+            <div class="board-section">
+                <div class="position-highlight">
+                    <strong>Move of Interest:</strong> (2,2) at Turn 13
+                    <br><strong>Activation Strength:</strong> 0.9353
+                </div>
+                
+                <div id="go-board-4683" class="go-board-container">
+                    <svg width="360" height="360" viewBox="0 0 360 360" class="go-board-svg">
+                        <!-- Board grid -->
+                        <defs>
+                            <pattern id="wood" patternUnits="userSpaceOnUse" width="40" height="40">
+                                <rect width="40" height="40" fill="#DEB887"/>
+                                <rect width="40" height="40" fill="url(#woodGrain)" opacity="0.3"/>
+                            </pattern>
+                            <linearGradient id="woodGrain" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#CD853F;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#F4A460;stop-opacity:1" />
+                            </linearGradient>
+                            <!-- Black stone gradient -->
+                            <radialGradient id="blackStone" cx="30%" cy="30%">
+                                <stop offset="0%" stop-color="#555"/>
+                                <stop offset="70%" stop-color="#222"/>
+                                <stop offset="100%" stop-color="#000"/>
+                            </radialGradient>
+                            <!-- White stone gradient -->
+                            <radialGradient id="whiteStone" cx="30%" cy="30%">
+                                <stop offset="0%" stop-color="#fff"/>
+                                <stop offset="70%" stop-color="#eee"/>
+                                <stop offset="100%" stop-color="#ccc"/>
+                            </radialGradient>
+                        </defs>
+                        
+                        <!-- Board background -->
+                        <rect x="20" y="20" width="320" height="320" fill="url(#wood)" stroke="#8B4513" stroke-width="2"/>
+                        
+                        <!-- Grid lines -->
+                        <line x1="60" y1="60" x2="300" y2="60" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="100" x2="300" y2="100" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="140" x2="300" y2="140" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="180" x2="300" y2="180" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="220" x2="300" y2="220" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="260" x2="300" y2="260" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="300" x2="300" y2="300" stroke="#8B4513" stroke-width="1"/>
+<line x1="60" y1="60" x2="60" y2="300" stroke="#8B4513" stroke-width="1"/>
+<line x1="100" y1="60" x2="100" y2="300" stroke="#8B4513" stroke-width="1"/>
+<line x1="140" y1="60" x2="140" y2="300" stroke="#8B4513" stroke-width="1"/>
+<line x1="180" y1="60" x2="180" y2="300" stroke="#8B4513" stroke-width="1"/>
+<line x1="220" y1="60" x2="220" y2="300" stroke="#8B4513" stroke-width="1"/>
+<line x1="260" y1="60" x2="260" y2="300" stroke="#8B4513" stroke-width="1"/>
+<line x1="300" y1="60" x2="300" y2="300" stroke="#8B4513" stroke-width="1"/>
+<circle cx="100" cy="100" r="3" fill="#8B4513"/>
+<circle cx="260" cy="100" r="3" fill="#8B4513"/>
+<circle cx="100" cy="260" r="3" fill="#8B4513"/>
+<circle cx="260" cy="260" r="3" fill="#8B4513"/>
+<circle cx="180" cy="180" r="3" fill="#8B4513"/>
+                        
+                        <!-- Coordinate labels -->
+                        <text x="60" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">A</text>
+<text x="60" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">A</text>
+<text x="100" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">B</text>
+<text x="100" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">B</text>
+<text x="140" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">C</text>
+<text x="140" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">C</text>
+<text x="180" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">D</text>
+<text x="180" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">D</text>
+<text x="220" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">E</text>
+<text x="220" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">E</text>
+<text x="260" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">F</text>
+<text x="260" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">F</text>
+<text x="300" y="50" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">G</text>
+<text x="300" y="320" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">G</text>
+<text x="45" y="64" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">7</text>
+<text x="315" y="64" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">7</text>
+<text x="45" y="104" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">6</text>
+<text x="315" y="104" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">6</text>
+<text x="45" y="144" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">5</text>
+<text x="315" y="144" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">5</text>
+<text x="45" y="184" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">4</text>
+<text x="315" y="184" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">4</text>
+<text x="45" y="224" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">3</text>
+<text x="315" y="224" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">3</text>
+<text x="45" y="264" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">2</text>
+<text x="315" y="264" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">2</text>
+<text x="45" y="304" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">1</text>
+<text x="315" y="304" text-anchor="middle" font-family="Arial" font-size="12" fill="#8B4513">1</text>
+                        
+                        <!-- Stones -->
+                        <circle cx="140" cy="140" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="100" cy="140" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="100" cy="100" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="140" cy="180" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="180" cy="140" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="100" cy="180" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="60" cy="100" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="180" cy="180" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="220" cy="180" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="220" cy="220" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="220" cy="140" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+<circle cx="140" cy="100" r="16" fill="url(#whiteStone)" stroke="#666" stroke-width="1"/>
+<circle cx="60" cy="140" r="16" fill="url(#blackStone)" stroke="#000" stroke-width="1"/>
+                        
+                        <!-- Move of interest marker -->
+                        
+                    </svg>
+                    
+                    <div class="board-controls">
+                        <div class="control-buttons">
+                            <button onclick="goToMove(0)" title="Go to start">⏮</button>
+                            <button onclick="previousMove()" title="Previous move">⏪</button>
+                            <span class="move-display">Move: <span id="current-move">13</span> / <span id="total-moves">12</span></span>
+                            <button onclick="nextMove()" title="Next move">⏩</button>
+                            <button onclick="goToMove(-1)" title="Go to end">⏭</button>
+                        </div>
+                        <div class="position-info">
+                            <p><strong>Move of Interest: Turn 13</strong> | <a href="#" onclick="goToMove(13); return false;">Jump to Move of Interest</a></p>
+                            <p>SGF: <a href="#" onclick="alert('(;FF[4]GM[1]SZ[7]PB[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]PW[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]HA[0]KM[8.5]RU[koSIMPLEscoreAREAtaxALLsui1button1]RE[0]C[startTurnIdx=2,initTurnNum=0,gameHash=8B687B734D74D22672C6FFE6ECF9FED3,gtype=normal];B[dd];W[cd];B[cc]C[0.48 0.52 0.00 -0.1 v=100 weight=0.00];W[de]C[0.50 0.50 0.00 -0.1 v=100 weight=0.00];B[ed]C[0.50 0.50 0.00 -0.1 v=100 weight=0.00];W[ce]C[0.50 0.50 0.00 -0.1 v=100 weight=0.00];B[bc]C[0.50 0.50 0.00 -0.1 v=100 weight=0.00];W[ee]C[0.50 0.50 0.00 -0.1 v=100 weight=0.00];B[fe]C[0.50 0.50 0.00 -0.1 v=100 weight=0.00];W[ff]C[0.50 0.50 0.00 -0.1 v=100 weight=0.00];B[fd]C[0.53 0.47 0.00 0.1 v=600 weight=1.32];W[dc]C[0.51 0.49 0.00 -0.1 v=538 weight=0.00];B[bd]C[0.52 0.48 0.00 0.1 v=600 weight=1.30])'); return false;">View SGF</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analysis-section">
+                <div class="analysis-card">
+                    <h3>🧠 NMF Component Analysis</h3>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="data-label">Part:</span>
+                            <span class="data-value">0</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Rank:</span>
+                            <span class="data-value">1</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Global Position:</span>
+                            <span class="data-value">4683</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Activation Percentile:</span>
+                            <span class="data-value">99.98%</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong>Activation Strength: 0.9353</strong>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 93.5%"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <strong>Channel Activity (100 active channels)</strong>
+                        <div class="channel-activity">
+                            <div class="channel-bar" title="Channel 0: 49">
+            <div class="channel-fill" style="width: 100.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 1: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 2: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" title="Channel 3: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 4: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 5: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 6: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 7: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 8: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 9: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" title="Channel 10: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 11: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 12: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 13: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 14: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 15: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 16: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 17: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 18: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 19: 49">
+            <div class="channel-fill" style="width: 100.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 20: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" title="Channel 21: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3>🎯 Go Pattern Analysis</h3>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="data-label">Move Type:</span>
+                            <span class="data-value">Corner</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Game Phase:</span>
+                            <span class="data-value">Opening</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Policy Entropy:</span>
+                            <span class="data-value">1.732</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Policy Confidence:</span>
+                            <span class="data-value">0.4418604651162791%</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong>Top Policy Moves:</strong>
+                        <div class="policy-moves">
+                            <div class="policy-move">
+            <span><strong>(2,2)</strong></span>
+            <span>44.2% (57)</span>
+        </div>
+<div class="policy-move">
+            <span><strong>(2,4)</strong></span>
+            <span>34.9% (45)</span>
+        </div>
+<div class="policy-move">
+            <span><strong>(3,4)</strong></span>
+            <span>10.9% (14)</span>
+        </div>
+<div class="policy-move">
+            <span><strong>(3,2)</strong></span>
+            <span>10.1% (13)</span>
+        </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3>📊 Component Comparison</h3>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="data-label">Uniqueness Score:</span>
+                            <span class="data-value">0.7967</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Component Rank:</span>
+                            <span class="data-value">1</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Max Other Activation:</span>
+                            <span class="data-value">0.2386</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong>Activation in All Components:</strong>
+                        
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Component 0:</span>
+                <span>0.9353</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 93.5%"></div>
+            </div>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Component 1:</span>
+                <span>0.0282</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 2.8%"></div>
+            </div>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Component 2:</span>
+                <span>0.2386</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 23.9%"></div>
+            </div>
+        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3>📁 File References</h3>
+                    <div class="data-item">
+                        <span class="data-label">SGF File:</span>
+                        <span class="data-value">sgf_pos4683.sgf</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">Board Tensor:</span>
+                        <span class="data-value">part0_rank1_pos4683.npy</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">NPZ Source:</span>
+                        <span class="data-value">B330F9C802154800.npz</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Game state and moves
+        let allMoves = [{"color": "B", "pos": [2, 2]}, {"color": "W", "pos": [2, 1]}, {"color": "B", "pos": [1, 1]}, {"color": "W", "pos": [3, 2]}, {"color": "B", "pos": [2, 3]}, {"color": "W", "pos": [3, 1]}, {"color": "B", "pos": [1, 0]}, {"color": "W", "pos": [3, 3]}, {"color": "B", "pos": [3, 4]}, {"color": "W", "pos": [4, 4]}, {"color": "B", "pos": [2, 4]}, {"color": "W", "pos": [1, 2]}, {"color": "B", "pos": [2, 0]}];
+        let currentMoveIndex = 13;
+        let moveOfInterest = 13;
+        
+        function updateBoard(moveIndex) {
+            // Clear all stones
+            const svg = document.querySelector('.go-board-svg');
+            const existingStones = svg.querySelectorAll('circle[r="16"]');
+            existingStones.forEach(stone => stone.remove());
+            
+            // Clear move marker
+            const existingMarkers = svg.querySelectorAll('circle[r="20"]');
+            existingMarkers.forEach(marker => marker.remove());
+            const existingTexts = svg.querySelectorAll('text[font-weight="bold"]');
+            existingTexts.forEach(text => text.remove());
+            
+            // Play moves up to current index
+            const board = {};
+            for (let i = 0; i <= moveIndex && i < allMoves.length; i++) {
+                const move = allMoves[i];
+                if (move.pos) {
+                    board[move.pos[0] + ',' + move.pos[1]] = move.color;
+                }
+            }
+            
+            // Draw stones
+            for (const [posKey, color] of Object.entries(board)) {
+                const [row, col] = posKey.split(',').map(Number);
+                const x = 60 + col * 40;
+                const y = 60 + row * 40;
+                
+                const stone = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                stone.setAttribute('cx', x);
+                stone.setAttribute('cy', y);
+                stone.setAttribute('r', '16');
+                stone.setAttribute('fill', color === 'B' ? 'url(#blackStone)' : 'url(#whiteStone)');
+                stone.setAttribute('stroke', color === 'B' ? '#000' : '#666');
+                stone.setAttribute('stroke-width', '1');
+                svg.appendChild(stone);
+            }
+            
+            // Add move marker if this is the move of interest
+            if (moveIndex === moveOfInterest && moveIndex < allMoves.length) {
+                const move = allMoves[moveIndex];
+                if (move.pos) {
+                    const x = 60 + move.pos[1] * 40;
+                    const y = 60 + move.pos[0] * 40;
+                    
+                    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    marker.setAttribute('cx', x);
+                    marker.setAttribute('cy', y);
+                    marker.setAttribute('r', '20');
+                    marker.setAttribute('fill', 'none');
+                    marker.setAttribute('stroke', '#ff0000');
+                    marker.setAttribute('stroke-width', '3');
+                    marker.setAttribute('opacity', '0.8');
+                    svg.appendChild(marker);
+                    
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', x);
+                    text.setAttribute('y', y - 25);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('font-family', 'Arial');
+                    text.setAttribute('font-size', '12');
+                    text.setAttribute('font-weight', 'bold');
+                    text.setAttribute('fill', '#ff0000');
+                    text.textContent = '← Move of Interest';
+                    svg.appendChild(text);
+                }
+            }
+            
+            // Update UI
+            currentMoveIndex = moveIndex;
+            document.getElementById('current-move').textContent = moveIndex;
+            
+            // Update button states
+            const buttons = document.querySelectorAll('.control-buttons button');
+            buttons[0].disabled = moveIndex <= 0; // First
+            buttons[1].disabled = moveIndex <= 0; // Previous
+            buttons[3].disabled = moveIndex >= allMoves.length - 1; // Next
+            buttons[4].disabled = moveIndex >= allMoves.length - 1; // Last
+        }
+        
+        function goToMove(moveIndex) {
+            if (moveIndex === -1) moveIndex = allMoves.length - 1;
+            moveIndex = Math.max(0, Math.min(allMoves.length - 1, moveIndex));
+            updateBoard(moveIndex);
+        }
+        
+        function previousMove() {
+            if (currentMoveIndex > 0) {
+                updateBoard(currentMoveIndex - 1);
+            }
+        }
+        
+        function nextMove() {
+            if (currentMoveIndex < allMoves.length - 1) {
+                updateBoard(currentMoveIndex + 1);
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Go board visualization loaded with', allMoves.length, 'moves');
+            updateBoard(currentMoveIndex);
+        });
+    </script>
+</body>
+</html>
