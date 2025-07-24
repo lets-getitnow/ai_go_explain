@@ -442,6 +442,43 @@ def get_html_template() -> str:
             padding: 10px;
             margin-bottom: 15px;
         }
+        .position-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .nav-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .nav-button:hover {
+            transform: scale(1.05);
+            text-decoration: none;
+            color: white;
+        }
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .position-counter {
+            font-weight: bold;
+            color: #2c3e50;
+            font-family: 'Courier New', monospace;
+        }
         @media (max-width: 1024px) {
             .content {
                 grid-template-columns: 1fr;
@@ -454,6 +491,12 @@ def get_html_template() -> str:
         <div class="header">
             <h1>{{TITLE}}</h1>
             <div class="subtitle">{{SUBTITLE}}</div>
+        </div>
+        
+        <div class="position-navigation">
+            <a href="{{PREV_POS_HTML}}" class="nav-button" {{PREV_DISABLED}} title="{{PREV_TITLE}}">← Previous Position</a>
+            <span class="position-counter">Position {{CURRENT_INDEX}} of {{TOTAL_POSITIONS}}</span>
+            <a href="{{NEXT_POS_HTML}}" class="nav-button" {{NEXT_DISABLED}} title="{{NEXT_TITLE}}">Next Position →</a>
         </div>
         
         <div class="content">
@@ -759,11 +802,22 @@ def generate_html_file(output_path: str, data: Dict[str, Any]) -> None:
     except Exception as e:
         print(f"Error generating HTML file {output_path}: {e}")
 
-def process_position(summary_row: Dict[str, str], output_dir: str) -> None:
+def process_position(summary_row: Dict[str, str], output_dir: str, all_positions: List[Dict[str, str]]) -> None:
     """Process a single position and generate its HTML file."""
     global_pos = summary_row['global_pos']
     part = summary_row['part']
     rank = summary_row['rank']
+    
+    # Find current position index and navigation data
+    current_index = -1
+    for i, pos in enumerate(all_positions):
+        if pos['global_pos'] == global_pos:
+            current_index = i
+            break
+    
+    # Get previous and next positions
+    prev_pos = all_positions[current_index - 1] if current_index > 0 else None
+    next_pos = all_positions[current_index + 1] if current_index < len(all_positions) - 1 else None
     
     # Load data files
     sgf_content = load_sgf_content(summary_row['sgf_file'])
@@ -795,6 +849,16 @@ def process_position(summary_row: Dict[str, str], output_dir: str) -> None:
     template_data = {
         'TITLE': f"Position {global_pos} Analysis",
         'SUBTITLE': f"Part {part}, Rank {rank} - NMF Component Analysis",
+        'CURRENT_INDEX': current_index + 1,
+        'TOTAL_POSITIONS': len(all_positions),
+        'PREV_POS': prev_pos['global_pos'] if prev_pos else None,
+        'NEXT_POS': next_pos['global_pos'] if next_pos else None,
+        'PREV_TITLE': f"Position {prev_pos['global_pos']} (Part {prev_pos['part']}, Rank {prev_pos['rank']})" if prev_pos else None,
+        'NEXT_TITLE': f"Position {next_pos['global_pos']} (Part {next_pos['part']}, Rank {next_pos['rank']})" if next_pos else None,
+        'PREV_POS_HTML': f"pos_{prev_pos['global_pos']}_analysis.html" if prev_pos else "#",
+        'NEXT_POS_HTML': f"pos_{next_pos['global_pos']}_analysis.html" if next_pos else "#",
+        'PREV_DISABLED': 'style="opacity: 0.5; pointer-events: none;"' if not prev_pos else '',
+        'NEXT_DISABLED': 'style="opacity: 0.5; pointer-events: none;"' if not next_pos else '',
         'PART': part,
         'RANK': rank,
         'GLOBAL_POS': global_pos,
@@ -1057,7 +1121,7 @@ def main():
     os.chdir(base_dir)  # Change to base directory for relative file paths
     
     for row in summary_data:
-        process_position(row, output_dir)
+        process_position(row, output_dir, summary_data)
     
     # Generate index page
     generate_index_page(summary_data, output_dir)

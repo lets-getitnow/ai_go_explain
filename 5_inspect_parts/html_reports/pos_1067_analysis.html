@@ -195,6 +195,43 @@
             padding: 10px;
             margin-bottom: 15px;
         }
+        .position-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .nav-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .nav-button:hover {
+            transform: scale(1.05);
+            text-decoration: none;
+            color: white;
+        }
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .position-counter {
+            font-weight: bold;
+            color: #2c3e50;
+            font-family: 'Courier New', monospace;
+        }
         @media (max-width: 1024px) {
             .content {
                 grid-template-columns: 1fr;
@@ -207,6 +244,12 @@
         <div class="header">
             <h1>Position 1067 Analysis</h1>
             <div class="subtitle">Part 2, Rank 1 - NMF Component Analysis</div>
+        </div>
+        
+        <div class="position-navigation">
+            <a href="pos_3950_analysis.html" class="nav-button"  title="Position 3950 (Part 1, Rank 3)">← Previous Position</a>
+            <span class="position-counter">Position 7 of 9</span>
+            <a href="pos_2020_analysis.html" class="nav-button"  title="Position 2020 (Part 2, Rank 2)">Next Position →</a>
         </div>
         
         <div class="content">
