@@ -81,6 +81,36 @@
         .data-label {
             font-weight: 600;
             color: #495057;
+            cursor: help;
+        }
+        
+        .tooltip-icon {
+            color: #667eea;
+            font-size: 0.8em;
+            margin-left: 4px;
+            cursor: help;
+        }
+        
+        /* Ensure tooltips are visible */
+        [title] {
+            position: relative;
+        }
+        
+        [title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10000;
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         .data-value {
             color: #6c757d;
@@ -234,19 +264,19 @@
                     <h3>🧠 NMF Component Analysis</h3>
                     <div class="data-grid">
                         <div class="data-item">
-                            <span class="data-label">Part:</span>
+                            <span class="data-label" title="NMF Component Part">Part: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">0</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Rank:</span>
+                            <span class="data-label" title="NMF Component Rank">Rank: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">3</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Global Position:</span>
+                            <span class="data-label" title="Global Position of the analyzed move">Global Position: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">4109</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Activation Percentile:</span>
+                            <span class="data-label" title="Percentile of activation strength">Activation Percentile: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">99.95%</span>
                         </div>
                     </div>
@@ -335,19 +365,19 @@
                     <h3>🎯 Go Pattern Analysis</h3>
                     <div class="data-grid">
                         <div class="data-item">
-                            <span class="data-label">Move Type:</span>
+                            <span class="data-label" title="Type of move (e.g., 'normal', 'pass', 'resign')">Move Type: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">Corner</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Game Phase:</span>
+                            <span class="data-label" title="Current phase of the game (e.g., 'opening', 'middle', 'endgame')">Game Phase: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">Opening</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Policy Entropy:</span>
+                            <span class="data-label" title="Entropy of policy distribution">Policy Entropy: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">1.827</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Policy Confidence:</span>
+                            <span class="data-label" title="Confidence in policy">Policy Confidence: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">0.42028985507246375%</span>
                         </div>
                     </div>
@@ -379,15 +409,15 @@
                     <h3>📊 Component Comparison</h3>
                     <div class="data-grid">
                         <div class="data-item">
-                            <span class="data-label">Uniqueness Score:</span>
+                            <span class="data-label" title="Uniqueness of the component">Uniqueness Score: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">0.7810</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Component Rank:</span>
+                            <span class="data-label" title="Rank of the component">Component Rank: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">3</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label">Max Other Activation:</span>
+                            <span class="data-label" title="Maximum activation in other components">Max Other Activation: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">0.2613</span>
                         </div>
                     </div>
@@ -430,15 +460,15 @@
                 <div class="analysis-card">
                     <h3>📁 File References</h3>
                     <div class="data-item">
-                        <span class="data-label">SGF File:</span>
+                        <span class="data-label" title="Source SGF file">SGF File: <span class="tooltip-icon">ⓘ</span></span>
                         <span class="data-value">sgf_pos4109.sgf</span>
                     </div>
                     <div class="data-item">
-                        <span class="data-label">Board Tensor:</span>
+                        <span class="data-label" title="Board tensor file">Board Tensor: <span class="tooltip-icon">ⓘ</span></span>
                         <span class="data-value">part0_rank3_pos4109.npy</span>
                     </div>
                     <div class="data-item">
-                        <span class="data-label">NPZ Source:</span>
+                        <span class="data-label" title="NPZ source file">NPZ Source: <span class="tooltip-icon">ⓘ</span></span>
                         <span class="data-value">AAE4EE8DC9A92FFF.npz</span>
                     </div>
                 </div>
