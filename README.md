@@ -4,7 +4,7 @@ Tighly integrated with https://github.com/lightvector/KataGo
 
 <img width="1394" height="1246" alt="explaingo" src="https://github.com/user-attachments/assets/a4ef65bd-4251-40f3-9918-376755b91440" />
 
-SAE Approach:
+SAE Approach: https://web.stanford.edu/class/cs294a/sparseAutoencoder.pdf
 
 **Minimal Steps (n00b version)**
 
