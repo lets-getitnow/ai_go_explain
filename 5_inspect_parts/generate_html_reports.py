@@ -25,8 +25,16 @@ from typing import Dict, Any, List
 def load_sgf_content(sgf_file: str) -> str:
     """Load SGF content from file."""
     try:
-        with open(sgf_file, 'r', encoding='utf-8') as f:
-            return f.read().strip()
+        # Handle both old format (direct file) and new format (in output directory)
+        if os.path.exists(sgf_file):
+            # Direct file path
+            with open(sgf_file, 'r', encoding='utf-8') as f:
+                return f.read().strip()
+        else:
+            # New structured format: sgf_file is like "pos_4683/game.sgf"
+            output_path = os.path.join("output", sgf_file)
+            with open(output_path, 'r', encoding='utf-8') as f:
+                return f.read().strip()
     except Exception as e:
         print(f"Error loading SGF file {sgf_file}: {e}")
         return ""
@@ -34,8 +42,16 @@ def load_sgf_content(sgf_file: str) -> str:
 def load_analysis_data(analysis_file: str) -> Dict[str, Any]:
     """Load analysis JSON data from file."""
     try:
-        with open(analysis_file, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        # Handle both old format (direct file) and new format (in output directory)
+        if os.path.exists(analysis_file):
+            # Direct file path
+            with open(analysis_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        else:
+            # New structured format: analysis_file is like "pos_4683/analysis.json"
+            output_path = os.path.join("output", analysis_file)
+            with open(output_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
     except Exception as e:
         print(f"Error loading analysis file {analysis_file}: {e}")
         return {}
@@ -481,9 +497,9 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     # Calculate the correct display turn number (subtract 1 to match expected numbering)
     display_turn_number = max(0, turn_number - 1)
     
-    # Generate file links
-    sgf_file_link = f"../{summary_row['sgf_file']}"
-    board_npy_link = f"../{summary_row['board_npy']}"
+    # Generate file links for new structured format
+    sgf_file_link = f"../output/{summary_row['sgf_file']}"
+    board_npy_link = f"../output/{summary_row['board_npy']}"
     npz_file_link = f"../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz/tdata/{position_info.get('npz_file', 'Unknown')}"
     
     # Prepare template data

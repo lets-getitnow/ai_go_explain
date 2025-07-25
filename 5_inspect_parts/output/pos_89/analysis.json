@@ -6,8 +6,8 @@
     "move_coordinate": "E3",
     "turn_number": 5,
     "npz_file": "1906C337F5CDAFA9.npz",
-    "board_tensor_file": "part0_rank2_pos89.npy",
-    "sgf_file": "sgf_pos89.sgf"
+    "board_tensor_file": "pos_89/board.npy",
+    "sgf_file": "pos_89/game.sgf"
   },
   "nmf_analysis": {
     "activation_strength": 0.9326722025871277,

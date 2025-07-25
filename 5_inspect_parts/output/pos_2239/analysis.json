@@ -6,8 +6,8 @@
     "move_coordinate": "D5",
     "turn_number": 3,
     "npz_file": "76F9EC3EB6A76AA0.npz",
-    "board_tensor_file": "part2_rank3_pos2239.npy",
-    "sgf_file": "sgf_pos2239.sgf"
+    "board_tensor_file": "pos_2239/board.npy",
+    "sgf_file": "pos_2239/game.sgf"
   },
   "nmf_analysis": {
     "activation_strength": 0.9410014748573303,

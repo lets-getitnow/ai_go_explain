@@ -6,8 +6,8 @@
     "move_coordinate": "PASS",
     "turn_number": 1,
     "npz_file": "AAE4EE8DC9A92FFF.npz",
-    "board_tensor_file": "part1_rank3_pos3950.npy",
-    "sgf_file": "sgf_pos3950.sgf"
+    "board_tensor_file": "pos_3950/board.npy",
+    "sgf_file": "pos_3950/game.sgf"
   },
   "nmf_analysis": {
     "activation_strength": 0.8406744599342346,

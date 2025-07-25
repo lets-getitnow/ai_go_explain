@@ -274,6 +274,11 @@ def analyze_component_comparison(pos: Dict[str, Any], all_positions: List[Dict[s
 def main() -> None:
     print("=== Step 5 – Inspect Parts (combined) ===")
 
+    # Create structured output directory
+    output_dir = Path("output")
+    output_dir.mkdir(exist_ok=True)
+    print(f"Created output directory: {output_dir}")
+
     # --- Stage 1: select strongest positions --------------------------------
     activ, mapping = load_activations_and_mapping()
     n_parts = activ.shape[1]
@@ -289,10 +294,14 @@ def main() -> None:
             npz_file, local_idx = calc_file_and_local_idx(gpos, mapping)
             filename_only = Path(npz_file).name
 
-            # Load board tensor & save .npy
+            # Create position-specific directory
+            pos_dir = output_dir / f"pos_{gpos}"
+            pos_dir.mkdir(exist_ok=True)
+
+            # Load board tensor & save .npy in position directory
             board_data = np.load(npz_file)["binaryInputNCHWPacked"][local_idx]
-            npy_name = f"part{part_idx}_rank{rank}_pos{gpos}.npy"
-            np.save(npy_name, board_data)
+            npy_path = pos_dir / "board.npy"
+            np.save(npy_path, board_data)
 
             positions.append(
                 {
@@ -301,11 +310,11 @@ def main() -> None:
                     "global_pos": gpos,
                     "npz_file": filename_only,
                     "pos_in_file": local_idx,
-                    "board_npy": npy_name,
+                    "board_npy": f"pos_{gpos}/board.npy",  # Relative path for CSV
                 }
             )
 
-    print(f"→ Saved {len(positions)} board tensors\n")
+    print(f"→ Saved {len(positions)} board tensors in structured directories\n")
 
     # --- Stage 2: decode moves ----------------------------------------------
     for pos in positions:
@@ -352,9 +361,11 @@ def main() -> None:
         header, *moves = game_text.split(";")
         clipped = ";".join([header] + moves[: turn_num + 1]) + ")"
 
-        sgf_out = f"sgf_pos{gpos}.sgf"
-        Path(sgf_out).write_text(clipped)
-        pos["sgf_file"] = sgf_out
+        # Save SGF in position-specific directory
+        pos_dir = output_dir / f"pos_{gpos}"
+        sgf_path = pos_dir / "game.sgf"
+        sgf_path.write_text(clipped)
+        pos["sgf_file"] = f"pos_{gpos}/game.sgf"  # Relative path for CSV
         pos["pos_in_game"] = turn_num  # slice index within game
         pos["game_idx"] = game_idx     # which game inside bundle
 
@@ -394,7 +405,7 @@ def main() -> None:
         # Console summary for immediate inspection
         print(
             f"Part {pos['part']} Rank {pos['rank']} | global {gpos} | slice {turn_num} | trueTurn {pos['turn']} | "
-            f"coord {pos['coord']} | SGF {sgf_out} | board {pos['board_npy']}"
+            f"coord {pos['coord']} | SGF {pos['sgf_file']} | board {pos['board_npy']}"
         )
 
     print("SGF clipping done – individual files written\n")
@@ -447,11 +458,12 @@ def main() -> None:
             "component_comparison": comparison_analysis
         }
         
-        # Save analysis to JSON file
-        analysis_file = f"analysis_pos{gpos}.json"
-        with open(analysis_file, 'w') as f:
+        # Save analysis to JSON file in position-specific directory
+        pos_dir = output_dir / f"pos_{gpos}"
+        analysis_path = pos_dir / "analysis.json"
+        with open(analysis_path, 'w') as f:
             json.dump(comprehensive_analysis, f, indent=2, cls=NumpyEncoder)
-        pos["analysis_file"] = analysis_file
+        pos["analysis_file"] = f"pos_{gpos}/analysis.json"  # Relative path for CSV
         
         print(f"Analysis complete for Part {pos['part']} Rank {pos['rank']} (pos {gpos})")
     
