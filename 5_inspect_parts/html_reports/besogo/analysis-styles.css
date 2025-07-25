@@ -22,6 +22,8 @@
     font-size: 1.1em;
     font-weight: 600;
     transition: transform 0.2s;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .github-header a:hover {
@@ -31,15 +33,28 @@
 }
 
 .github-logo {
-    width: 24px;
-    height: 24px;
+    width: 24px !important;
+    height: 24px !important;
     fill: currentColor;
+    max-width: 24px !important;
+    max-height: 24px !important;
+    flex-shrink: 0;
 }
 
 .github-header .project-name {
     font-size: 1.2em;
     font-weight: bold;
     margin-left: 5px;
+}
+
+/* Override any potential conflicts with other CSS */
+.github-header svg.github-logo {
+    width: 24px !important;
+    height: 24px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
 }
 
 body {
