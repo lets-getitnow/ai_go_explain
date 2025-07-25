@@ -18,6 +18,53 @@ This step takes the NMF components from step 4 and loads the actual board positi
   - Clips the `.sgfs` bundle to a standalone SGF for *each* position (`sgf_pos{GLOBAL}.sgf`).
   - Outputs `strong_positions_summary.csv` linking part, rank, coord, turn, SGF file, and board‐npy file.
 
+### Position-Specific Files
+
+#### Part 0 (Rank 1) - Position 4683
+- **[SGF File](sgf_pos4683.sgf)** - Go game position in SGF format
+- **[Board Tensor](part0_rank1_pos4683.npy)** - Neural network board representation
+- **[NPZ Source](../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz/tdata/B330F9C802154800.npz)** - Original training data source
+
+#### Part 0 (Rank 2) - Position 89
+- **[SGF File](sgf_pos89.sgf)** - Go game position in SGF format
+- **[Board Tensor](part0_rank2_pos89.npy)** - Neural network board representation
+- **[NPZ Source](../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz/tdata/1906C337F5CDAFA9.npz)** - Original training data source
+
+#### Part 0 (Rank 3) - Position 4109
+- **[SGF File](sgf_pos4109.sgf)** - Go game position in SGF format
+- **[Board Tensor](part0_rank3_pos4109.npy)** - Neural network board representation
+- **[NPZ Source](../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz/tdata/AAE4EE8DC9A92FFF.npz)** - Original training data source
+
+#### Part 1 (Rank 1) - Position 1062
+- **[SGF File](sgf_pos1062.sgf)** - Go game position in SGF format
+- **[Board Tensor](part1_rank1_pos1062.npy)** - Neural network board representation
+- **[NPZ Source](../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz/tdata/76F9EC3EB6A76AA0.npz)** - Original training data source
+
+#### Part 1 (Rank 2) - Position 4548
+- **[SGF File](sgf_pos4548.sgf)** - Go game position in SGF format
+- **[Board Tensor](part1_rank2_pos4548.npy)** - Neural network board representation
+- **[NPZ Source](../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz/tdata/E3CD9898B9AFF870.npz)** - Original training data source
+
+#### Part 1 (Rank 3) - Position 3950
+- **[SGF File](sgf_pos3950.sgf)** - Go game position in SGF format
+- **[Board Tensor](part1_rank3_pos3950.npy)** - Neural network board representation
+- **[NPZ Source](../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz/tdata/1D638D50844BD930.npz)** - Original training data source
+
+#### Part 2 (Rank 1) - Position 1067
+- **[SGF File](sgf_pos1067.sgf)** - Go game position in SGF format
+- **[Board Tensor](part2_rank1_pos1067.npy)** - Neural network board representation
+- **[NPZ Source](../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz/tdata/BADFFB51627F24FD.npz)** - Original training data source
+
+#### Part 2 (Rank 2) - Position 2020
+- **[SGF File](sgf_pos2020.sgf)** - Go game position in SGF format
+- **[Board Tensor](part2_rank2_pos2020.npy)** - Neural network board representation
+- **[NPZ Source](../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz/tdata/565285905A9A0C14.npz)** - Original training data source
+
+#### Part 2 (Rank 3) - Position 2239
+- **[SGF File](sgf_pos2239.sgf)** - Go game position in SGF format
+- **[Board Tensor](part2_rank3_pos2239.npy)** - Neural network board representation
+- **[NPZ Source](../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz/tdata/B330F9C802154800.npz)** - Original training data source
+
 ### Output Files
 
 - **`part{N}_rank{R}_pos{GLOBAL}.npy`**: Raw board data for analysis

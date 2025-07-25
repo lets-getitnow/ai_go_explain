@@ -326,15 +326,15 @@ def get_html_template() -> str:
                     <h3>📁 File References</h3>
                     <div class="data-item">
                         <span class="data-label" data-tooltip="Original Smart-Game-Format game file from which this position was extracted.">SGF File: <span class="tooltip-icon">ⓘ</span></span>
-                        <span class="data-value">{{SGF_FILE}}</span>
+                        <span class="data-value"><a href="{{SGF_FILE_LINK}}" target="_blank">{{SGF_FILE}}</a></span>
                     </div>
                     <div class="data-item">
                         <span class="data-label" data-tooltip="NumPy binary file containing the encoded board tensor used as input to the model.">Board Tensor: <span class="tooltip-icon">ⓘ</span></span>
-                        <span class="data-value">{{BOARD_NPY}}</span>
+                        <span class="data-value"><a href="{{BOARD_NPY_LINK}}" target="_blank">{{BOARD_NPY}}</a></span>
                     </div>
                     <div class="data-item">
                         <span class="data-label" data-tooltip="Compressed KataGo self-play NPZ file that provided raw tensors and move statistics for this position.">NPZ Source: <span class="tooltip-icon">ⓘ</span></span>
-                        <span class="data-value">{{NPZ_FILE}}</span>
+                        <span class="data-value"><a href="{{NPZ_FILE_LINK}}" target="_blank">{{NPZ_FILE}}</a></span>
                     </div>
                 </div>
             </div>
@@ -469,6 +469,11 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     # Calculate the correct display turn number (subtract 1 to match expected numbering)
     display_turn_number = max(0, turn_number - 1)
     
+    # Generate file links
+    sgf_file_link = f"../{summary_row['sgf_file']}"
+    board_npy_link = f"../{summary_row['board_npy']}"
+    npz_file_link = f"../{position_info.get('npz_file', 'Unknown')}"
+    
     # Prepare template data
     template_data = {
         'TITLE': f"Position {global_pos} Analysis",
@@ -490,8 +495,11 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
         'MOVE_COORD': position_info.get('move_coordinate', 'Unknown'),
         'SGF_CONTENT': sgf_content,  # Raw SGF for Besogo
         'SGF_FILE': summary_row['sgf_file'],
+        'SGF_FILE_LINK': sgf_file_link,
         'BOARD_NPY': summary_row['board_npy'],
+        'BOARD_NPY_LINK': board_npy_link,
         'NPZ_FILE': position_info.get('npz_file', 'Unknown'),
+        'NPZ_FILE_LINK': npz_file_link,
         
         # NMF Analysis
         'ACTIVATION_STRENGTH': format_activation_strength(nmf_analysis.get('activation_strength', 0)),
