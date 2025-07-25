@@ -67,7 +67,7 @@ output/
 
 ### HTML Reports
 - `html_reports/` - Directory containing all HTML visualizations
-- `html_reports/index.html` - Index page linking to all analyses
+- [`html_reports/index.html`](html_reports/index.html) - Index page linking to all analyses
 - `html_reports/pos_{global_pos}_analysis.html` - Individual position analysis pages
 
 ### Summary Data
