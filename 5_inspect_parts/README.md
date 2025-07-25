@@ -11,12 +11,18 @@ This step takes the NMF components from step 4 and loads the actual board positi
 ### Core Scripts
 
 - **`inspect_parts.py`**
-  - Single entry-point replacing the previous two scripts.
-  - Selects top‐k strongest activations for every NMF part.
-  - Saves board tensors (`part{N}_rank{R}_pos{GLOBAL}.npy`).
-  - Decodes the move actually played and its board coordinate.
-  - Clips the `.sgfs` bundle to a standalone SGF for *each* position (`sgf_pos{GLOBAL}.sgf`).
-  - Outputs `strong_positions_summary.csv` linking part, rank, coord, turn, SGF file, and board‐npy file.
+  - Main analysis script that processes NMF activations
+  - Selects top‐k strongest activations for every NMF part
+  - Saves board tensors (`part{N}_rank{R}_pos{GLOBAL}.npy`)
+  - Decodes the move actually played and its board coordinate
+  - Clips the `.sgfs` bundle to a standalone SGF for *each* position (`sgf_pos{GLOBAL}.sgf`)
+  - Performs comprehensive analysis including NMF features, Go patterns, and component comparisons
+  - Outputs `strong_positions_summary.csv` linking part, rank, coord, turn, SGF file, board‐npy file, and analysis file
+
+- **`generate_html_reports.py`**
+  - Generates interactive HTML visualization reports for each analyzed position
+  - Creates detailed HTML files with interactive Go boards, analysis data, and policy moves
+  - Outputs to `html_reports/` directory with index page and individual position reports
 
 ### Position-Specific Files
 
@@ -29,9 +35,18 @@ See `strong_positions_summary.csv` for a complete list of analyzed positions and
   - Channels 0-1: Black and white stone positions
   - Channels 2+: Game state information (recent moves, ko, etc.)
 
+- **`analysis_pos{GLOBAL}.json`**: Comprehensive analysis data
+  - NMF feature analysis with channel activations
+  - Go pattern analysis with policy moves and move probabilities
+  - Component comparison showing how this position relates to other parts
+
+- **`sgf_pos{GLOBAL}.sgf`**: Individual SGF game files
+  - Clipped to the specific move of interest
+  - Contains complete game context up to the analyzed position
+
 - **`html_reports/`**: Interactive HTML analysis reports
   - Contains detailed visual analysis of each strong position
-  - Includes board visualizations and move annotations
+  - Includes board visualizations, move annotations, and analysis data
   - Access via: [HTML Reports](./html_reports/)
 
 ## Usage
@@ -39,28 +54,54 @@ See `strong_positions_summary.csv` for a complete list of analyzed positions and
 ```bash
 cd 5_inspect_parts
 
-# Everything now happens in one go
+# Step 1: Generate position data and comprehensive analysis
 python3 inspect_parts.py
+
+# Step 2: Generate HTML visualization reports
+python3 generate_html_reports.py
 ```
 
 ## Analysis Process
 
-1. **Understand data structure**: Run `correlate_sgf.py` to understand how .npz positions map to SGF games and move numbers
+1. **Load strongest positions**: For each of the 3 NMF parts, examine the top 3 most strongly activating board positions
 
-2. **Load strongest positions**: For each of the 3 NMF parts, examine the top 3 most strongly activating board positions
+2. **Extract board data**: Save the raw board states as .npy files for detailed analysis
 
-3. **Extract board data**: Save the raw board states as .npy files for detailed analysis
+3. **Decode moves**: Extract the actual moves played at each position from the policy targets
 
-4. **Pattern identification**: As a Go expert, examine the board positions to identify:
+4. **Generate SGF context**: Create individual SGF files showing the game context up to each analyzed position
+
+5. **Comprehensive analysis**: Perform three types of analysis for each position:
+   - **NMF Feature Analysis**: Channel activation patterns and feature importance
+   - **Go Pattern Analysis**: Policy moves, move probabilities, and tactical patterns
+   - **Component Comparison**: How this position relates to other parts and positions
+
+6. **Pattern identification**: As a Go expert, examine the board positions to identify:
    - Tactical patterns (atari, ladders, nets)
    - Life and death situations
    - Connection/cutting patterns
    - Territorial patterns
    - Any other recurring Go concepts
 
-5. **Part interpretation**: Determine if each part corresponds to a meaningful Go concept
+7. **HTML visualization**: Generate interactive reports for visual analysis
 
-**Note**: The correlation analysis revealed that `.npz` files contain actual move information in the `policyTargetsNCMove` array. This transforms the analysis from examining static board positions to understanding **what specific moves** the neural network associates with each pattern. This is essential for meaningful Go pattern interpretation.
+## Analysis Features
+
+### NMF Feature Analysis
+- Channel activation patterns showing which neural network features are most active
+- Feature importance rankings for each position
+- Comparison with other positions in the same part
+
+### Go Pattern Analysis
+- Policy moves decoded from neural network outputs
+- Move probabilities and confidence scores
+- Tactical pattern identification (corner play, center fights, etc.)
+- Move coordinate conversion (tuple to Go notation)
+
+### Component Comparison
+- Cross-part analysis showing how positions relate to different NMF components
+- Activation strength comparisons across all parts
+- Pattern similarity analysis
 
 ## Expected Results
 
