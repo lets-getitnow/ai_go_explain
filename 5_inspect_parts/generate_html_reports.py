@@ -5,10 +5,13 @@ Generate HTML visualization reports for each position of interest from step 5.
 This script creates an HTML file for each analyzed position, displaying:
 - Interactive Go board automatically positioned at the move of interest
 - Complete NMF analysis data
-- Go pattern analysis
+- Go pattern analysis with policy moves in Go coordinate format (e.g., C3, D4)
 - Component comparison data
 
-Requirements: The Go board must automatically navigate to the specific move when the page loads.
+Requirements: 
+- The Go board must automatically navigate to the specific move when the page loads.
+- Policy moves must be displayed in standard Go coordinate format (A-G, 1-7 for 7x7 board).
+- Tuple coordinates from analysis data (e.g., "(2,4)") must be converted to Go coordinates (e.g., "C3").
 """
 
 import json
@@ -42,6 +45,38 @@ def format_percentage(value: float) -> str:
     """Format value as percentage."""
     return f"{value * 100:.1f}"
 
+def convert_tuple_to_go_coord(tuple_coord: str) -> str:
+    """Convert tuple coordinate format to Go coordinate format.
+    
+    Args:
+        tuple_coord: Coordinate in format "(row,col)" or "PASS"
+        
+    Returns:
+        Go coordinate in format "A1" through "G7" for 7x7 board, or "PASS"
+    """
+    if tuple_coord == "PASS":
+        return "PASS"
+    
+    # Handle tuple format like "(2,4)"
+    if tuple_coord.startswith("(") and tuple_coord.endswith(")"):
+        try:
+            # Extract row and col from "(row,col)"
+            coord_str = tuple_coord[1:-1]  # Remove parentheses
+            row, col = map(int, coord_str.split(","))
+            
+            # Convert to Go coordinates (A-G for columns, 1-7 for rows)
+            # Note: tuple coordinates are 0-indexed, Go coordinates are 1-indexed
+            go_col = chr(ord('A') + col)  # A=0, B=1, C=2, etc.
+            go_row = str(row + 1)  # 0->1, 1->2, etc.
+            
+            return f"{go_col}{go_row}"
+        except (ValueError, IndexError):
+            # If conversion fails, return original
+            return tuple_coord
+    
+    # If already in Go format or unknown format, return as is
+    return tuple_coord
+
 def generate_channel_bars(channel_activity: List[int]) -> str:
     """Generate HTML for channel activity visualization."""
     if not channel_activity:
@@ -64,7 +99,7 @@ def generate_channel_bars(channel_activity: List[int]) -> str:
     return '\n'.join(bars)
 
 def generate_policy_moves(policy_moves: List[Dict[str, Any]]) -> str:
-    """Generate HTML for top policy moves."""
+    """Generate HTML for top policy moves with Go coordinate format."""
     if not policy_moves:
         return "<div>No policy moves available</div>"
     
@@ -74,8 +109,11 @@ def generate_policy_moves(policy_moves: List[Dict[str, Any]]) -> str:
         percentage = move.get('percentage', 0)
         count = move.get('count', 0)
         
+        # Convert tuple coordinates to Go coordinates
+        go_coord = convert_tuple_to_go_coord(coord)
+        
         move_html = f'''<div class="policy-move">
-            <span><strong>{coord}</strong></span>
+            <span><strong>{go_coord}</strong></span>
             <span>{percentage}% ({count})</span>
         </div>'''
         moves_html.append(move_html)
