@@ -1,5 +1,6 @@
 Mission: To explain go ai neural networks for people to learn better from them. 
 
+Tighly integrated with https://github.com/lightvector/KataGo
 SAE Approach:
 
 **Minimal Steps (n00b version)**
