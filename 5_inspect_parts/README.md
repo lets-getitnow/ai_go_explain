@@ -25,6 +25,11 @@ This step takes the NMF components from step 4 and loads the actual board positi
   - Channels 0-1: Black and white stone positions
   - Channels 2+: Game state information (recent moves, ko, etc.)
 
+- **`html_reports/`**: Interactive HTML analysis reports
+  - Contains detailed visual analysis of each strong position
+  - Includes board visualizations and move annotations
+  - Access via: [HTML Reports](./html_reports/)
+
 ## Usage
 
 ```bash
