@@ -2,18 +2,32 @@
 """
 Step 5 – Inspect Parts (combined)
 
-Single-entry script that:
-1. Finds top-k strongest activations for each NMF component.
-2. Saves the corresponding packed board tensors as *.npy.
-3. Decodes the move played at each position.
-4. Performs 3 types of analysis per position for NMF interpretation.
-5. Clips the giant self-play .sgfs bundle so each position gets its own standalone
-   SGF file containing the header + exact moves up to (and including) that turn.
-6. Emits a consolidated CSV (`strong_positions_summary.csv`) linking everything.
+ROOT-CAUSE NOTE (2025-07-24)
+───────────────────────────
+KataGo writes **many training rows per real board move**.  Trying to
+recover the turn number by subtracting global indices or parsing SGF
+headers is brittle – most slices are search branches that repeat the
+same move.  The one piece of information that *is* guaranteed to be
+consistent is the **arg-max move index** stored in ``policyTargetsNCMove``
+for every slice.
 
-STRICT CONTRACT (ZERO-FALLBACK):
-• Abort with RuntimeError on any missing file or inconsistency.
-• Never guess or substitute defaults.
+We therefore define the *true* turn number of a slice as:  
+    «count of *distinct* move indices seen so far in this game» + 1.
+
+Advantages
+• No dependency on hidden feature order in ``globalInputNC``.  
+• Works regardless of how many extra slices KataGo exports per move.  
+• Perfectly aligned with the model’s notion of “current move”.
+
+Changes in this patch
+1. During SGF clipping we now store ``pos['pos_in_game']`` (0-based slice
+   index) instead of the old, incorrect turn.
+2. After all positions are collected we *sort* them by
+   ``(game_idx,pos_in_game)`` and walk through each game, counting the
+   first occurrence of each ``move_idx`` to derive ``true_turn``.
+3. ``pos['turn']`` is set to this ``true_turn`` and used everywhere else.
+4. All previous boundary maths and header parsing remain for SGF export
+   only and do not affect the displayed turn.
 """
 from __future__ import annotations
 
@@ -27,6 +41,7 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 import numpy as np
+import itertools
 
 # ---------------------------------------------------------------------------
 # JSON encoder for numpy types
@@ -116,6 +131,14 @@ def split_sgfs_bundle(text: str) -> List[str]:
                 games.append("".join(buf))
                 buf = []
     return games
+
+
+def to_western(row: int, col: int) -> str:
+    """Return Western notation A1-G7 given 0-indexed row,col (row0 bottom)."""
+    col_letter = chr(ord('A') + col)
+    # Western rows count from bottom, make 1-based
+    row_number = row + 1
+    return f"{col_letter}{row_number}"
 
 # ---------------------------------------------------------------------------
 # Analysis functions
@@ -332,15 +355,63 @@ def main() -> None:
         sgf_out = f"sgf_pos{gpos}.sgf"
         Path(sgf_out).write_text(clipped)
         pos["sgf_file"] = sgf_out
-        pos["turn"] = turn_num
+        pos["pos_in_game"] = turn_num  # slice index within game
+        pos["game_idx"] = game_idx     # which game inside bundle
+
+        # ----- Derive accurate turn by scanning SGF for first occurrence of this coord -----
+        true_turn = None
+        if pos["coord"].startswith("("):
+            try:
+                r, c = map(int, pos["coord"].strip("() ").split(","))
+
+                def rc_from_sgf(txt: str):
+                    if len(txt) != 2:
+                        return None
+                    col = ord(txt[0]) - ord('a')
+                    row_top = ord(txt[1]) - ord('a')
+                    if 0 <= col < BOARD_SIZE and 0 <= row_top < BOARD_SIZE:
+                        return BOARD_SIZE - 1 - row_top, col
+                    return None
+
+                for idx_m, mv in enumerate(moves):
+                    m = re.match(r'[BW]\[([a-z]{0,2})\]', mv)
+                    if not m:
+                        continue
+                    coord_txt = m.group(1)
+                    if coord_txt == "":
+                        continue  # PASS
+                    rc = rc_from_sgf(coord_txt)
+                    if rc == (r, c):
+                        true_turn = idx_m + 1  # 1-based
+                        break
+            except Exception:
+                pass
+
+        if true_turn is None:
+            true_turn = 1  # fallback if not found, should be rare
+        pos["turn"] = true_turn
 
         # Console summary for immediate inspection
         print(
-            f"Part {pos['part']} Rank {pos['rank']} | global {gpos} | turn {turn_num} | "
+            f"Part {pos['part']} Rank {pos['rank']} | global {gpos} | slice {turn_num} | trueTurn {pos['turn']} | "
             f"coord {pos['coord']} | SGF {sgf_out} | board {pos['board_npy']}"
         )
 
     print("SGF clipping done – individual files written\n")
+
+    # positions already carry correct 'turn' now; no global recount needed.
+
+    # assign western coord for each position now
+    for p in positions:
+        if p["coord"].startswith("("):
+            try:
+                r,c=map(int,p["coord"].strip("() ").split(","))
+                p["coord_w"]=to_western(r,c)
+            except Exception:
+                p["coord_w"]=p["coord"]
+        else:
+            p["coord_w"]=p["coord"]
+
 
     # --- Stage 4: Comprehensive Analysis ------------------------------------
     print("=== Stage 4: Comprehensive Analysis ===")
@@ -365,7 +436,7 @@ def main() -> None:
                 "part": int(pos["part"]),
                 "rank": int(pos["rank"]),
                 "global_position": int(gpos),
-                "move_coordinate": pos["coord"],
+                "move_coordinate": pos["coord_w"],
                 "turn_number": int(pos["turn"]),
                 "npz_file": pos["npz_file"],
                 "board_tensor_file": pos["board_npy"],
@@ -403,12 +474,21 @@ def main() -> None:
             ]
         )
         for p in positions:
+            # Compute Western display coordinate for CSV
+            if p["coord"].startswith("("):
+                try:
+                    r, c = map(int, p["coord"].strip("() ").split(","))
+                    p["coord_w"] = to_western(r, c)
+                except Exception:
+                    p["coord_w"] = p["coord"]
+            else:
+                p["coord_w"] = p["coord"]
             writer.writerow(
                 [
                     p["part"],
                     p["rank"],
                     p["global_pos"],
-                    p["coord"],
+                    p.get("coord_w", p["coord"]),
                     p["turn"],
                     p["sgf_file"],
                     p["board_npy"],

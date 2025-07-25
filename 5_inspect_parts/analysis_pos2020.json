@@ -3,8 +3,8 @@
     "part": 2,
     "rank": 2,
     "global_position": 2020,
-    "move_coordinate": "(4,4)",
-    "turn_number": 37,
+    "move_coordinate": "E5",
+    "turn_number": 15,
     "npz_file": "565285905A9A0C14.npz",
     "board_tensor_file": "part2_rank2_pos2020.npy",
     "sgf_file": "sgf_pos2020.sgf"
@@ -67,8 +67,8 @@
   },
   "go_pattern_analysis": {
     "move_type": "corner",
-    "game_phase": "middle_game",
-    "turn_number": 37,
+    "game_phase": "opening",
+    "turn_number": 15,
     "policy_entropy": -0.0,
     "policy_confidence": 1.0,
     "top_policy_moves": [

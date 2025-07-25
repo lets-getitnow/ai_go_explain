@@ -4,7 +4,7 @@
     "rank": 1,
     "global_position": 1062,
     "move_coordinate": "PASS",
-    "turn_number": 12,
+    "turn_number": 1,
     "npz_file": "1D638D50844BD930.npz",
     "board_tensor_file": "part1_rank1_pos1062.npy",
     "sgf_file": "sgf_pos1062.sgf"
@@ -68,7 +68,7 @@
   "go_pattern_analysis": {
     "move_type": "pass",
     "game_phase": "opening",
-    "turn_number": 12,
+    "turn_number": 1,
     "policy_entropy": 0.3301427395351155,
     "policy_confidence": 0.9484536082474226,
     "top_policy_moves": [

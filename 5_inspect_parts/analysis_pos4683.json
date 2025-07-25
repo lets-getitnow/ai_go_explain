@@ -3,8 +3,8 @@
     "part": 0,
     "rank": 1,
     "global_position": 4683,
-    "move_coordinate": "(2,2)",
-    "turn_number": 13,
+    "move_coordinate": "C3",
+    "turn_number": 7,
     "npz_file": "B330F9C802154800.npz",
     "board_tensor_file": "part0_rank1_pos4683.npy",
     "sgf_file": "sgf_pos4683.sgf"
@@ -68,7 +68,7 @@
   "go_pattern_analysis": {
     "move_type": "corner",
     "game_phase": "opening",
-    "turn_number": 13,
+    "turn_number": 7,
     "policy_entropy": 1.7320272136646007,
     "policy_confidence": 0.4418604651162791,
     "top_policy_moves": [
