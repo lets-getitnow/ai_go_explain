@@ -326,15 +326,15 @@ def get_html_template() -> str:
                     <h3>📁 File References</h3>
                     <div class="data-item">
                         <span class="data-label" data-tooltip="Original Smart-Game-Format game file from which this position was extracted.">SGF File: <span class="tooltip-icon">ⓘ</span></span>
-                        <span class="data-value"><a href="{{SGF_FILE_LINK}}" target="_blank">{{SGF_FILE}}</a></span>
+                        <span class="data-value"><a href="{{SGF_FILE_LINK}}">{{SGF_FILE}}</a></span>
                     </div>
                     <div class="data-item">
                         <span class="data-label" data-tooltip="NumPy binary file containing the encoded board tensor used as input to the model.">Board Tensor: <span class="tooltip-icon">ⓘ</span></span>
-                        <span class="data-value"><a href="{{BOARD_NPY_LINK}}" target="_blank">{{BOARD_NPY}}</a></span>
+                        <span class="data-value"><a href="{{BOARD_NPY_LINK}}">{{BOARD_NPY}}</a></span>
                     </div>
                     <div class="data-item">
                         <span class="data-label" data-tooltip="Compressed KataGo self-play NPZ file that provided raw tensors and move statistics for this position.">NPZ Source: <span class="tooltip-icon">ⓘ</span></span>
-                        <span class="data-value"><a href="{{NPZ_FILE_LINK}}" target="_blank">{{NPZ_FILE}}</a></span>
+                        <span class="data-value"><a href="{{NPZ_FILE_LINK}}">{{NPZ_FILE}}</a></span>
                     </div>
                 </div>
             </div>
@@ -472,7 +472,7 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     # Generate file links
     sgf_file_link = f"../{summary_row['sgf_file']}"
     board_npy_link = f"../{summary_row['board_npy']}"
-    npz_file_link = f"../{position_info.get('npz_file', 'Unknown')}"
+    npz_file_link = f"../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz/tdata/{position_info.get('npz_file', 'Unknown')}"
     
     # Prepare template data
     template_data = {
