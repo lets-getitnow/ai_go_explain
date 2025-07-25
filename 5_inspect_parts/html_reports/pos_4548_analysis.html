@@ -172,6 +172,15 @@
             padding: 10px;
             margin-bottom: 15px;
         }
+        .current-move-display {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.1em;
+        }
         .position-navigation {
             display: flex;
             justify-content: space-between;
@@ -250,8 +259,12 @@
         <div class="content">
             <div class="board-section">
                 <div class="position-highlight">
-                    <strong>Move of Interest:</strong> A1 at Turn 1
+                    <strong>Move of Interest:</strong> A1 at Turn 0
                     <br><strong>Activation Strength:</strong> 0.8408
+                </div>
+                
+                <div class="current-move-display">
+                    <strong>Current Move:</strong> <span id="current-move-display">Turn 0</span>
                 </div>
                 
                 <!-- Besogo Go Board -->
@@ -261,7 +274,7 @@
                      panels="control+names"
                      orient="portrait"
                      portratio="none"
-                     path="1">(;FF[4]GM[1]SZ[7]PB[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]PW[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]HA[0]KM[8.5]RU[koSITUATIONALscoreTERRITORYtaxALLsui0]RE[W+7.5]C[startTurnIdx=7,initTurnNum=0,gameHash=E4515ACE7239E252071CC8C67362E47F,gtype=normal];B[fe];W[dd];B[dc];W[ed];B[cd];W[ce];B[ec];W[cc]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];B[bd]C[1.00 0.00 0.00 8.4 v=100 weight=0.00];W[fc]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];B[cb]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];W[fd]C[1.00 0.00 0.00 7.7 v=100 weight=0.00];B[be]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];W[df]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];B[cf]C[1.00 0.00 0.00 7.2 v=100 weight=0.00];W[de]C[1.00 0.00 0.00 6.8 v=100 weight=0.00];B[fb]C[1.00 0.00 0.00 7.6 v=130 weight=0.15];W[gb]C[1.00 0.00 0.00 7.5 v=100 weight=0.00];B[bf]C[1.00 0.00 0.00 8.0 v=130 weight=0.15];W[eb]C[1.00 0.00 0.00 7.1 v=100 weight=0.00];B[db]C[1.00 0.00 0.00 8.6 v=114 weight=0.13];W[ea]C[0.99 0.01 0.00 6.7 v=114 weight=0.13];B[dg]C[1.00 0.00 0.00 7.1 v=100 weight=0.00];W[eg]C[1.00 0.00 0.00 7.1 v=100 weight=0.00])</div>
+                     path="0">(;FF[4]GM[1]SZ[7]PB[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]PW[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]HA[0]KM[8.5]RU[koSITUATIONALscoreTERRITORYtaxALLsui0]RE[W+7.5]C[startTurnIdx=7,initTurnNum=0,gameHash=E4515ACE7239E252071CC8C67362E47F,gtype=normal];B[fe];W[dd];B[dc];W[ed];B[cd];W[ce];B[ec];W[cc]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];B[bd]C[1.00 0.00 0.00 8.4 v=100 weight=0.00];W[fc]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];B[cb]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];W[fd]C[1.00 0.00 0.00 7.7 v=100 weight=0.00];B[be]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];W[df]C[1.00 0.00 0.00 7.9 v=100 weight=0.00];B[cf]C[1.00 0.00 0.00 7.2 v=100 weight=0.00];W[de]C[1.00 0.00 0.00 6.8 v=100 weight=0.00];B[fb]C[1.00 0.00 0.00 7.6 v=130 weight=0.15];W[gb]C[1.00 0.00 0.00 7.5 v=100 weight=0.00];B[bf]C[1.00 0.00 0.00 8.0 v=130 weight=0.15];W[eb]C[1.00 0.00 0.00 7.1 v=100 weight=0.00];B[db]C[1.00 0.00 0.00 8.6 v=114 weight=0.13];W[ea]C[0.99 0.01 0.00 6.7 v=114 weight=0.13];B[dg]C[1.00 0.00 0.00 7.1 v=100 weight=0.00];W[eg]C[1.00 0.00 0.00 7.1 v=100 weight=0.00])</div>
             </div>
             
             <div class="analysis-section">
@@ -490,6 +503,67 @@
         document.addEventListener('DOMContentLoaded', function() {
             besogo.autoInit();
             console.log('Besogo Go board initialized for position 4548');
+            
+            // Track current move as user navigates through the game
+            const currentMoveDisplay = document.getElementById('current-move-display');
+            
+            // Function to calculate move number from root to current node
+            function calculateMoveNumber(editor) {
+                if (!editor || !editor.getCurrent || !editor.getRoot) return 0;
+                
+                const root = editor.getRoot();
+                const current = editor.getCurrent();
+                if (!root || !current) return 0;
+                
+                let moveNumber = 0;
+                let node = current;
+                
+                // Count moves from current node back to root
+                while (node && node !== root) {
+                    if (node.move) {
+                        moveNumber++;
+                    }
+                    node = node.parent;
+                }
+                
+                // Return the actual move number (no subtraction)
+                return moveNumber;
+            }
+            
+            // Function to update current move display
+            function updateCurrentMove() {
+                const besogoViewer = document.querySelector('.besogo-viewer');
+                if (!besogoViewer || !besogoViewer.besogoEditor) return;
+                
+                const editor = besogoViewer.besogoEditor;
+                const moveNumber = calculateMoveNumber(editor);
+                currentMoveDisplay.textContent = `Turn ${moveNumber}`;
+            }
+            
+            // Wait for Besogo to initialize and then set up the listener
+            function setupBesogoListener() {
+                const besogoViewer = document.querySelector('.besogo-viewer');
+                if (!besogoViewer || !besogoViewer.besogoEditor) {
+                    // Try again in a bit if Besogo isn't ready yet
+                    setTimeout(setupBesogoListener, 100);
+                    return;
+                }
+                
+                const editor = besogoViewer.besogoEditor;
+                
+                // Add listener for navigation changes
+                editor.addListener(function(msg) {
+                    if (msg.navChange) {
+                        updateCurrentMove();
+                    }
+                });
+                
+                // Initial update
+                updateCurrentMove();
+            }
+            
+            // Start setup after a short delay to ensure Besogo is initialized
+            setTimeout(setupBesogoListener, 500);
         });
     </script>
 </body>

@@ -322,6 +322,15 @@ def get_html_template() -> str:
             padding: 10px;
             margin-bottom: 15px;
         }
+        .current-move-display {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.1em;
+        }
         .position-navigation {
             display: flex;
             justify-content: space-between;
@@ -402,6 +411,10 @@ def get_html_template() -> str:
                 <div class="position-highlight">
                     <strong>Move of Interest:</strong> {{MOVE_COORD}} at Turn {{TURN_NUMBER}}
                     <br><strong>Activation Strength:</strong> {{ACTIVATION_STRENGTH}}
+                </div>
+                
+                <div class="current-move-display">
+                    <strong>Current Move:</strong> <span id="current-move-display">Turn {{TURN_NUMBER}}</span>
                 </div>
                 
                 <!-- Besogo Go Board -->
@@ -527,6 +540,67 @@ def get_html_template() -> str:
         document.addEventListener('DOMContentLoaded', function() {
             besogo.autoInit();
             console.log('Besogo Go board initialized for position {{GLOBAL_POS}}');
+            
+            // Track current move as user navigates through the game
+            const currentMoveDisplay = document.getElementById('current-move-display');
+            
+            // Function to calculate move number from root to current node
+            function calculateMoveNumber(editor) {
+                if (!editor || !editor.getCurrent || !editor.getRoot) return 0;
+                
+                const root = editor.getRoot();
+                const current = editor.getCurrent();
+                if (!root || !current) return 0;
+                
+                let moveNumber = 0;
+                let node = current;
+                
+                // Count moves from current node back to root
+                while (node && node !== root) {
+                    if (node.move) {
+                        moveNumber++;
+                    }
+                    node = node.parent;
+                }
+                
+                // Return the actual move number (no subtraction)
+                return moveNumber;
+            }
+            
+            // Function to update current move display
+            function updateCurrentMove() {
+                const besogoViewer = document.querySelector('.besogo-viewer');
+                if (!besogoViewer || !besogoViewer.besogoEditor) return;
+                
+                const editor = besogoViewer.besogoEditor;
+                const moveNumber = calculateMoveNumber(editor);
+                currentMoveDisplay.textContent = `Turn ${moveNumber}`;
+            }
+            
+            // Wait for Besogo to initialize and then set up the listener
+            function setupBesogoListener() {
+                const besogoViewer = document.querySelector('.besogo-viewer');
+                if (!besogoViewer || !besogoViewer.besogoEditor) {
+                    // Try again in a bit if Besogo isn't ready yet
+                    setTimeout(setupBesogoListener, 100);
+                    return;
+                }
+                
+                const editor = besogoViewer.besogoEditor;
+                
+                // Add listener for navigation changes
+                editor.addListener(function(msg) {
+                    if (msg.navChange) {
+                        updateCurrentMove();
+                    }
+                });
+                
+                // Initial update
+                updateCurrentMove();
+            }
+            
+            // Start setup after a short delay to ensure Besogo is initialized
+            setTimeout(setupBesogoListener, 500);
         });
     </script>
 </body>
@@ -586,6 +660,9 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     turn_number = int(position_info.get('turn_number', 0))
     board_state, move_of_interest, all_moves = parse_sgf_moves(sgf_content, turn_number)
     
+    # Calculate the correct display turn number (subtract 1 to match expected numbering)
+    display_turn_number = max(0, turn_number - 1)
+    
     # Prepare template data
     template_data = {
         'TITLE': f"Position {global_pos} Analysis",
@@ -603,7 +680,7 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
         'PART': part,
         'RANK': rank,
         'GLOBAL_POS': global_pos,
-        'TURN_NUMBER': position_info.get('turn_number', '0'),
+        'TURN_NUMBER': str(display_turn_number),
         'MOVE_COORD': position_info.get('move_coordinate', 'Unknown'),
         'SGF_CONTENT': sgf_content,  # Raw SGF for Besogo
         'SGF_FILE': summary_row['sgf_file'],
