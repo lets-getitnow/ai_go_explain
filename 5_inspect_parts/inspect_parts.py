@@ -66,7 +66,7 @@ BASE_DIR = (
 TDATA_DIR = BASE_DIR / "tdata"
 SGF_DIR = BASE_DIR / "sgfs"
 
-N_TOP = 3            # strongest activations per part
+N_TOP = 20           # strongest activations per part
 BOARD_SIZE = 7
 PASS_INDEX = BOARD_SIZE * BOARD_SIZE  # 49 on 7×7
 

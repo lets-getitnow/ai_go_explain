@@ -273,6 +273,7 @@ def get_html_template() -> str:
             <span class="position-counter">Position {{CURRENT_INDEX}} of {{TOTAL_POSITIONS}}</span>
             <a href="{{NEXT_POS_HTML}}" class="nav-button" {{NEXT_DISABLED}} data-tooltip="{{NEXT_TITLE}}">Next Position →</a>
             <a href="{{LAST_POS_HTML}}" class="nav-button" {{LAST_DISABLED}} data-tooltip="{{LAST_TITLE}}">Last Position ⏭</a>
+            <span class="keyboard-hint" style="font-size: 0.8em; color: #666; margin-left: 10px;">(Use ← → arrow keys)</span>
         </div>
         
         <div class="content">
@@ -470,6 +471,33 @@ def get_html_template() -> str:
             
             // Start setup after a short delay to ensure Besogo is initialized
             setTimeout(setupBesogoListener, 500);
+            
+            // Keyboard navigation for position navigation
+            document.addEventListener('keydown', function(event) {
+                // Only handle arrow keys if not typing in an input field
+                if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+                
+                switch(event.key) {
+                    case 'ArrowLeft':
+                        // Navigate to previous position
+                        const prevLink = document.querySelector('a[href="{{PREV_POS_HTML}}"]');
+                        if (prevLink && !prevLink.hasAttribute('style')) {
+                            event.preventDefault();
+                            window.location.href = prevLink.href;
+                        }
+                        break;
+                    case 'ArrowRight':
+                        // Navigate to next position
+                        const nextLink = document.querySelector('a[href="{{NEXT_POS_HTML}}"]');
+                        if (nextLink && !nextLink.hasAttribute('style')) {
+                            event.preventDefault();
+                            window.location.href = nextLink.href;
+                        }
+                        break;
+                }
+            });
         });
     </script>
 </body>
@@ -637,7 +665,7 @@ def generate_index_page(summary_data: List[Dict[str, str]], output_dir: str) -> 
         <div class="header">
             <h1>Go Position Analysis Results</h1>
             <p>Step 5: NMF Component Analysis - Positions of Interest</p>
-            <p>9 positions analyzed across 3 NMF parts, each showing the top 3 strongest activations</p>
+            <p>Positions analyzed across NMF parts, each showing the top 20 strongest activations</p>
         </div>
         
 '''
