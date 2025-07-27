@@ -4,7 +4,7 @@ This document explains the structure and mission relevance of the comprehensive 
 
 ## Mission Overview
 
-The goal is to **understand what Go patterns each NMF component captures** by analyzing the positions that activate each component most strongly. Each JSON file provides three types of analysis to decode neural network behavior into human-interpretable Go concepts.
+The goal is to **understand what Go patterns each NMF part captures** by analyzing the positions that activate each part most strongly. Each JSON file provides three types of analysis to decode neural network behavior into human-interpretable Go concepts.
 
 ## JSON Structure & Mission Relevance
 
@@ -13,7 +13,7 @@ The goal is to **understand what Go patterns each NMF component captures** by an
 
 ```json
 "position_info": {
-    "part": 1,                           // Which NMF component → identifies what we're analyzing
+    "part": 1,                           // Which NMF part → identifies what we're analyzing
     "rank": 2,                           // Activation ranking → measures pattern strength
     "global_position": 1254,             // Unique position ID → enables cross-referencing
     "move_coordinate": "(0,0)",          // The actual Go move → shows tactical decision
@@ -29,9 +29,9 @@ The goal is to **understand what Go patterns each NMF component captures** by an
 
 ```json
 "nmf_analysis": {
-    "activation_strength": 0.887,        // How strongly this component fired → pattern relevance
-    "rank_in_component": 2,              // Position ranking → identifies best examples
-    "activation_in_other_components": [0.137, 0.887, 0.053],  // Comparative levels → specialization vs overlap
+    "activation_strength": 0.887,        // How strongly this part fired → pattern relevance
+    "rank_in_part": 2,                   // Position ranking → identifies best examples
+    "activation_in_other_parts": [0.137, 0.887, 0.053],  // Comparative levels → specialization vs overlap
     "channel_activity": [49, 18, 3, ...],  // Which input channels active → board features responded to
     "top_active_channels": [[0, 49], [1, 18], ...],  // Most important features → specific Go elements
     "total_board_activity": 75           // Overall complexity → simple vs complex patterns
@@ -42,7 +42,7 @@ The goal is to **understand what Go patterns each NMF component captures** by an
 - **Channel 0 (49 bits)**: Likely current stone positions
 - **Channel 1 (18 bits)**: Likely recent move history  
 - **High activation_strength**: Strong pattern match
-- **Low other_components**: Specialized, not general feature
+- **Low other_parts**: Specialized, not general feature
 
 ### **Go Pattern Analysis Section**
 **Mission Relevance**: Translates neural activations into human-interpretable Go concepts
@@ -63,49 +63,49 @@ The goal is to **understand what Go patterns each NMF component captures** by an
 ```
 
 **Key Insights**:
-- **Corner moves**: Component specialized for corner patterns
+- **Corner moves**: Part specialized for corner patterns
 - **Middle game**: Activated during tactical fighting, not opening
-- **Low entropy**: Component fires in clear tactical situations
+- **Low entropy**: Part fires in clear tactical situations
 - **High confidence**: Strong influence on AI's decision-making
 
-### **Component Comparison Section**
-**Mission Relevance**: Determines component specialization and learned decomposition quality
+### **Part Comparison Section**
+**Mission Relevance**: Determines part specialization and learned decomposition quality
 
 ```json
-"component_comparison": {
-    "uniqueness_score": 0.73,           // Specialization measure → how unique this component is
+"part_comparison": {
+    "uniqueness_score": 0.73,           // Specialization measure → how unique this part is
     "similar_positions": [1256, 2173],  // Other strong activations → pattern consistency
-    "component_rank": 2,                // Statistical ranking → identifies best examples
-    "max_other_component_activation": 0.137,  // Comparison baseline → specialization context
+    "part_rank": 2,                     // Statistical ranking → identifies best examples
+    "max_other_part_activation": 0.137, // Comparison baseline → specialization context
     "activation_percentile": 99.2       // Statistical significance → separates signal from noise
 }
 ```
 
 **Key Insights**:
-- **High uniqueness_score**: Component has learned a specialized pattern
+- **High uniqueness_score**: Part has learned a specialized pattern
 - **Similar positions**: Enables pattern consistency verification
 - **High percentile**: This is a statistically significant activation
 
 ## Research Questions Answered
 
-### 1. **What Go concepts does each component represent?**
+### 1. **What Go concepts does each part represent?**
 - **Spatial**: `move_type` (corner/side/center patterns)
 - **Temporal**: `game_phase`, `turn_number` (opening/middle/endgame specialization)
-- **Tactical**: `top_policy_moves` (what tactical situations trigger the component)
+- **Tactical**: `top_policy_moves` (what tactical situations trigger the part)
 
 ### 2. **How specialized are the learned features?**
-- **`uniqueness_score`**: Measures component specialization vs generality
-- **`activation_in_other_components`**: Shows overlap between components
-- **`max_other_component_activation`**: Baseline for comparison
+- **`uniqueness_score`**: Measures part specialization vs generality
+- **`activation_in_other_parts`**: Shows overlap between parts
+- **`max_other_part_activation`**: Baseline for comparison
 
-### 3. **When do components activate most strongly?**
+### 3. **When do parts activate most strongly?**
 - **`activation_strength`**: Direct measure of pattern match strength
 - **`policy_confidence`**: Influence on AI decision-making
 - **`activation_percentile`**: Statistical significance
 
 ### 4. **Are the patterns consistent?**
 - **`similar_positions`**: Other positions with high activation
-- **`component_rank`**: Quality ranking of examples
+- **`part_rank`**: Quality ranking of examples
 - **Cross-position analysis**: Compare patterns across similar_positions
 
 ### 5. **What board features drive each component?**
@@ -115,28 +115,28 @@ The goal is to **understand what Go patterns each NMF component captures** by an
 
 ## Analysis Workflow
 
-1. **Individual Position Analysis**: Examine each JSON file to understand component behavior
+1. **Individual Position Analysis**: Examine each JSON file to understand part behavior
 2. **Cross-Position Comparison**: Use `similar_positions` to find pattern consistency  
-3. **Component Specialization**: Compare `uniqueness_score` across components
+3. **Part Specialization**: Compare `uniqueness_score` across parts
 4. **Temporal Analysis**: Group by `game_phase` to find temporal specialization
 5. **Spatial Analysis**: Group by `move_type` to find spatial preferences
 6. **Feature Attribution**: Analyze `top_active_channels` to understand input importance
 
 ## Expected Patterns
 
-### **Specialized Components**
+### **Specialized Parts**
 - High `uniqueness_score` (>0.7)
 - Consistent `move_type` across `similar_positions`
 - Clear `game_phase` preferences
 - Specific `top_active_channels`
 
-### **General Components**  
+### **General Parts**  
 - Low `uniqueness_score` (<0.3)
 - Mixed `move_type` patterns
 - No clear `game_phase` preference
 - Many active channels
 
-### **Tactical Components**
+### **Tactical Parts**
 - High `policy_confidence`
 - Low `policy_entropy` 
 - Consistent tactical themes in `top_policy_moves`

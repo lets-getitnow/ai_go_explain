@@ -1,6 +1,6 @@
 # Step 5: Inspect NMF Parts
 
-This step analyzes the NMF components from step 4 to identify the strongest activations and generate detailed analysis reports.
+This step analyzes the NMF parts from step 4 to identify the strongest activations and generate detailed analysis reports.
 
 ## File Organization Requirements
 
@@ -39,18 +39,18 @@ output/
 
 ## Process
 
-1. **Load NMF data**: Load the NMF components and activations from step 4
-2. **Find strongest activations**: For each component, find the positions with the highest activation values
+1. **Load NMF data**: Load the NMF parts and activations from step 4
+2. **Find strongest activations**: For each part, find the positions with the highest activation values
 3. **Generate analysis**: For each position of interest, create detailed analysis including:
-   - NMF component analysis
+   - NMF part analysis
    - Go pattern analysis  
-   - Component comparison data
+   - Part comparison data
 4. **Create structured output**: Organize all files into position-specific directories
 5. **Generate HTML reports**: Create interactive HTML visualizations for each position
 
 ## Input Files
 
-- `../4_nmf_parts/nmf_components.npy` - NMF component weights
+- `../4_nmf_parts/nmf_components.npy` - NMF part weights
 - `../4_nmf_parts/nmf_activations.npy` - NMF activation values
 - `../4_nmf_parts/nmf_meta.json` - Metadata about the NMF analysis
 - `../3_extract_activations/activations/pooled_meta.json` - Position metadata
@@ -77,8 +77,8 @@ output/
 
 Each position analysis includes:
 
-### NMF Component Analysis
-- **Part**: Which NMF part (group of components) this activation belongs to
+### NMF Part Analysis
+- **Part**: Which NMF part this activation belongs to
 - **Rank**: Rank within the part by activation strength
 - **Global Position**: Unique identifier for cross-referencing
 - **Activation Strength**: Raw activation value (0-1)
@@ -92,11 +92,11 @@ Each position analysis includes:
 - **Policy Confidence**: Probability assigned to the selected move
 - **Top Policy Moves**: List of best moves with probabilities
 
-### Component Comparison
-- **Uniqueness Score**: How distinct this component's activation pattern is
-- **Component Rank**: Ordering by average activation strength
-- **Max Other Activation**: Highest activation among other components
-- **Activation in All Components**: Full activation profile across all components
+### Part Comparison
+- **Uniqueness Score**: How distinct this part's activation pattern is
+- **Part Rank**: Ordering by average activation strength
+- **Max Other Activation**: Highest activation among other parts
+- **Activation in All Parts**: Full activation profile across all parts
 
 ## Usage
 

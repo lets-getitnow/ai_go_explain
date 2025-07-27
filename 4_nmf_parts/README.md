@@ -4,7 +4,7 @@
 
 ## Overview
 
-This step takes the channel-averaged activations from step 3 and uses NMF to decompose them into a smaller number of meaningful components (parts). Each part represents a pattern in the neural network's internal representation that might correspond to Go concepts like ladders, atari, eyes, etc.
+This step takes the channel-averaged activations from step 3 and uses NMF to decompose them into a smaller number of meaningful parts. Each part represents a pattern in the neural network's internal representation that might correspond to Go concepts like ladders, atari, eyes, etc.
 
 ## Requirements
 
@@ -17,7 +17,7 @@ pip3 install scikit-learn
 ⚠️ **Limited Dataset**: We currently have only 4 positions from step 1, which significantly limits the analysis:
 
 - **Recommended**: 50-70 parts from thousands of positions
-- **Current**: 3 parts from 4 positions (NMF can't learn more components than samples)
+- **Current**: 3 parts from 4 positions (NMF can't learn more parts than samples)
 
 For a full analysis, step 1 should collect thousands of varied board positions.
 
@@ -27,8 +27,8 @@ For a full analysis, step 1 should collect thousands of varied board positions.
 
 - **`run_nmf.py`**: Main factorization script
   - Loads pooled activations from step 3
-  - Runs NMF with conservative component count
-  - Saves components and activation patterns
+  - Runs NMF with conservative part count
+  - Saves parts and activation patterns
   - Outputs reconstruction error metrics
 
 - **`inspect_parts.py`**: Analysis and inspection script  

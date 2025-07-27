@@ -3,9 +3,9 @@
 Step 4: Run simple parts finder (NMF)
 
 Loads the pooled activations from step 3 and factorizes them using 
-Non-negative Matrix Factorization to find interpretable parts/components.
+Non-negative Matrix Factorization to find interpretable parts.
 
-With 6,603 positions, we can extract 50 meaningful components. This allows
+With 6,603 positions, we can extract 50 meaningful parts. This allows
 us to discover distinct Go concepts like atari patterns, eye shapes, 
 ladder formations, etc.
 """
@@ -47,20 +47,20 @@ def load_activation_data():
     print("✅ Successfully loaded all activation data", flush=True)
     return activations, meta
 
-def run_nmf_factorization(activations, n_components=3):
+def run_nmf_factorization(activations, n_parts=3):
     """
     Run NMF factorization on the activation data.
     
     Args:
         activations: (n_positions, n_channels) array
-        n_components: Number of parts to find
+        n_parts: Number of parts to find
         
     Returns:
-        components: (n_components, n_channels) - The learned parts
-        activations_transformed: (n_positions, n_components) - Part activations per position
+        parts: (n_parts, n_channels) - The learned parts
+        activations_transformed: (n_positions, n_parts) - Part activations per position
         model: The fitted NMF model
     """
-    print(f"🔄 Starting NMF factorization with {n_components} components...", flush=True)
+    print(f"🔄 Starting NMF factorization with {n_parts} parts...", flush=True)
     
     # Ensure non-negative data (should already be from step 3)
     print("🔧 Ensuring non-negative data...", flush=True)
@@ -74,7 +74,7 @@ def run_nmf_factorization(activations, n_components=3):
     # Run NMF
     print("🏗️  Creating NMF model...", flush=True)
     model = NMF(
-        n_components=n_components,
+        n_components=n_parts,
         random_state=42,
         max_iter=1000,
         alpha_W=0.01,  # Small L1 regularization for sparsity
@@ -85,32 +85,32 @@ def run_nmf_factorization(activations, n_components=3):
     # Fit and transform
     print("🔥 Starting NMF fit_transform (this may take time)...", flush=True)
     print(f"   Input shape: {activations.shape}", flush=True)
-    print(f"   Target components: {n_components}", flush=True)
+    print(f"   Target parts: {n_parts}", flush=True)
     print(f"   Max iterations: 1000", flush=True)
     
     activations_transformed = model.fit_transform(activations)
     print("✅ NMF fit_transform completed!", flush=True)
     
-    print("📊 Extracting components...", flush=True)
-    components = model.components_
-    print("✅ Components extracted", flush=True)
+    print("📊 Extracting parts...", flush=True)
+    parts = model.components_
+    print("✅ Parts extracted", flush=True)
     
     print(f"📊 NMF reconstruction error: {model.reconstruction_err_:.4f}", flush=True)
     print(f"📊 Number of iterations used: {model.n_iter_}", flush=True)
-    print(f"📊 Components shape: {components.shape}", flush=True)
+    print(f"📊 Parts shape: {parts.shape}", flush=True)
     print(f"📊 Transformed activations shape: {activations_transformed.shape}", flush=True)
-    print(f"📊 Components stats: min={components.min():.4f}, max={components.max():.4f}", flush=True)
+    print(f"📊 Parts stats: min={parts.min():.4f}, max={parts.max():.4f}", flush=True)
     print(f"📊 Transformed stats: min={activations_transformed.min():.4f}, max={activations_transformed.max():.4f}", flush=True)
     
-    return components, activations_transformed, model
+    return parts, activations_transformed, model
 
-def save_results(components, activations_transformed, model, original_meta):
+def save_results(parts, activations_transformed, model, original_meta):
     """Save NMF results to files."""
     print("🔄 Starting to save results...", flush=True)
     
-    # Save components (the learned parts)
-    print("💾 Saving NMF components...", flush=True)
-    np.save("nmf_components.npy", components)
+    # Save parts (the learned parts)
+    print("💾 Saving NMF parts...", flush=True)
+    np.save("nmf_components.npy", parts)
     print("✅ Saved nmf_components.npy", flush=True)
     
     # Save transformed activations (how much each part activates per position)
@@ -123,10 +123,10 @@ def save_results(components, activations_transformed, model, original_meta):
     meta = {
         "date": datetime.now().strftime("%Y-%m-%d"),
         "source_activations": "../3_extract_activations/activations/pooled_rconv14.out.npy",
-        "original_shape": f"{activations_transformed.shape[0]}x{components.shape[1]}",
-        "n_components": components.shape[0],
+        "original_shape": f"{activations_transformed.shape[0]}x{parts.shape[1]}",
+        "n_parts": parts.shape[0],
         "n_positions": activations_transformed.shape[0],
-        "n_channels": components.shape[1],
+        "n_channels": parts.shape[1],
         "reconstruction_error": float(model.reconstruction_err_),
         "n_iterations": int(model.n_iter_),
         "original_meta": original_meta
@@ -137,7 +137,7 @@ def save_results(components, activations_transformed, model, original_meta):
     print("✅ Saved nmf_meta.json", flush=True)
     
     print(f"✅ All results saved:", flush=True)
-    print(f"  - nmf_components.npy: {components.shape}", flush=True)
+    print(f"  - nmf_components.npy: {parts.shape}", flush=True)
     print(f"  - nmf_activations.npy: {activations_transformed.shape}", flush=True)
     print(f"  - nmf_meta.json", flush=True)
 
@@ -149,36 +149,36 @@ def main():
     print("\n📁 PHASE 1: Loading Data", flush=True)
     activations, meta = load_activation_data()
     
-    # Determine number of components
-    print("\n🧮 PHASE 2: Determining Components", flush=True)
+    # Determine number of parts
+    print("\n🧮 PHASE 2: Determining Parts", flush=True)
     n_positions = activations.shape[0]
     
-    # With 6,603 positions, we can extract many more meaningful components
-    # Rule of thumb: aim for 50-100 components for this dataset size
-    n_components = min(50, n_positions // 10)  # Conservative but much more reasonable
+    # With 6,603 positions, we can extract many more meaningful parts
+    # Rule of thumb: aim for 50-100 parts for this dataset size
+    n_parts = min(50, n_positions // 10)  # Conservative but much more reasonable
     print(f"📊 Positions available: {n_positions}", flush=True)
-    print(f"📊 Components to use: {n_components}", flush=True)
+    print(f"📊 Parts to use: {n_parts}", flush=True)
     
     if n_positions < 100:
         print(f"⚠️  WARNING: Only {n_positions} positions available.", flush=True)
-        print(f"⚠️  Using {n_components} components instead of 50-70 recommended.", flush=True)
+        print(f"⚠️  Using {n_parts} parts instead of 50-70 recommended.", flush=True)
         print(f"⚠️  For full analysis, collect thousands of positions in step 1.", flush=True)
     else:
-        print(f"✅ Good dataset size: {n_positions} positions for {n_components} components", flush=True)
+        print(f"✅ Good dataset size: {n_positions} positions for {n_parts} parts", flush=True)
     
     # Run NMF
     print("\n🏗️  PHASE 3: Running NMF", flush=True)
-    components, activations_transformed, model = run_nmf_factorization(
-        activations, n_components
+    parts, activations_transformed, model = run_nmf_factorization(
+        activations, n_parts
     )
     
     # Save results
     print("\n💾 PHASE 4: Saving Results", flush=True)
-    save_results(components, activations_transformed, model, meta)
+    save_results(parts, activations_transformed, model, meta)
     
     print("\n=== Summary ===", flush=True)
     print(f"✅ Successfully factorized {activations.shape[0]} positions × {activations.shape[1]} channels", flush=True)
-    print(f"✅ Into {components.shape[0]} parts × {components.shape[1]} channels", flush=True)
+    print(f"✅ Into {parts.shape[0]} parts × {parts.shape[1]} channels", flush=True)
     print(f"📊 Reconstruction error: {model.reconstruction_err_:.4f}", flush=True)
     print(f"🔄 Iterations used: {model.n_iter_}/1000", flush=True)
     print(f"🕐 Completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", flush=True)

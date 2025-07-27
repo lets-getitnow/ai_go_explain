@@ -2,7 +2,7 @@
   "date": "2025-07-26",
   "source_activations": "../3_extract_activations/activations/pooled_rconv14.out.npy",
   "original_shape": "6603x512",
-  "n_components": 50,
+  "n_parts": 50,
   "n_positions": 6603,
   "n_channels": 512,
   "reconstruction_error": 148.5687713623047,

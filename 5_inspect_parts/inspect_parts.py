@@ -152,7 +152,7 @@ def analyze_nmf_features(pos: Dict[str, Any], activations: np.ndarray, board_dat
     # Current component activation strength
     activation_strength = float(activations[gpos, part_idx])
     
-    # Activations in other components for this position
+    # Activations in other parts for this position
     other_activations = [float(activations[gpos, i]) for i in range(activations.shape[1])]
     
     # Channel importance - count bits set in each channel
@@ -166,8 +166,8 @@ def analyze_nmf_features(pos: Dict[str, Any], activations: np.ndarray, board_dat
     
     return {
         "activation_strength": activation_strength,
-        "rank_in_component": pos["rank"],
-        "activation_in_other_components": other_activations,
+        "rank_in_part": pos["rank"],
+        "activation_in_other_parts": other_activations,
         "channel_activity": channel_activity,
         "top_active_channels": top_channels,
         "total_board_activity": sum(channel_activity)
@@ -236,34 +236,34 @@ def analyze_go_patterns(pos: Dict[str, Any], policy_data: np.ndarray) -> Dict[st
     }
 
 
-def analyze_component_comparison(pos: Dict[str, Any], all_positions: List[Dict[str, Any]], activations: np.ndarray) -> Dict[str, Any]:
-    """Analysis 3: Comparative Component Behavior"""
+def analyze_part_comparison(pos: Dict[str, Any], all_positions: List[Dict[str, Any]], activations: np.ndarray) -> Dict[str, Any]:
+    """Analysis 3: Comparative Part Behavior"""
     part_idx = pos["part"]
     gpos = pos["global_pos"]
     
-    # Find positions where other components are most active
+    # Find positions where other parts are most active
     current_activation = activations[gpos, part_idx]
     
-    # Component specialization: how unique is this activation?
-    other_component_activations = [activations[gpos, i] for i in range(activations.shape[1]) if i != part_idx]
-    max_other_activation = max(other_component_activations) if other_component_activations else 0.0
+    # Part specialization: how unique is this activation?
+    other_part_activations = [activations[gpos, i] for i in range(activations.shape[1]) if i != part_idx]
+    max_other_activation = max(other_part_activations) if other_part_activations else 0.0
     
     uniqueness_score = current_activation / (current_activation + max_other_activation) if (current_activation + max_other_activation) > 0 else 0.0
     
-    # Find similar positions (other high-activating positions for this component)
-    component_activations = activations[:, part_idx]
-    similar_position_indices = np.argsort(component_activations)[-10:][::-1]  # Top 10
+    # Find similar positions (other high-activating positions for this part)
+    part_activations = activations[:, part_idx]
+    similar_position_indices = np.argsort(part_activations)[-10:][::-1]  # Top 10
     similar_positions = [int(idx) for idx in similar_position_indices if idx != gpos][:5]  # Exclude self, take top 5
     
-    # Ranking across all positions for this component
-    position_rank = np.sum(component_activations > current_activation) + 1
+    # Ranking across all positions for this part
+    position_rank = np.sum(part_activations > current_activation) + 1
     
     return {
         "uniqueness_score": float(uniqueness_score),
         "similar_positions": similar_positions,
-        "component_rank": int(position_rank),
-        "max_other_component_activation": float(max_other_activation),
-        "activation_percentile": float(100 * (1 - position_rank / len(component_activations)))
+        "part_rank": int(position_rank),
+        "max_other_part_activation": float(max_other_activation),
+        "activation_percentile": float(100 * (1 - position_rank / len(part_activations)))
     }
 
 
@@ -439,7 +439,7 @@ def main() -> None:
         # Perform all three analyses
         nmf_analysis = analyze_nmf_features(pos, activ, board_data)
         go_analysis = analyze_go_patterns(pos, policy_data)
-        comparison_analysis = analyze_component_comparison(pos, positions, activ)
+        comparison_analysis = analyze_part_comparison(pos, positions, activ)
         
         # Combine analyses
         comprehensive_analysis = {
@@ -455,7 +455,7 @@ def main() -> None:
             },
             "nmf_analysis": nmf_analysis,
             "go_pattern_analysis": go_analysis,
-            "component_comparison": comparison_analysis
+            "part_comparison": comparison_analysis
         }
         
         # Save analysis to JSON file in position-specific directory

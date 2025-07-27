@@ -7,7 +7,7 @@ This script creates an HTML file for each analyzed position, displaying:
 - Interactive Go board automatically positioned at the move of interest
 - Complete NMF analysis data
 - Go pattern analysis with policy moves in Go coordinate format (e.g., C3, D4)
-- Component comparison data
+- Part comparison data
 
 Requirements: 
 - Each page must have a prominent GitHub link to https://github.com/lets-getitnow/ai_go_explain with GitHub logo
@@ -139,49 +139,49 @@ def generate_policy_moves(policy_moves: List[Dict[str, Any]]) -> str:
     
     return '\n'.join(moves_html)
 
-def generate_component_activations(activations: List[float], all_positions: List[Dict[str, str]] = None) -> str:
-    """Generate HTML for component activation visualization with clickable bars."""
+def generate_part_activations(activations: List[float], all_positions: List[Dict[str, str]] = None) -> str:
+    """Generate HTML for part activation visualization with clickable bars."""
     if not activations:
         return "<div>No activation data available</div>"
     
-    # Create a mapping of component to its strongest position
-    component_to_position = {}
+    # Create a mapping of part to its strongest position
+    part_to_position = {}
     if all_positions:
         for pos in all_positions:
             part = int(pos['part'])
-            if part not in component_to_position:
-                component_to_position[part] = pos
+            if part not in part_to_position:
+                part_to_position[part] = pos
     
     activations_html = []
     for i, activation in enumerate(activations):
         percent = activation * 100
         
-        # Create clickable link if we have position data for this component
-        if i in component_to_position:
-            pos = component_to_position[i]
+        # Create clickable link if we have position data for this part
+        if i in part_to_position:
+            pos = part_to_position[i]
             link_url = f"pos_{pos['global_pos']}_part{pos['part']}_rank{pos['rank']}_analysis.html"
-            component_html = f'''
+            part_html = f'''
         <div style="margin: 5px 0;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <a href="{link_url}" style="text-decoration: none; color: inherit; cursor: pointer;" 
-                   title="View strongest example of Component {i} (Position {pos['global_pos']}, Rank {pos['rank']})">
-                    <span>Component {i}:</span>
+                   title="View strongest example of Part {i} (Position {pos['global_pos']}, Rank {pos['rank']})">
+                    <span>Part {i}:</span>
                 </a>
                 <span>{activation:.4f}</span>
             </div>
             <a href="{link_url}" style="text-decoration: none; color: inherit; cursor: pointer;" 
-               title="View strongest example of Component {i} (Position {pos['global_pos']}, Rank {pos['rank']})">
+               title="View strongest example of Part {i} (Position {pos['global_pos']}, Rank {pos['rank']})">
                 <div class="progress-bar" style="cursor: pointer;">
                     <div class="progress-fill" style="width: {percent:.1f}%"></div>
                 </div>
             </a>
         </div>'''
         else:
-            # Non-clickable version for components without position data
-            component_html = f'''
+            # Non-clickable version for parts without position data
+            part_html = f'''
         <div style="margin: 5px 0;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Component {i}:</span>
+                <span>Part {i}:</span>
                 <span>{activation:.4f}</span>
             </div>
             <div class="progress-bar">
@@ -189,7 +189,7 @@ def generate_component_activations(activations: List[float], all_positions: List
             </div>
         </div>'''
         
-        activations_html.append(component_html)
+        activations_html.append(part_html)
     
     return '\n'.join(activations_html)
 
@@ -299,10 +299,10 @@ def get_html_template() -> str:
             
             <div class="analysis-section">
                 <div class="analysis-card">
-                    <h3>🧠 NMF Component Analysis</h3>
+                    <h3>🧠 NMF Part Analysis</h3>
                     <div class="data-grid">
                         <div class="data-item">
-                            <span class="data-label" data-tooltip="Index of the NMF part (group of components) that this activation belongs to. Parts partition the model into sets of interpretable patterns.">Part: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Index of the NMF part that this activation belongs to. Parts partition the model into sets of interpretable patterns.">Part: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{PART}}</span>
                         </div>
                         <div class="data-item">
@@ -364,25 +364,25 @@ def get_html_template() -> str:
                 </div>
                 
                 <div class="analysis-card">
-                    <h3>📊 Component Comparison</h3>
+                    <h3>📊 Part Comparison</h3>
                     <div class="data-grid">
                         <div class="data-item">
-                            <span class="data-label" data-tooltip="Measure (0-1) of how distinct this component's activation pattern is compared to other components – higher means less overlap.">Uniqueness Score: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Measure (0-1) of how distinct this part's activation pattern is compared to other parts – higher means less overlap.">Uniqueness Score: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{UNIQUENESS_SCORE}}</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label" data-tooltip="Ordering of components by average activation strength across all positions, where 1 is the most frequently strongest pattern.">Component Rank: <span class="tooltip-icon">ⓘ</span></span>
-                            <span class="data-value">{{COMPONENT_RANK}}</span>
+                                    <span class="data-label" data-tooltip="Ordering of parts by average activation strength across all positions, where 1 is the most frequently strongest pattern.">Part Rank: <span class="tooltip-icon">ⓘ</span></span>
+        <span class="data-value">{{PART_RANK}}</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label" data-tooltip="Highest activation value among ALL other components at this position – used to assess selectivity of the current component.">Max Other Activation: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Highest activation value among ALL other parts at this position – used to assess selectivity of the current part.">Max Other Activation: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{MAX_OTHER_ACTIVATION}}</span>
                         </div>
                     </div>
                     
                     <div>
-                        <strong data-tooltip="Bar chart of activation values for EVERY component so you can see the full activation profile of this position.">Activation in All Components: <span class="tooltip-icon">ⓘ</span></strong>
-                        {{COMPONENT_ACTIVATIONS}}
+                                <strong data-tooltip="Bar chart of activation values for EVERY part so you can see the full activation profile of this position.">Activation in All Parts: <span class="tooltip-icon">ⓘ</span></strong>
+        {{PART_ACTIVATIONS}}
                     </div>
                 </div>
                 
@@ -581,7 +581,7 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     # Build template data
     template_data = {
         'TITLE': f"Position {global_pos} Analysis",
-        'SUBTITLE': f"Part {part}, Rank {rank} - NMF Component Analysis",
+        'SUBTITLE': f"Part {part}, Rank {rank} - NMF Part Analysis",
         'CURRENT_INDEX': current_index + 1,
         'TOTAL_POSITIONS': len(all_positions),
         'PREV_TITLE': f"Position {prev_pos['global_pos']} (Part {prev_pos['part']}, Rank {prev_pos['rank']})" if prev_pos else None,
@@ -625,12 +625,12 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
         'POLICY_CONFIDENCE': go_pattern.get('policy_confidence', 0),
         'POLICY_MOVES': generate_policy_moves(go_pattern.get('top_policy_moves', [])),
         
-        # Component Comparison
+        # Part Comparison
         'UNIQUENESS_SCORE': f"{component_comp.get('uniqueness_score', 0):.4f}",
-        'COMPONENT_RANK': component_comp.get('component_rank', 'Unknown'),
-        'MAX_OTHER_ACTIVATION': f"{component_comp.get('max_other_component_activation', 0):.4f}",
-        'COMPONENT_ACTIVATIONS': generate_component_activations(
-            nmf_analysis.get('activation_in_other_components', []), all_positions
+        'PART_RANK': component_comp.get('part_rank', 'Unknown'),
+        'MAX_OTHER_ACTIVATION': f"{component_comp.get('max_other_part_activation', 0):.4f}",
+        'PART_ACTIVATIONS': generate_part_activations(
+            nmf_analysis.get('activation_in_other_parts', []), all_positions
         )
     }
     
@@ -664,7 +664,7 @@ def generate_index_page(summary_data: List[Dict[str, str]], output_dir: str) -> 
     <div class="container">
         <div class="header">
             <h1>Go Position Analysis Results</h1>
-            <p>Step 5: NMF Component Analysis - Positions of Interest</p>
+            <p>Step 5: NMF Part Analysis - Positions of Interest</p>
             <p>Positions analyzed across NMF parts, each showing the top 20 strongest activations</p>
         </div>
         
