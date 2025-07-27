@@ -358,13 +358,11 @@ def main() -> None:
         turn_num = gpos - boundaries[game_idx]
 
         game_text = games[game_idx]
-        header, *moves = game_text.split(";")
-        clipped = ";".join([header] + moves[: turn_num + 1]) + ")"
-
-        # Save SGF in position-specific directory
+        
+        # Save complete SGF in position-specific directory (no clipping)
         pos_dir = output_dir / f"pos_{gpos}"
         sgf_path = pos_dir / "game.sgf"
-        sgf_path.write_text(clipped)
+        sgf_path.write_text(game_text)
         pos["sgf_file"] = f"pos_{gpos}/game.sgf"  # Relative path for CSV
         pos["pos_in_game"] = turn_num  # slice index within game
         pos["game_idx"] = game_idx     # which game inside bundle
@@ -384,6 +382,8 @@ def main() -> None:
                         return BOARD_SIZE - 1 - row_top, col
                     return None
 
+                # Parse moves from the complete game text
+                header, *moves = game_text.split(";")
                 for idx_m, mv in enumerate(moves):
                     m = re.match(r'[BW]\[([a-z]{0,2})\]', mv)
                     if not m:
