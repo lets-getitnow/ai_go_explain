@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 14,
+    "rank": 6,
+    "global_position": 1367,
+    "move_coordinate": "B3",
+    "turn_number": 9,
+    "npz_file": "1D638D50844BD930.npz",
+    "board_tensor_file": "pos_1367/board.npy",
+    "sgf_file": "pos_1367/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 130.93402099609375,
+    "rank_in_part": 6,
+    "activation_in_other_parts": [
+      667.5330810546875,
+      106.90834045410156,
+      39.38499450683594,
+      2.3757221698760986,
+      0.0,
+      1.5096358060836792,
+      0.4761086404323578,
+      0.04656019061803818,
+      0.0,
+      0.0,
+      127.44932556152344,
+      0.0,
+      0.2571980655193329,
+      0.0,
+      130.93402099609375,
+      0.0,
+      0.0,
+      0.12317544221878052,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.17339029908180237,
+      0.0,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      2,
+      3,
+      0,
+      1,
+      2,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      2,
+      3,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        19,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        5,
+        2
+      ]
+    ],
+    "total_board_activity": 67
+  },
+  "go_pattern_analysis": {
+    "move_type": "corner",
+    "game_phase": "opening",
+    "turn_number": 9,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(2,1)",
+        "percentage": 100.0,
+        "count": 542
+      }
+    ],
+    "total_policy_counts": 542
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.16398173570632935,
+    "similar_positions": [
+      427,
+      2710,
+      4457,
+      988,
+      2356
+    ],
+    "part_rank": 6,
+    "max_other_part_activation": 667.5330810546875,
+    "activation_percentile": 99.90913221263062
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 1,
+    "rank": 3,
+    "global_position": 1757,
+    "move_coordinate": "B4",
+    "turn_number": 1,
+    "npz_file": "1D638D50844BD930.npz",
+    "board_tensor_file": "pos_1757/board.npy",
+    "sgf_file": "pos_1757/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 473.0663757324219,
+    "rank_in_part": 3,
+    "activation_in_other_parts": [
+      0.0,
+      473.0663757324219,
+      0.0,
+      44.45604705810547,
+      7.372630596160889,
+      67.78414154052734,
+      0.3117399513721466,
+      7.698606491088867,
+      0.0,
+      0.0,
+      0.0,
+      0.7338327765464783,
+      0.0,
+      0.0,
+      44.50661849975586,
+      0.0,
+      0.0,
+      0.0,
+      0.1132717877626419,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      5,
+      5,
+      0,
+      2,
+      5,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        5,
+        5
+      ],
+      [
+        4,
+        2
+      ]
+    ],
+    "total_board_activity": 75
+  },
+  "go_pattern_analysis": {
+    "move_type": "side",
+    "game_phase": "opening",
+    "turn_number": 1,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(3,1)",
+        "percentage": 100.0,
+        "count": 246
+      }
+    ],
+    "total_policy_counts": 246
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.874671220779419,
+    "similar_positions": [
+      3451,
+      2267,
+      5492,
+      5359,
+      4444
+    ],
+    "part_rank": 3,
+    "max_other_part_activation": 67.78414154052734,
+    "activation_percentile": 99.95456610631531
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 1,
+    "rank": 16,
+    "global_position": 4920,
+    "move_coordinate": "B4",
+    "turn_number": 9,
+    "npz_file": "B330F9C802154800.npz",
+    "board_tensor_file": "pos_4920/board.npy",
+    "sgf_file": "pos_4920/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 465.3728942871094,
+    "rank_in_part": 16,
+    "activation_in_other_parts": [
+      0.0,
+      465.3728942871094,
+      0.0,
+      42.88679885864258,
+      1.5914877653121948,
+      64.68475341796875,
+      0.5244539976119995,
+      6.576274394989014,
+      0.0,
+      0.0,
+      0.0,
+      0.4073812961578369,
+      0.0,
+      0.23440320789813995,
+      63.677738189697266,
+      0.0,
+      0.0,
+      0.0,
+      0.2646617889404297,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.07055991888046265,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      5,
+      5,
+      0,
+      2,
+      5,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        5,
+        5
+      ],
+      [
+        4,
+        2
+      ]
+    ],
+    "total_board_activity": 75
+  },
+  "go_pattern_analysis": {
+    "move_type": "side",
+    "game_phase": "opening",
+    "turn_number": 9,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(3,1)",
+        "percentage": 100.0,
+        "count": 212
+      }
+    ],
+    "total_policy_counts": 212
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.8779666423797607,
+    "similar_positions": [
+      3451,
+      2267,
+      1757,
+      5492,
+      5359
+    ],
+    "part_rank": 16,
+    "max_other_part_activation": 64.68475341796875,
+    "activation_percentile": 99.75768590034832
+  }
+}

@@ -20,6 +20,7 @@ Requirements:
 import json
 import os
 import csv
+from datetime import datetime
 from typing import Dict, Any, List
 
 def load_sgf_content(sgf_file: str) -> str:
@@ -265,6 +266,7 @@ def get_html_template() -> str:
         <div class="header">
             <h1>{{TITLE}}</h1>
             <div class="subtitle">{{SUBTITLE}}</div>
+            <div class="timestamp" style="color: #ffffff; font-size: 0.9em; margin-top: 5px; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">Generated: {{TIMESTAMP}}</div>
         </div>
         
         <div class="position-navigation">
@@ -582,6 +584,7 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     template_data = {
         'TITLE': f"Position {global_pos} Analysis",
         'SUBTITLE': f"Part {part}, Rank {rank} - NMF Part Analysis",
+        'TIMESTAMP': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         'CURRENT_INDEX': current_index + 1,
         'TOTAL_POSITIONS': len(all_positions),
         'PREV_TITLE': f"Position {prev_pos['global_pos']} (Part {prev_pos['part']}, Rank {prev_pos['rank']})" if prev_pos else None,

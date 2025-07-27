@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 6,
+    "rank": 11,
+    "global_position": 3178,
+    "move_coordinate": "A2",
+    "turn_number": 18,
+    "npz_file": "76F9EC3EB6A76AA0.npz",
+    "board_tensor_file": "pos_3178/board.npy",
+    "sgf_file": "pos_3178/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.7702333927154541,
+    "rank_in_part": 11,
+    "activation_in_other_parts": [
+      3772.468017578125,
+      9.902400016784668,
+      51.488826751708984,
+      0.0,
+      14.409369468688965,
+      0.0,
+      0.7702333927154541,
+      50.839298248291016,
+      0.3145621716976166,
+      0.0,
+      3.5231196880340576,
+      0.0,
+      0.0,
+      0.0,
+      44.308067321777344,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.016185728833079338,
+      0.33636099100112915,
+      0.0,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      13,
+      18,
+      1,
+      5,
+      2,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      2,
+      15,
+      30,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        19,
+        30
+      ],
+      [
+        2,
+        18
+      ],
+      [
+        18,
+        15
+      ],
+      [
+        1,
+        13
+      ]
+    ],
+    "total_board_activity": 141
+  },
+  "go_pattern_analysis": {
+    "move_type": "corner",
+    "game_phase": "opening",
+    "turn_number": 18,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(1,0)",
+        "percentage": 100.0,
+        "count": 152
+      }
+    ],
+    "total_policy_counts": 152
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.00020413059974089265,
+    "similar_positions": [
+      4952,
+      4246,
+      2058,
+      2499,
+      2498
+    ],
+    "part_rank": 11,
+    "max_other_part_activation": 3772.468017578125,
+    "activation_percentile": 99.83340905648947
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 6,
+    "rank": 12,
+    "global_position": 3177,
+    "move_coordinate": "D7",
+    "turn_number": 1,
+    "npz_file": "76F9EC3EB6A76AA0.npz",
+    "board_tensor_file": "pos_3177/board.npy",
+    "sgf_file": "pos_3177/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.7606436610221863,
+    "rank_in_part": 12,
+    "activation_in_other_parts": [
+      3055.8271484375,
+      0.0,
+      54.38535690307617,
+      0.0,
+      77.8018798828125,
+      0.0,
+      0.7606436610221863,
+      28.550128936767578,
+      0.0,
+      0.0,
+      0.0,
+      0.14075127243995667,
+      0.0,
+      0.0,
+      40.37425231933594,
+      0.0,
+      0.0,
+      0.09362933039665222,
+      0.0,
+      0.08266674727201462,
+      0.0,
+      0.2290671318769455,
+      0.10281561315059662,
+      0.0,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      16,
+      16,
+      0,
+      14,
+      3,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      7,
+      1,
+      7,
+      1,
+      17,
+      22,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        19,
+        22
+      ],
+      [
+        18,
+        17
+      ],
+      [
+        1,
+        16
+      ],
+      [
+        2,
+        16
+      ]
+    ],
+    "total_board_activity": 158
+  },
+  "go_pattern_analysis": {
+    "move_type": "side",
+    "game_phase": "opening",
+    "turn_number": 1,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(6,3)",
+        "percentage": 100.0,
+        "count": 176
+      }
+    ],
+    "total_policy_counts": 176
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.00024885384482331574,
+    "similar_positions": [
+      4952,
+      4246,
+      2058,
+      2499,
+      2498
+    ],
+    "part_rank": 12,
+    "max_other_part_activation": 3055.8271484375,
+    "activation_percentile": 99.81826442526125
+  }
+}

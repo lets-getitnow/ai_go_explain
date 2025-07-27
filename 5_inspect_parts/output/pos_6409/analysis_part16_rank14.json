@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 16,
+    "rank": 14,
+    "global_position": 6409,
+    "move_coordinate": "G2",
+    "turn_number": 19,
+    "npz_file": "E3CD9898B9AFF870.npz",
+    "board_tensor_file": "pos_6409/board.npy",
+    "sgf_file": "pos_6409/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.4961293339729309,
+    "rank_in_part": 14,
+    "activation_in_other_parts": [
+      1439.7283935546875,
+      292.32025146484375,
+      14.688459396362305,
+      100.17411804199219,
+      5.3298540115356445,
+      27.227781295776367,
+      0.0,
+      7.700435161590576,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      27.855422973632812,
+      0.39652517437934875,
+      0.4961293339729309,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.08429831266403198
+    ],
+    "channel_activity": [
+      49,
+      7,
+      7,
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        5,
+        1
+      ]
+    ],
+    "total_board_activity": 71
+  },
+  "go_pattern_analysis": {
+    "move_type": "corner",
+    "game_phase": "opening",
+    "turn_number": 19,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(1,6)",
+        "percentage": 100.0,
+        "count": 478
+      }
+    ],
+    "total_policy_counts": 478
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.0003444805624894798,
+    "similar_positions": [
+      2322,
+      4331,
+      6010,
+      5518,
+      4882
+    ],
+    "part_rank": 14,
+    "max_other_part_activation": 1439.7283935546875,
+    "activation_percentile": 99.78797516280478
+  }
+}

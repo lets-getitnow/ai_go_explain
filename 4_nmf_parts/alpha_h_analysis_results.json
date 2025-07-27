@@ -1,0 +1,57 @@
+{
+  "date": "2025-07-27 19:45:20",
+  "results": [
+    {
+      "alpha": 0.0,
+      "reconstruction_error": 692.0943603515625,
+      "sparsity": 0.162421875,
+      "avg_boards_per_component": 428.84,
+      "n_iterations": 400
+    },
+    {
+      "alpha": 0.01,
+      "reconstruction_error": 697.2926635742188,
+      "sparsity": 0.20671875,
+      "avg_boards_per_component": 406.16,
+      "n_iterations": 400
+    },
+    {
+      "alpha": 0.05,
+      "reconstruction_error": 719.60400390625,
+      "sparsity": 0.256484375,
+      "avg_boards_per_component": 380.68,
+      "n_iterations": 400
+    },
+    {
+      "alpha": 0.1,
+      "reconstruction_error": 943.7891235351562,
+      "sparsity": 0.67296875,
+      "avg_boards_per_component": 167.44,
+      "n_iterations": 400
+    },
+    {
+      "alpha": 0.2,
+      "reconstruction_error": 1167.7171630859375,
+      "sparsity": 0.8484375,
+      "avg_boards_per_component": 77.6,
+      "n_iterations": 400
+    },
+    {
+      "alpha": 0.4,
+      "reconstruction_error": 1287.0751953125,
+      "sparsity": 0.883984375,
+      "avg_boards_per_component": 59.4,
+      "n_iterations": 400
+    }
+  ],
+  "optimal_alpha": 0.01,
+  "analysis": {
+    "baseline_error": 692.0943603515625,
+    "optimal_alpha": 0.01,
+    "optimal_sparsity": 0.20671875,
+    "optimal_error": 697.2926635742188,
+    "error_increase": 0.007510974537581205,
+    "recommendation": "Use \u03b1_H = 0.01 for 20.7% sparsity with 0.8% error increase"
+  },
+  "recommendation": "Use \u03b1_H = 0.01 for 20.7% sparsity with 0.8% error increase"
+}

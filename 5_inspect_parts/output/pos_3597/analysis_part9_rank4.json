@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 9,
+    "rank": 4,
+    "global_position": 3597,
+    "move_coordinate": "D1",
+    "turn_number": 22,
+    "npz_file": "AAE4EE8DC9A92FFF.npz",
+    "board_tensor_file": "pos_3597/board.npy",
+    "sgf_file": "pos_3597/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.7467682957649231,
+    "rank_in_part": 4,
+    "activation_in_other_parts": [
+      2695.21435546875,
+      124.66923522949219,
+      15.388486862182617,
+      71.6839599609375,
+      6.97332239151001,
+      34.71474838256836,
+      0.19407781958580017,
+      12.727493286132812,
+      0.09790913760662079,
+      0.7467682957649231,
+      8.436266899108887,
+      0.2575102150440216,
+      0.0,
+      0.0,
+      35.853187561035156,
+      0.0,
+      0.11625353246927261,
+      0.0,
+      0.0,
+      0.0,
+      0.15770843625068665,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      8,
+      8,
+      0,
+      6,
+      2,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      8,
+      8,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        8
+      ],
+      [
+        2,
+        8
+      ],
+      [
+        18,
+        8
+      ],
+      [
+        19,
+        8
+      ]
+    ],
+    "total_board_activity": 97
+  },
+  "go_pattern_analysis": {
+    "move_type": "side",
+    "game_phase": "opening",
+    "turn_number": 22,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(0,3)",
+        "percentage": 100.0,
+        "count": 99
+      }
+    ],
+    "total_policy_counts": 99
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.0002769951825030148,
+    "similar_positions": [
+      5518,
+      4598,
+      3374,
+      5967,
+      3693
+    ],
+    "part_rank": 4,
+    "max_other_part_activation": 2695.21435546875,
+    "activation_percentile": 99.93942147508709
+  }
+}

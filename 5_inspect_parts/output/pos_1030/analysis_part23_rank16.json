@@ -1,0 +1,123 @@
+{
+  "position_info": {
+    "part": 23,
+    "rank": 16,
+    "global_position": 1030,
+    "move_coordinate": "D5",
+    "turn_number": 5,
+    "npz_file": "1D638D50844BD930.npz",
+    "board_tensor_file": "pos_1030/board.npy",
+    "sgf_file": "pos_1030/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.4821148216724396,
+    "rank_in_part": 16,
+    "activation_in_other_parts": [
+      311.1060485839844,
+      410.9537048339844,
+      19.734739303588867,
+      80.38162994384766,
+      31.26280403137207,
+      36.945465087890625,
+      0.0,
+      5.23049259185791,
+      0.0,
+      0.0,
+      0.0,
+      0.2291427105665207,
+      0.0,
+      0.0,
+      6.4562153816223145,
+      0.0,
+      0.0,
+      0.5657249093055725,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.4821148216724396,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      5,
+      5,
+      0,
+      1,
+      3,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        5,
+        3
+      ],
+      [
+        4,
+        1
+      ]
+    ],
+    "total_board_activity": 69
+  },
+  "go_pattern_analysis": {
+    "move_type": "side",
+    "game_phase": "opening",
+    "turn_number": 5,
+    "policy_entropy": 0.020496657705832283,
+    "policy_confidence": 0.9980353634577603,
+    "top_policy_moves": [
+      {
+        "coord": "(4,3)",
+        "percentage": 99.8,
+        "count": 508
+      },
+      {
+        "coord": "(3,5)",
+        "percentage": 0.2,
+        "count": 1
+      }
+    ],
+    "total_policy_counts": 509
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.0011717862216755748,
+    "similar_positions": [
+      4033,
+      2723,
+      6194,
+      3399,
+      4973
+    ],
+    "part_rank": 16,
+    "max_other_part_activation": 410.9537048339844,
+    "activation_percentile": 99.75768590034832
+  }
+}

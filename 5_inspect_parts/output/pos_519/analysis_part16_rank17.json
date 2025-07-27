@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 16,
+    "rank": 17,
+    "global_position": 519,
+    "move_coordinate": "G2",
+    "turn_number": 18,
+    "npz_file": "1906C337F5CDAFA9.npz",
+    "board_tensor_file": "pos_519/board.npy",
+    "sgf_file": "pos_519/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.4911690354347229,
+    "rank_in_part": 17,
+    "activation_in_other_parts": [
+      1444.83447265625,
+      290.0937805175781,
+      15.859676361083984,
+      99.88556671142578,
+      5.982082843780518,
+      28.884057998657227,
+      0.0,
+      7.779101371765137,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      26.775150299072266,
+      0.34167346358299255,
+      0.4911690354347229,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.11528126150369644
+    ],
+    "channel_activity": [
+      49,
+      7,
+      7,
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      7,
+      7,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        18,
+        7
+      ],
+      [
+        19,
+        7
+      ]
+    ],
+    "total_board_activity": 85
+  },
+  "go_pattern_analysis": {
+    "move_type": "corner",
+    "game_phase": "opening",
+    "turn_number": 18,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(1,6)",
+        "percentage": 100.0,
+        "count": 421
+      }
+    ],
+    "total_policy_counts": 421
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.0003398327680770308,
+    "similar_positions": [
+      2322,
+      4331,
+      6010,
+      5518,
+      4882
+    ],
+    "part_rank": 17,
+    "max_other_part_activation": 1444.83447265625,
+    "activation_percentile": 99.7425412691201
+  }
+}

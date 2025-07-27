@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 1,
+    "rank": 5,
+    "global_position": 5359,
+    "move_coordinate": "F4",
+    "turn_number": 21,
+    "npz_file": "BADFFB51627F24FD.npz",
+    "board_tensor_file": "pos_5359/board.npy",
+    "sgf_file": "pos_5359/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 471.3341369628906,
+    "rank_in_part": 5,
+    "activation_in_other_parts": [
+      61.15592575073242,
+      471.3341369628906,
+      0.0,
+      45.30304718017578,
+      6.433752059936523,
+      67.80280303955078,
+      0.318307101726532,
+      7.396974563598633,
+      0.0,
+      0.0,
+      0.0,
+      0.620742917060852,
+      0.0,
+      0.0,
+      45.51008224487305,
+      0.0,
+      0.0,
+      0.0,
+      0.02467675507068634,
+      0.0,
+      0.0,
+      0.0,
+      0.27770835161209106,
+      0.0,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      5,
+      5,
+      0,
+      2,
+      5,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        5,
+        5
+      ],
+      [
+        4,
+        2
+      ]
+    ],
+    "total_board_activity": 75
+  },
+  "go_pattern_analysis": {
+    "move_type": "side",
+    "game_phase": "opening",
+    "turn_number": 21,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(3,5)",
+        "percentage": 100.0,
+        "count": 187
+      }
+    ],
+    "total_policy_counts": 187
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.8742381930351257,
+    "similar_positions": [
+      3451,
+      2267,
+      1757,
+      5492,
+      4444
+    ],
+    "part_rank": 5,
+    "max_other_part_activation": 67.80280303955078,
+    "activation_percentile": 99.92427684385885
+  }
+}

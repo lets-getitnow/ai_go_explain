@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 17,
+    "rank": 19,
+    "global_position": 6312,
+    "move_coordinate": "D5",
+    "turn_number": 1,
+    "npz_file": "E3CD9898B9AFF870.npz",
+    "board_tensor_file": "pos_6312/board.npy",
+    "sgf_file": "pos_6312/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.605435311794281,
+    "rank_in_part": 19,
+    "activation_in_other_parts": [
+      235.60304260253906,
+      430.2068176269531,
+      18.418655395507812,
+      77.7427978515625,
+      31.733064651489258,
+      38.181297302246094,
+      0.0,
+      4.942993640899658,
+      0.0,
+      0.0,
+      0.0,
+      0.13906365633010864,
+      0.0,
+      0.0,
+      7.505028247833252,
+      0.04193713143467903,
+      0.0,
+      0.605435311794281,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.2305595427751541,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      5,
+      5,
+      0,
+      1,
+      3,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        5,
+        3
+      ],
+      [
+        4,
+        1
+      ]
+    ],
+    "total_board_activity": 69
+  },
+  "go_pattern_analysis": {
+    "move_type": "side",
+    "game_phase": "opening",
+    "turn_number": 1,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(4,3)",
+        "percentage": 100.0,
+        "count": 531
+      }
+    ],
+    "total_policy_counts": 531
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.0014053344493731856,
+    "similar_positions": [
+      524,
+      5650,
+      4907,
+      1437,
+      4175
+    ],
+    "part_rank": 19,
+    "max_other_part_activation": 430.2068176269531,
+    "activation_percentile": 99.71225200666363
+  }
+}

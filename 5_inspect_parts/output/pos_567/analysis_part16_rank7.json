@@ -1,0 +1,133 @@
+{
+  "position_info": {
+    "part": 16,
+    "rank": 7,
+    "global_position": 567,
+    "move_coordinate": "PASS",
+    "turn_number": 1,
+    "npz_file": "1906C337F5CDAFA9.npz",
+    "board_tensor_file": "pos_567/board.npy",
+    "sgf_file": "pos_567/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.5402747988700867,
+    "rank_in_part": 7,
+    "activation_in_other_parts": [
+      998.6882934570312,
+      128.0447540283203,
+      48.619049072265625,
+      122.87770080566406,
+      0.0,
+      0.0,
+      0.0,
+      35.71939468383789,
+      0.0,
+      0.1483224481344223,
+      16.622800827026367,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.5402747988700867,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      8,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        8
+      ],
+      [
+        2,
+        8
+      ],
+      [
+        9,
+        1
+      ],
+      [
+        10,
+        1
+      ]
+    ],
+    "total_board_activity": 71
+  },
+  "go_pattern_analysis": {
+    "move_type": "pass",
+    "game_phase": "opening",
+    "turn_number": 1,
+    "policy_entropy": 1.1392729279213447,
+    "policy_confidence": 0.7305389221556886,
+    "top_policy_moves": [
+      {
+        "coord": "PASS",
+        "percentage": 73.1,
+        "count": 244
+      },
+      {
+        "coord": "(5,2)",
+        "percentage": 15.6,
+        "count": 52
+      },
+      {
+        "coord": "(5,4)",
+        "percentage": 10.8,
+        "count": 36
+      },
+      {
+        "coord": "(1,4)",
+        "percentage": 0.6,
+        "count": 2
+      }
+    ],
+    "total_policy_counts": 334
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.0005406918935477734,
+    "similar_positions": [
+      2322,
+      4331,
+      6010,
+      5518,
+      4882
+    ],
+    "part_rank": 7,
+    "max_other_part_activation": 998.6882934570312,
+    "activation_percentile": 99.89398758140238
+  }
+}
