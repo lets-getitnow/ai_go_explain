@@ -5,9 +5,9 @@ Step 4: Run simple parts finder (NMF)
 Loads the pooled activations from step 3 and factorizes them using 
 Non-negative Matrix Factorization to find interpretable parts/components.
 
-Since we only have 4 positions, we use 3 components (NMF typically can't
-learn more components than samples). In a full run with thousands of positions,
-this would be 50-70 components as specified in the README.
+With 6,603 positions, we can extract 50 meaningful components. This allows
+us to discover distinct Go concepts like atari patterns, eye shapes, 
+ladder formations, etc.
 """
 
 import numpy as np
@@ -152,14 +152,19 @@ def main():
     # Determine number of components
     print("\n🧮 PHASE 2: Determining Components", flush=True)
     n_positions = activations.shape[0]
-    n_components = min(3, n_positions - 1)  # Conservative: fewer than positions
+    
+    # With 6,603 positions, we can extract many more meaningful components
+    # Rule of thumb: aim for 50-100 components for this dataset size
+    n_components = min(50, n_positions // 10)  # Conservative but much more reasonable
     print(f"📊 Positions available: {n_positions}", flush=True)
     print(f"📊 Components to use: {n_components}", flush=True)
     
-    if n_positions < 10:
+    if n_positions < 100:
         print(f"⚠️  WARNING: Only {n_positions} positions available.", flush=True)
         print(f"⚠️  Using {n_components} components instead of 50-70 recommended.", flush=True)
         print(f"⚠️  For full analysis, collect thousands of positions in step 1.", flush=True)
+    else:
+        print(f"✅ Good dataset size: {n_positions} positions for {n_components} components", flush=True)
     
     # Run NMF
     print("\n🏗️  PHASE 3: Running NMF", flush=True)

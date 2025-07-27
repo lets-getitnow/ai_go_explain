@@ -1,12 +1,12 @@
 {
-  "date": "2025-07-24",
+  "date": "2025-07-26",
   "source_activations": "../3_extract_activations/activations/pooled_rconv14.out.npy",
   "original_shape": "6603x512",
-  "n_components": 3,
+  "n_components": 50,
   "n_positions": 6603,
   "n_channels": 512,
-  "reconstruction_error": 208.8810577392578,
-  "n_iterations": 197,
+  "reconstruction_error": 148.5687713623047,
+  "n_iterations": 37,
   "original_meta": {
     "date": "2025-07-24",
     "source_model": "../models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt",

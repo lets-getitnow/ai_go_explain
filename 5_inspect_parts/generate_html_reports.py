@@ -235,9 +235,11 @@ def get_html_template() -> str:
         </div>
         
         <div class="position-navigation">
+            <a href="{{FIRST_POS_HTML}}" class="nav-button" {{FIRST_DISABLED}} data-tooltip="{{FIRST_TITLE}}">⏮ First Position</a>
             <a href="{{PREV_POS_HTML}}" class="nav-button" {{PREV_DISABLED}} data-tooltip="{{PREV_TITLE}}">← Previous Position</a>
             <span class="position-counter">Position {{CURRENT_INDEX}} of {{TOTAL_POSITIONS}}</span>
             <a href="{{NEXT_POS_HTML}}" class="nav-button" {{NEXT_DISABLED}} data-tooltip="{{NEXT_TITLE}}">Next Position →</a>
+            <a href="{{LAST_POS_HTML}}" class="nav-button" {{LAST_DISABLED}} data-tooltip="{{LAST_TITLE}}">Last Position ⏭</a>
         </div>
         
         <div class="content">
@@ -468,13 +470,17 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     # Find current position index and navigation data
     current_index = -1
     for i, pos in enumerate(all_positions):
-        if pos['global_pos'] == global_pos:
+        if pos['global_pos'] == global_pos and pos['part'] == part and pos['rank'] == rank:
             current_index = i
             break
     
     # Get previous and next positions
     prev_pos = all_positions[current_index - 1] if current_index > 0 else None
     next_pos = all_positions[current_index + 1] if current_index < len(all_positions) - 1 else None
+    
+    # Get first and last positions
+    first_pos = all_positions[0] if all_positions else None
+    last_pos = all_positions[-1] if all_positions else None
     
     # Load data files
     sgf_content = load_sgf_content(summary_row['sgf_file'])
@@ -506,16 +512,24 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     template_data = {
         'TITLE': f"Position {global_pos} Analysis",
         'SUBTITLE': f"Part {part}, Rank {rank} - NMF Component Analysis",
-        'CURRENT_INDEX': current_index + 1,
+        'CURRENT_INDEX': current_index + 1,  # 1-based index for display
         'TOTAL_POSITIONS': len(all_positions),
         'PREV_POS': prev_pos['global_pos'] if prev_pos else None,
         'NEXT_POS': next_pos['global_pos'] if next_pos else None,
         'PREV_TITLE': f"Position {prev_pos['global_pos']} (Part {prev_pos['part']}, Rank {prev_pos['rank']})" if prev_pos else None,
         'NEXT_TITLE': f"Position {next_pos['global_pos']} (Part {next_pos['part']}, Rank {next_pos['rank']})" if next_pos else None,
-        'PREV_POS_HTML': f"pos_{prev_pos['global_pos']}_analysis.html" if prev_pos else "#",
-        'NEXT_POS_HTML': f"pos_{next_pos['global_pos']}_analysis.html" if next_pos else "#",
+        'PREV_POS_HTML': f"pos_{prev_pos['global_pos']}_part{prev_pos['part']}_rank{prev_pos['rank']}_analysis.html" if prev_pos else "#",
+        'NEXT_POS_HTML': f"pos_{next_pos['global_pos']}_part{next_pos['part']}_rank{next_pos['rank']}_analysis.html" if next_pos else "#",
         'PREV_DISABLED': 'style="opacity: 0.5; pointer-events: none;"' if not prev_pos else '',
         'NEXT_DISABLED': 'style="opacity: 0.5; pointer-events: none;"' if not next_pos else '',
+        'FIRST_POS': first_pos['global_pos'] if first_pos else None,
+        'LAST_POS': last_pos['global_pos'] if last_pos else None,
+        'FIRST_TITLE': f"Position {first_pos['global_pos']} (Part {first_pos['part']}, Rank {first_pos['rank']})" if first_pos else None,
+        'LAST_TITLE': f"Position {last_pos['global_pos']} (Part {last_pos['part']}, Rank {last_pos['rank']})" if last_pos else None,
+        'FIRST_POS_HTML': f"pos_{first_pos['global_pos']}_part{first_pos['part']}_rank{first_pos['rank']}_analysis.html" if first_pos else "#",
+        'LAST_POS_HTML': f"pos_{last_pos['global_pos']}_part{last_pos['part']}_rank{last_pos['rank']}_analysis.html" if last_pos else "#",
+        'FIRST_DISABLED': 'style="opacity: 0.5; pointer-events: none;"' if not first_pos or current_index == 0 else '',
+        'LAST_DISABLED': 'style="opacity: 0.5; pointer-events: none;"' if not last_pos or current_index == len(all_positions) - 1 else '',
         'PART': part,
         'RANK': rank,
         'GLOBAL_POS': global_pos,
@@ -552,8 +566,8 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
         )
     }
     
-    # Generate output filename
-    output_filename = f"pos_{global_pos}_analysis.html"
+    # Generate output filename - make it unique by including part and rank
+    output_filename = f"pos_{global_pos}_part{part}_rank{rank}_analysis.html"
     output_path = os.path.join(output_dir, output_filename)
     
     # Generate HTML file
@@ -632,7 +646,7 @@ def generate_index_page(summary_data: List[Dict[str, str]], output_dir: str) -> 
                             <span class="detail-value">{pos['part']}</span>
                         </div>
                     </div>
-                    <a href="pos_{pos['global_pos']}_analysis.html" class="view-button">
+                    <a href="pos_{pos['global_pos']}_part{pos['part']}_rank{pos['rank']}_analysis.html" class="view-button">
                         View Analysis →
                     </a>
                 </div>
