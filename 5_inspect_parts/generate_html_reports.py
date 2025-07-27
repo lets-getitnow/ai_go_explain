@@ -139,15 +139,46 @@ def generate_policy_moves(policy_moves: List[Dict[str, Any]]) -> str:
     
     return '\n'.join(moves_html)
 
-def generate_component_activations(activations: List[float]) -> str:
-    """Generate HTML for component activation visualization."""
+def generate_component_activations(activations: List[float], all_positions: List[Dict[str, str]] = None) -> str:
+    """Generate HTML for component activation visualization with clickable bars."""
     if not activations:
         return "<div>No activation data available</div>"
+    
+    # Create a mapping of component to its strongest position
+    component_to_position = {}
+    if all_positions:
+        for pos in all_positions:
+            part = int(pos['part'])
+            if part not in component_to_position:
+                component_to_position[part] = pos
     
     activations_html = []
     for i, activation in enumerate(activations):
         percent = activation * 100
-        activations_html.append(f'''
+        
+        # Create clickable link if we have position data for this component
+        if i in component_to_position:
+            pos = component_to_position[i]
+            link_url = f"pos_{pos['global_pos']}_part{pos['part']}_rank{pos['rank']}_analysis.html"
+            component_html = f'''
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="{link_url}" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Component {i} (Position {pos['global_pos']}, Rank {pos['rank']})">
+                    <span>Component {i}:</span>
+                </a>
+                <span>{activation:.4f}</span>
+            </div>
+            <a href="{link_url}" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Component {i} (Position {pos['global_pos']}, Rank {pos['rank']})">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: {percent:.1f}%"></div>
+                </div>
+            </a>
+        </div>'''
+        else:
+            # Non-clickable version for components without position data
+            component_html = f'''
         <div style="margin: 5px 0;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Component {i}:</span>
@@ -156,7 +187,9 @@ def generate_component_activations(activations: List[float]) -> str:
             <div class="progress-bar">
                 <div class="progress-fill" style="width: {percent:.1f}%"></div>
             </div>
-        </div>''')
+        </div>'''
+        
+        activations_html.append(component_html)
     
     return '\n'.join(activations_html)
 
@@ -569,7 +602,7 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
         'COMPONENT_RANK': component_comp.get('component_rank', 'Unknown'),
         'MAX_OTHER_ACTIVATION': f"{component_comp.get('max_other_component_activation', 0):.4f}",
         'COMPONENT_ACTIVATIONS': generate_component_activations(
-            nmf_analysis.get('activation_in_other_components', [])
+            nmf_analysis.get('activation_in_other_components', []), all_positions
         )
     }
     
