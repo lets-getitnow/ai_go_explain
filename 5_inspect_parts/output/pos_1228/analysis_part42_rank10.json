@@ -11,8 +11,8 @@
   },
   "nmf_analysis": {
     "activation_strength": 0.38304176926612854,
-    "rank_in_component": 10,
-    "activation_in_other_components": [
+    "rank_in_part": 10,
+    "activation_in_other_parts": [
       0.0276937372982502,
       0.04257551208138466,
       0.0,
@@ -142,7 +142,7 @@
     ],
     "total_policy_counts": 486
   },
-  "component_comparison": {
+  "part_comparison": {
     "uniqueness_score": 0.4227277934551239,
     "similar_positions": [
       3644,
@@ -151,8 +151,8 @@
       4972,
       4306
     ],
-    "component_rank": 10,
-    "max_other_component_activation": 0.5230774283409119,
+    "part_rank": 10,
+    "max_other_part_activation": 0.5230774283409119,
     "activation_percentile": 99.8485536877177
   }
 }
