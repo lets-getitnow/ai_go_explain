@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 3,
+    "rank": 13,
+    "global_position": 3301,
+    "move_coordinate": "C5",
+    "turn_number": 9,
+    "npz_file": "AAE4EE8DC9A92FFF.npz",
+    "board_tensor_file": "pos_3301/board.npy",
+    "sgf_file": "pos_3301/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.42892807722091675,
+    "rank_in_part": 13,
+    "activation_in_other_parts": [
+      0.1681269407272339,
+      0.0004131001769565046,
+      0.13696224987506866,
+      0.42892807722091675,
+      0.06554476171731949,
+      0.19041673839092255,
+      0.11835484951734543,
+      0.3775303363800049,
+      0.23119285702705383,
+      0.024755438789725304,
+      0.09270921349525452,
+      0.3671115040779114,
+      0.0,
+      0.17718297243118286,
+      0.0,
+      0.0,
+      0.08250632137060165,
+      0.3328666687011719,
+      0.21007201075553894,
+      0.04951143637299538,
+      0.036051180213689804,
+      0.1671077460050583,
+      0.08629236370325089,
+      0.0024984811898320913,
+      0.2574012875556946
+    ],
+    "channel_activity": [
+      49,
+      11,
+      11,
+      2,
+      6,
+      4,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      3,
+      1,
+      0,
+      11,
+      11,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        11
+      ],
+      [
+        2,
+        11
+      ],
+      [
+        18,
+        11
+      ],
+      [
+        19,
+        11
+      ]
+    ],
+    "total_board_activity": 115
+  },
+  "go_pattern_analysis": {
+    "move_type": "corner",
+    "game_phase": "opening",
+    "turn_number": 9,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(4,2)",
+        "percentage": 100.0,
+        "count": 378
+      }
+    ],
+    "total_policy_counts": 378
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.5318663120269775,
+    "similar_positions": [
+      1384,
+      776,
+      1950,
+      6214,
+      64
+    ],
+    "part_rank": 13,
+    "max_other_part_activation": 0.3775303363800049,
+    "activation_percentile": 99.80311979403301
+  }
+}

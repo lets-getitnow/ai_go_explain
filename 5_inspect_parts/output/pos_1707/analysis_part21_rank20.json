@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 21,
+    "rank": 20,
+    "global_position": 1707,
+    "move_coordinate": "PASS",
+    "turn_number": 1,
+    "npz_file": "1D638D50844BD930.npz",
+    "board_tensor_file": "pos_1707/board.npy",
+    "sgf_file": "pos_1707/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.30425283312797546,
+    "rank_in_part": 20,
+    "activation_in_other_parts": [
+      0.18442080914974213,
+      0.11447473615407944,
+      0.0,
+      0.27359917759895325,
+      0.04184878617525101,
+      0.15346960723400116,
+      0.23041577637195587,
+      0.30132853984832764,
+      0.031332626938819885,
+      0.06876996159553528,
+      0.23769986629486084,
+      0.021343398839235306,
+      0.10407693684101105,
+      0.4309752881526947,
+      0.2771606743335724,
+      0.057475656270980835,
+      0.04294872283935547,
+      0.30467379093170166,
+      0.030086809769272804,
+      0.0,
+      0.18418405950069427,
+      0.30425283312797546,
+      0.0,
+      0.13542941212654114,
+      0.01180351059883833
+    ],
+    "channel_activity": [
+      49,
+      20,
+      18,
+      1,
+      8,
+      17,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        20
+      ],
+      [
+        2,
+        18
+      ],
+      [
+        5,
+        17
+      ],
+      [
+        4,
+        8
+      ]
+    ],
+    "total_board_activity": 121
+  },
+  "go_pattern_analysis": {
+    "move_type": "pass",
+    "game_phase": "opening",
+    "turn_number": 1,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "PASS",
+        "percentage": 100.0,
+        "count": 298
+      }
+    ],
+    "total_policy_counts": 298
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.4138209819793701,
+    "similar_positions": [
+      5384,
+      284,
+      6524,
+      898,
+      1705
+    ],
+    "part_rank": 20,
+    "max_other_part_activation": 0.4309752881526947,
+    "activation_percentile": 99.69710737543541
+  }
+}

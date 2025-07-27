@@ -1,0 +1,133 @@
+{
+  "position_info": {
+    "part": 5,
+    "rank": 20,
+    "global_position": 6209,
+    "move_coordinate": "D5",
+    "turn_number": 3,
+    "npz_file": "E3CD9898B9AFF870.npz",
+    "board_tensor_file": "pos_6209/board.npy",
+    "sgf_file": "pos_6209/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.5761292576789856,
+    "rank_in_part": 20,
+    "activation_in_other_parts": [
+      0.0057902950793504715,
+      0.002850585849955678,
+      0.13407491147518158,
+      0.0764828622341156,
+      0.6469399929046631,
+      0.5761292576789856,
+      0.04782682657241821,
+      0.0,
+      0.03180176019668579,
+      0.2366838902235031,
+      0.000674745358992368,
+      0.404342383146286,
+      0.28296101093292236,
+      0.04466734081506729,
+      0.028410300612449646,
+      0.012266130186617374,
+      0.05637207254767418,
+      0.007509635761380196,
+      0.14281509816646576,
+      0.0,
+      0.03395480290055275,
+      0.0,
+      0.02821446768939495,
+      0.06862539052963257,
+      0.26628997921943665
+    ],
+    "channel_activity": [
+      49,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        0
+      ]
+    ],
+    "total_board_activity": 49
+  },
+  "go_pattern_analysis": {
+    "move_type": "side",
+    "game_phase": "opening",
+    "turn_number": 3,
+    "policy_entropy": 1.9280080011812928,
+    "policy_confidence": 0.3913713405238829,
+    "top_policy_moves": [
+      {
+        "coord": "(4,3)",
+        "percentage": 39.1,
+        "count": 254
+      },
+      {
+        "coord": "(3,4)",
+        "percentage": 21.9,
+        "count": 142
+      },
+      {
+        "coord": "(3,2)",
+        "percentage": 20.6,
+        "count": 134
+      },
+      {
+        "coord": "(2,3)",
+        "percentage": 18.3,
+        "count": 119
+      }
+    ],
+    "total_policy_counts": 649
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.47105205059051514,
+    "similar_positions": [
+      4832,
+      5421,
+      3295,
+      3297,
+      1316
+    ],
+    "part_rank": 20,
+    "max_other_part_activation": 0.6469399929046631,
+    "activation_percentile": 99.69710737543541
+  }
+}
