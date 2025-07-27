@@ -460,10 +460,12 @@ def main() -> None:
         
         # Save analysis to JSON file in position-specific directory
         pos_dir = output_dir / f"pos_{gpos}"
-        analysis_path = pos_dir / "analysis.json"
+        # Create part-specific analysis filename to avoid overwriting
+        analysis_filename = f"analysis_part{pos['part']}_rank{pos['rank']}.json"
+        analysis_path = pos_dir / analysis_filename
         with open(analysis_path, 'w') as f:
             json.dump(comprehensive_analysis, f, indent=2, cls=NumpyEncoder)
-        pos["analysis_file"] = f"pos_{gpos}/analysis.json"  # Relative path for CSV
+        pos["analysis_file"] = f"pos_{gpos}/{analysis_filename}"  # Relative path for CSV
         
         print(f"Analysis complete for Part {pos['part']} Rank {pos['rank']} (pos {gpos})")
     

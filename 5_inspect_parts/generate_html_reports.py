@@ -484,11 +484,20 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     
     # Load data files
     sgf_content = load_sgf_content(summary_row['sgf_file'])
-    analysis_data = load_analysis_data(summary_row['analysis_file'])
+    
+    # Load analysis data - use part-specific analysis file if it exists
+    analysis_file = summary_row['analysis_file']
+    analysis_data = load_analysis_data(analysis_file)
     
     if not analysis_data:
         print(f"Skipping position {global_pos} - no analysis data")
         return
+    
+    # CRITICAL FIX: Update the analysis data to reflect the correct part and rank
+    # The analysis.json file contains data from the last processed part, but we need
+    # to show the correct part and rank for this specific HTML file
+    analysis_data['position_info']['part'] = int(part)
+    analysis_data['position_info']['rank'] = int(rank)
     
     # Extract data for template
     position_info = analysis_data.get('position_info', {})
@@ -506,16 +515,14 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     # Generate file links for new structured format
     sgf_file_link = f"../output/{summary_row['sgf_file']}"
     board_npy_link = f"../output/{summary_row['board_npy']}"
-    npz_file_link = f"../selfplay_out/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz/tdata/{position_info.get('npz_file', 'Unknown')}"
+    npz_file_link = f"../output/{position_info.get('npz_file', 'Unknown')}"
     
-    # Prepare template data
+    # Build template data
     template_data = {
         'TITLE': f"Position {global_pos} Analysis",
         'SUBTITLE': f"Part {part}, Rank {rank} - NMF Component Analysis",
-        'CURRENT_INDEX': current_index + 1,  # 1-based index for display
+        'CURRENT_INDEX': current_index + 1,
         'TOTAL_POSITIONS': len(all_positions),
-        'PREV_POS': prev_pos['global_pos'] if prev_pos else None,
-        'NEXT_POS': next_pos['global_pos'] if next_pos else None,
         'PREV_TITLE': f"Position {prev_pos['global_pos']} (Part {prev_pos['part']}, Rank {prev_pos['rank']})" if prev_pos else None,
         'NEXT_TITLE': f"Position {next_pos['global_pos']} (Part {next_pos['part']}, Rank {next_pos['rank']})" if next_pos else None,
         'PREV_POS_HTML': f"pos_{prev_pos['global_pos']}_part{prev_pos['part']}_rank{prev_pos['rank']}_analysis.html" if prev_pos else "#",
