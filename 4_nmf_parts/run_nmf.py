@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 """
-Step 4: Run simple parts finder (NMF)
+Step 4: Run NMF Parts Finder with Optimal Rank Selection
 
 Loads the pooled activations from step 3 and factorizes them using 
 Non-negative Matrix Factorization to find interpretable parts.
 
-With 6,603 positions, we can extract 50 meaningful parts. This allows
-us to discover distinct Go concepts like atari patterns, eye shapes, 
-ladder formations, etc.
+The number of parts (k=25) is determined by systematic rank selection analysis
+(see rank_analysis/README.md for details). This analysis tested ranks 3, 5, 10, 
+15, 25, 40, 60 and found k=25 to be optimal based on:
+- Best R² reconstruction score (0.789) among reasonable ranks
+- Excellent component uniqueness (0.466) - parts are distinct
+- Good balance - not too few, not too many
+- Avoids overfitting - stops before diminishing returns
+
+With 6,603 positions and k=25 parts, we can discover distinct Go concepts 
+like atari patterns, eye shapes, ladder formations, etc., without fitting noise.
 """
 
 import numpy as np
@@ -149,22 +156,28 @@ def main():
     print("\n📁 PHASE 1: Loading Data", flush=True)
     activations, meta = load_activation_data()
     
-    # Determine number of parts
+    # Determine number of parts based on systematic rank selection analysis
     print("\n🧮 PHASE 2: Determining Parts", flush=True)
     n_positions = activations.shape[0]
     
-    # With 6,603 positions, we can extract many more meaningful parts
-    # Rule of thumb: aim for 50-100 parts for this dataset size
-    n_parts = min(50, n_positions // 10)  # Conservative but much more reasonable
+    # Based on systematic rank selection analysis (see rank_analysis/README.md)
+    # Recommended rank: k = 25
+    # - Best R² score (0.789) among reasonable ranks
+    # - Excellent uniqueness (0.466) - parts are distinct
+    # - Good balance - not too few, not too many
+    # - Avoids overfitting - stops before diminishing returns
+    n_parts = 25
     print(f"📊 Positions available: {n_positions}", flush=True)
-    print(f"📊 Parts to use: {n_parts}", flush=True)
+    print(f"📊 Parts to use: {n_parts} (based on systematic rank selection analysis)", flush=True)
+    print(f"📊 Rank selection analysis: See rank_analysis/README.md for details", flush=True)
     
     if n_positions < 100:
         print(f"⚠️  WARNING: Only {n_positions} positions available.", flush=True)
-        print(f"⚠️  Using {n_parts} parts instead of 50-70 recommended.", flush=True)
+        print(f"⚠️  Using {n_parts} parts based on systematic analysis.", flush=True)
         print(f"⚠️  For full analysis, collect thousands of positions in step 1.", flush=True)
     else:
-        print(f"✅ Good dataset size: {n_positions} positions for {n_parts} parts", flush=True)
+        print(f"✅ Excellent dataset size: {n_positions} positions for {n_parts} parts", flush=True)
+        print(f"✅ Using optimal rank from systematic analysis", flush=True)
     
     # Run NMF
     print("\n🏗️  PHASE 3: Running NMF", flush=True)

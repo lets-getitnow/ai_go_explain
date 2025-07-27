@@ -5,16 +5,48 @@ Systematic NMF Rank Selection
 This script implements a systematic approach to find the optimal number of NMF parts
 by analyzing reconstruction quality, component uniqueness, and interpretability.
 
-Quick & dirty rank-selection recipe (≤ 30 min):
+## What is Rank Selection?
+
+Rank selection is the process of choosing the optimal number of "parts" or "components" 
+for NMF decomposition. Too few parts and you miss important patterns; too many and 
+you fit noise.
+
+## What Does "Reconstruction" Mean?
+
+Reconstruction refers to how well the NMF model can "rebuild" or "recreate" the original 
+data from the learned parts:
+
+1. Original Data: Your activation matrix (positions × channels)
+2. NMF Decomposition: Breaks this into two matrices:
+   - Parts Matrix: (k parts × channels) - the learned "concepts"
+   - Activations Matrix: (positions × k parts) - how much each part activates per position
+3. Reconstruction: Multiply these back together: Activations × Parts = Reconstructed Data
+
+Mathematical Formula: Original Data ≈ Activations × Parts
+
+The R² score measures how well the reconstruction matches the original:
+- R² = 1.0: Perfect reconstruction (100% of original data explained)
+- R² = 0.8: 80% of original data explained
+- R² = 0.5: 50% of original data explained
+
+## Quick & Dirty Rank-Selection Recipe (≤ 30 min):
+
 1. Make a reconstruction curve - For ranks k = 3, 5, 10, 15, 25, 40, 60 run NMF for ≤ 20 iterations each
-2. Plot component uniqueness - Compute cosine distance between weight vectors
+2. Plot component uniqueness - Compute cosine distance between weight vectors (want > 0.3)
 3. Visual spot-check only the elbow ranks
 4. Pick the smallest rank that gives ≥ 15 interpretable parts
 
-Requirements:
+## Output:
+
+- rank_analysis/rank_selection_analysis.png: Comprehensive visualizations
+- rank_analysis/rank_analysis_report.txt: Detailed numerical analysis
+- rank_analysis/README.md: Complete documentation
+
+## Requirements:
 - matplotlib for visualizations
 - scikit-learn for NMF and metrics
 - numpy for numerical operations
+- seaborn for enhanced plotting
 """
 
 import numpy as np

@@ -3,6 +3,36 @@ NMF Rank Selection Analysis Report
 
 Analysis Date: 2025-07-27 12:04:06
 
+DATASET INFORMATION
+==================
+- Total Positions: 6,603 Go board positions
+- Channels: 512 activation channels (rconv14.out layer)
+- Dataset Type: Neural network activations from KataGo model
+- Analysis Method: Systematic rank selection with reconstruction quality and uniqueness metrics
+
+WHAT IS RECONSTRUCTION?
+=======================
+Reconstruction measures how well the NMF model can "rebuild" the original data from learned parts.
+
+Process:
+1. Original Data: 6,603 positions × 512 channels
+2. NMF Decomposition: 
+   - Parts Matrix: k parts × 512 channels (learned concepts)
+   - Activations Matrix: 6,603 positions × k parts (activation strengths)
+3. Reconstruction: Activations × Parts = Reconstructed Data
+
+R² Score Interpretation:
+- R² = 1.0: Perfect reconstruction (100% explained)
+- R² = 0.8: 80% of original data explained
+- R² = 0.5: 50% of original data explained
+
+COMPONENT UNIQUENESS
+====================
+Uniqueness measures how distinct the learned parts are from each other.
+- Calculated using cosine distance between component weight vectors
+- Threshold: 0.3 (parts should be at least 30% different from each other)
+- Higher values = more distinct, interpretable parts
+
 RECONSTRUCTION QUALITY ANALYSIS
 ------------------------------
 Rank  3: R² = 0.6287, Error = 198.9384
@@ -58,3 +88,32 @@ RECOMMENDED RANKS BASED ON ANALYSIS:
 ELBOW ANALYSIS:
 The elbow point is at k=5, but this is likely too conservative for your dataset size.
 Consider k=15 or k=25 for meaningful part discovery.
+
+SUMMARY AND RECOMMENDATIONS
+===========================
+Based on this systematic analysis:
+
+RECOMMENDED RANK: k = 25
+- Best R² score (0.789) among reasonable ranks
+- Excellent uniqueness (0.466) - parts are distinct
+- Good balance - not too few, not too many
+- Avoids overfitting - stops before diminishing returns
+
+ALTERNATIVE OPTIONS:
+- k = 15: Good balance of reconstruction (0.783) and uniqueness (0.447)
+- k = 40: Peak performance but diminishing returns
+
+WHY NOT HIGHER RANKS?
+- Diminishing returns after k=25
+- Risk of overfitting to noise
+- Computational cost increases
+- Parts become less interpretable
+
+NEXT STEPS:
+1. Update run_nmf.py to use k=25
+2. Run full NMF analysis with optimal rank
+3. Inspect parts for interpretability
+4. Generate visualizations of learned parts
+
+This analysis shows that going from 3 → 50 parts was indeed pushing past the data's capacity.
+With k=25, you'll get meaningful, interpretable parts without fitting noise.
