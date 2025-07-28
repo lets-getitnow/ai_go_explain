@@ -19,3 +19,25 @@ Currently using SAE Approach: https://web.stanford.edu/class/cs294a/sparseAutoen
 9. **Optional sanity check:** For a named feature, see if positions "feel different" when you imagine that feature absent (qualitative is fine).
 10. **Stop and use:** Start using the named features to explain moves; only add complexity (spatial detail, more layers) if you later need finer distinctions.
 
+## Caveat: Global / Contextual Channels
+
+KataGo’s inputs include more than the current board arrangement—move history, komi, rules, ko state, and estimated score are all encoded. Therefore some internal channels capture **contextual information rather than spatial shape**. Typical triggers include:
+
+* Move number / player to play
+* Komi or handicap stones
+* Ko threats or super-ko repetition state
+* Current score lead / win-probability trend
+* Recent tactical sequences (history-dependent)
+
+### Detecting and controlling for non-spatial channels
+
+1. **Board-holdout tests** – Feed the *same* board position while varying one global input (e.g. komi) and record which channels change.
+2. **History shuffling** – Re-order plausible move histories that lead to the identical final board; contextual channels should vary, purely spatial ones should not.
+3. **Komi sweep** – Evaluate a single position across a range of komi (-10 → +10) and mark channels with monotonic correlation.
+4. **Score perturbation** – If score-estimate features are present, offset them and observe correlated activation shifts.
+5. **Ko toggles** – Create paired positions that differ only by a single ko capture to isolate ko-sensitive channels.
+
+Channels that react to any of these probes should be **tagged as contextual** and either removed from the spatial NMF/SAE pipeline or analysed separately.
+
+> Planned update: extend `3_extract_activations/` scripts to auto-generate these controlled variants and output a mask of contextual-only channels so that later stages can skip or separately factor them.
+
