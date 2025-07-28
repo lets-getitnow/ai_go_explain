@@ -1,8 +1,9 @@
-models/kata9x9-b18c384nbt-20231025.bin.gz
-/KataGo
-.DS_Store
-models/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz
-/models
-3_extract_activations/activations/pooled_rconv14.out.npy
-3_extract_activations/activations_variants/pooled_rconv14.out__baseline.npy
-3_extract_activations/activations_variants/pooled_rconv14.out__zero_global.npy
+# Ignore SGF and JSON files
+*.sgf
+*.json
+
+# Never ignore important file types
+!*.py
+!*.md
+!*.txt
+!*.png
