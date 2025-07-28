@@ -179,7 +179,7 @@ def save_results(parts, activations_transformed, model, original_meta):
         "original_channels": original_meta.get("original_channels", parts.shape[1] // 9),
         "reconstruction_error": float(model.reconstruction_err_),
         "n_iterations": int(model.n_iter_),
-        "alpha_H": 0.10,  # ℓ1 sparsity penalty used
+        "alpha_H": optimal_alpha_H,  # ℓ1 sparsity penalty used
         "sparsity_percentage": float(sparsity),
         "avg_boards_per_component": float(avg_boards_per_component),
         "l1_ratio": 1.0,  # Pure ℓ1 penalty
@@ -229,11 +229,11 @@ def main():
     # Run NMF with optimal α_H from analysis
     print("\n🏗️  PHASE 3: Running NMF with ℓ1 Sparsity", flush=True)
     
-    # Use optimal α_H from analysis (α_H = 0.10 gives 67.3% sparsity)
-    # Note: Analysis recommends 0.01, but 0.10 gives much better sparsity (67.3% vs 20.7%)
-    optimal_alpha_H = 0.10
-    print(f"📊 Using α_H = {optimal_alpha_H} (target: 67.3% sparsity)", flush=True)
-    print(f"📊 Analysis shows: α_H=0.10 gives 67.3% sparsity vs α_H=0.01 gives 20.7%", flush=True)
+    # Use optimal α_H from 3x3 pooled data analysis (α_H = 0.4 gives 81.2% sparsity)
+    # For 3x3 pooled data, we need higher α_H due to 9x more dimensions
+    optimal_alpha_H = 0.4
+    print(f"📊 Using α_H = {optimal_alpha_H} (target: 81.2% sparsity for 3x3 pooled data)", flush=True)
+    print(f"📊 3x3 analysis shows: α_H=0.4 gives 81.2% sparsity vs α_H=0.1 gives 19.1%", flush=True)
     
     parts, activations_transformed, model = run_nmf_factorization(
         activations, n_parts, alpha_H=optimal_alpha_H

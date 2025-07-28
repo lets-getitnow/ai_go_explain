@@ -57,15 +57,13 @@ def main():
     print(f"🚀 Running: {' '.join(cmd)}")
     
     try:
-        result = subprocess.run(cmd, cwd=script_dir, check=True, capture_output=True, text=True)
+        result = subprocess.run(cmd, cwd=script_dir, check=True, text=True)
         print("✅ 3x3 pooling extraction completed successfully!")
         print("📊 Output files created in activations/ directory")
         print("📊 New data shape: (N_positions, C*9) instead of (N_positions, C)")
         print("📊 Spatial information preserved in 3x3 grid")
     except subprocess.CalledProcessError as e:
         print(f"❌ Extraction failed with exit code {e.returncode}")
-        print("STDOUT:", e.stdout)
-        print("STDERR:", e.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":

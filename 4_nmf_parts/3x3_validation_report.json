@@ -1,0 +1,15 @@
+{
+  "validation_date": "2025-01-27",
+  "pooling_method": "3x3_grid",
+  "data_shape": [
+    6603,
+    4608
+  ],
+  "original_channels": 512,
+  "pooled_channels": 4608,
+  "nmf_results": {
+    "n_components": 25,
+    "sparsity_percentage": 0.8087152777777777,
+    "reconstruction_error": 4312.49609375
+  }
+}

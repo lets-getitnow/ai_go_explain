@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 9,
+    "rank": 15,
+    "global_position": 2133,
+    "move_coordinate": "A2",
+    "turn_number": 1,
+    "npz_file": "565285905A9A0C14.npz",
+    "board_tensor_file": "pos_2133/board.npy",
+    "sgf_file": "pos_2133/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.9037066698074341,
+    "rank_in_part": 15,
+    "activation_in_other_parts": [
+      858.8893432617188,
+      417.0564270019531,
+      83.83235168457031,
+      243.24801635742188,
+      75.97135162353516,
+      0.0,
+      0.0,
+      0.0,
+      0.5767504572868347,
+      0.9037066698074341,
+      0.015854716300964355,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.25719428062438965,
+      0.0,
+      0.0,
+      0.0,
+      0.06202579289674759,
+      0.0,
+      0.4201170802116394,
+      0.0,
+      0.2312399446964264
+    ],
+    "channel_activity": [
+      49,
+      8,
+      8,
+      0,
+      0,
+      6,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        8
+      ],
+      [
+        2,
+        8
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        9,
+        1
+      ]
+    ],
+    "total_board_activity": 76
+  },
+  "go_pattern_analysis": {
+    "move_type": "corner",
+    "game_phase": "opening",
+    "turn_number": 1,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(1,0)",
+        "percentage": 100.0,
+        "count": 372
+      }
+    ],
+    "total_policy_counts": 372
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.0010510747088119388,
+    "similar_positions": [
+      421,
+      145,
+      3783,
+      4943,
+      3685
+    ],
+    "part_rank": 15,
+    "max_other_part_activation": 858.8893432617188,
+    "activation_percentile": 99.77283053157655
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 6,
+    "rank": 3,
+    "global_position": 5833,
+    "move_coordinate": "PASS",
+    "turn_number": 1,
+    "npz_file": "E3CD9898B9AFF870.npz",
+    "board_tensor_file": "pos_5833/board.npy",
+    "sgf_file": "pos_5833/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.8614915609359741,
+    "rank_in_part": 3,
+    "activation_in_other_parts": [
+      362.6956481933594,
+      290.41265869140625,
+      473.9222412109375,
+      131.64759826660156,
+      0.0,
+      0.0,
+      0.8614915609359741,
+      0.44370704889297485,
+      0.0,
+      0.0,
+      0.1417893022298813,
+      0.059462353587150574,
+      0.0,
+      0.0,
+      0.7747772336006165,
+      0.0,
+      0.0,
+      0.11839516460895538,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.34088391065597534,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      8,
+      8,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        8
+      ],
+      [
+        2,
+        8
+      ],
+      [
+        9,
+        1
+      ],
+      [
+        10,
+        1
+      ]
+    ],
+    "total_board_activity": 71
+  },
+  "go_pattern_analysis": {
+    "move_type": "pass",
+    "game_phase": "opening",
+    "turn_number": 1,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "PASS",
+        "percentage": 100.0,
+        "count": 530
+      }
+    ],
+    "total_policy_counts": 530
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.0018144926289096475,
+    "similar_positions": [
+      4150,
+      3862,
+      5834,
+      4238,
+      254
+    ],
+    "part_rank": 3,
+    "max_other_part_activation": 473.9222412109375,
+    "activation_percentile": 99.95456610631531
+  }
+}

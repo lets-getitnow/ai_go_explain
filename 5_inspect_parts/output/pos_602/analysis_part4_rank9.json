@@ -1,0 +1,133 @@
+{
+  "position_info": {
+    "part": 4,
+    "rank": 9,
+    "global_position": 602,
+    "move_coordinate": "C4",
+    "turn_number": 4,
+    "npz_file": "1906C337F5CDAFA9.npz",
+    "board_tensor_file": "pos_602/board.npy",
+    "sgf_file": "pos_602/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 351.1844787597656,
+    "rank_in_part": 9,
+    "activation_in_other_parts": [
+      493.0719299316406,
+      269.7184753417969,
+      63.123085021972656,
+      45.6065559387207,
+      351.1844787597656,
+      0.9834330677986145,
+      0.0,
+      0.0,
+      0.1711386740207672,
+      0.0,
+      0.5111689567565918,
+      0.0,
+      0.0,
+      0.0,
+      0.16201581060886383,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.03235836327075958,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      49,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        19,
+        49
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        9,
+        1
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "total_board_activity": 100
+  },
+  "go_pattern_analysis": {
+    "move_type": "side",
+    "game_phase": "opening",
+    "turn_number": 4,
+    "policy_entropy": 1.9280538602748805,
+    "policy_confidence": 0.3448275862068966,
+    "top_policy_moves": [
+      {
+        "coord": "(3,2)",
+        "percentage": 34.5,
+        "count": 60
+      },
+      {
+        "coord": "(3,4)",
+        "percentage": 31.0,
+        "count": 54
+      },
+      {
+        "coord": "(4,2)",
+        "percentage": 17.2,
+        "count": 30
+      },
+      {
+        "coord": "(4,4)",
+        "percentage": 17.2,
+        "count": 30
+      }
+    ],
+    "total_policy_counts": 174
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.41596898436546326,
+    "similar_positions": [
+      4683,
+      89,
+      4109,
+      4684,
+      5036
+    ],
+    "part_rank": 9,
+    "max_other_part_activation": 493.0719299316406,
+    "activation_percentile": 99.86369831894594
+  }
+}

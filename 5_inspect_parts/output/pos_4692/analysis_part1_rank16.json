@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 1,
+    "rank": 16,
+    "global_position": 4692,
+    "move_coordinate": "C5",
+    "turn_number": 4,
+    "npz_file": "B330F9C802154800.npz",
+    "board_tensor_file": "pos_4692/board.npy",
+    "sgf_file": "pos_4692/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 950.3250122070312,
+    "rank_in_part": 16,
+    "activation_in_other_parts": [
+      1468.6612548828125,
+      950.3250122070312,
+      21.737903594970703,
+      38.52207946777344,
+      0.0,
+      0.5555633902549744,
+      0.0,
+      0.0,
+      0.06981711089611053,
+      0.0,
+      0.0,
+      0.22170928120613098,
+      0.0,
+      0.14276154339313507,
+      0.0,
+      0.0,
+      0.061132051050662994,
+      0.0,
+      0.0,
+      0.16319060325622559,
+      0.0,
+      0.0,
+      0.0,
+      0.2099604308605194,
+      0.022146213799715042
+    ],
+    "channel_activity": [
+      49,
+      1,
+      1,
+      0,
+      0,
+      2,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        9,
+        1
+      ]
+    ],
+    "total_board_activity": 55
+  },
+  "go_pattern_analysis": {
+    "move_type": "corner",
+    "game_phase": "opening",
+    "turn_number": 4,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(4,2)",
+        "percentage": 100.0,
+        "count": 239
+      }
+    ],
+    "total_policy_counts": 239
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.3928608298301697,
+    "similar_positions": [
+      3841,
+      1424,
+      5462,
+      5625,
+      5626
+    ],
+    "part_rank": 16,
+    "max_other_part_activation": 1468.6612548828125,
+    "activation_percentile": 99.75768590034832
+  }
+}

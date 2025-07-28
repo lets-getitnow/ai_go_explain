@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 7,
+    "rank": 9,
+    "global_position": 4570,
+    "move_coordinate": "A6",
+    "turn_number": 1,
+    "npz_file": "B330F9C802154800.npz",
+    "board_tensor_file": "pos_4570/board.npy",
+    "sgf_file": "pos_4570/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 1.0940150022506714,
+    "rank_in_part": 9,
+    "activation_in_other_parts": [
+      1470.6873779296875,
+      81.21685791015625,
+      418.7989501953125,
+      0.0,
+      166.72201538085938,
+      0.0,
+      0.0,
+      1.0940150022506714,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.20383232831954956,
+      0.32734566926956177,
+      0.0,
+      0.6444439888000488,
+      0.0,
+      0.0,
+      0.0,
+      0.2160966694355011,
+      0.0,
+      0.0,
+      0.0,
+      0.23399502038955688
+    ],
+    "channel_activity": [
+      49,
+      7,
+      8,
+      0,
+      3,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      7,
+      8,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        2,
+        8
+      ],
+      [
+        19,
+        8
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        18,
+        7
+      ]
+    ],
+    "total_board_activity": 90
+  },
+  "go_pattern_analysis": {
+    "move_type": "corner",
+    "game_phase": "opening",
+    "turn_number": 1,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(5,0)",
+        "percentage": 100.0,
+        "count": 475
+      }
+    ],
+    "total_policy_counts": 475
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.000743327138479799,
+    "similar_positions": [
+      267,
+      6252,
+      823,
+      2985,
+      5972
+    ],
+    "part_rank": 9,
+    "max_other_part_activation": 1470.6873779296875,
+    "activation_percentile": 99.86369831894594
+  }
+}
