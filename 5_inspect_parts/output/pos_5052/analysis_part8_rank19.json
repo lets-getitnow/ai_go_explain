@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 8,
+    "rank": 19,
+    "global_position": 5052,
+    "move_coordinate": "B7",
+    "turn_number": 18,
+    "npz_file": "B330F9C802154800.npz",
+    "board_tensor_file": "pos_5052/board.npy",
+    "sgf_file": "pos_5052/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 1.1891863346099854,
+    "rank_in_part": 19,
+    "activation_in_other_parts": [
+      3139.361572265625,
+      277.890625,
+      44.393585205078125,
+      129.6944122314453,
+      106.20034790039062,
+      0.0,
+      0.015704527497291565,
+      0.0,
+      1.1891863346099854,
+      0.0,
+      0.0,
+      0.0,
+      0.5228286385536194,
+      0.0,
+      0.07696403563022614,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.060348689556121826,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      8,
+      8,
+      0,
+      0,
+      6,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      8,
+      8,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        8
+      ],
+      [
+        2,
+        8
+      ],
+      [
+        18,
+        8
+      ],
+      [
+        19,
+        8
+      ]
+    ],
+    "total_board_activity": 92
+  },
+  "go_pattern_analysis": {
+    "move_type": "corner",
+    "game_phase": "opening",
+    "turn_number": 18,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(6,1)",
+        "percentage": 100.0,
+        "count": 540
+      }
+    ],
+    "total_policy_counts": 540
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.0003786553570535034,
+    "similar_positions": [
+      426,
+      425,
+      3786,
+      424,
+      423
+    ],
+    "part_rank": 19,
+    "max_other_part_activation": 3139.361572265625,
+    "activation_percentile": 99.71225200666363
+  }
+}

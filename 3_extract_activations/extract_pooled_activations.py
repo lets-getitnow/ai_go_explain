@@ -444,7 +444,9 @@ def scale_columns(matrix: np.ndarray) -> np.ndarray:
 
 def parse_args() -> argparse.Namespace:  # noqa: D401
     p = argparse.ArgumentParser(description="Extract pooled activations from KataGo model")
-    p.add_argument("--positions-dir", required=True, type=Path, help="Directory containing .npz position files")
+    group = p.add_mutually_exclusive_group(required=True)
+    group.add_argument("--positions-dir", type=Path, help="Directory containing .npz position files (single dataset)")
+    group.add_argument("--variants-root", type=Path, help="Root dir whose *direct* subfolders each contain .npz files for a variant (e.g. baseline/, zero_global/, komi_sweep/)")
     p.add_argument("--ckpt-path", required=True, type=Path, help="Path to KataGo model.ckpt checkpoint file")
     p.add_argument("--batch-size", type=int, default=256, help="Positions per inference batch")
     p.add_argument("--output-dir", type=Path, default=Path("activations"), help="Where to write outputs")
@@ -484,59 +486,74 @@ def main() -> None:  # noqa: D401
     model = load_katago_pytorch(args.ckpt_path)
     extractor = ActivationExtractor(model, chosen_layer, args.batch_size, args.device)
 
-    # ── Enumerate positions ───────────────────────────────────────────
-    position_files = sorted(args.positions_dir.rglob("*.npz"))
-    if not position_files:
-        raise FileNotFoundError(f"No .npz files found under {args.positions_dir}")
-    print(f"[INFO] {len(position_files)} .npz files found. Starting extraction…")
+    # Helper to process one dataset dir -> npy outputs
+    def _process_dataset(dataset_dir: Path, tag: str) -> None:
+        position_files = sorted(dataset_dir.rglob("*.npz"))
+        if not position_files:
+            raise FileNotFoundError(f"No .npz files found under {dataset_dir}")
+        print(f"[INFO] [{tag}] {len(position_files)} .npz files found. Starting extraction…")
 
-    # ── Pre-compute total positions for progress percentage ───────────────
-    total_positions = 0
-    for f in position_files:
-        with np.load(f) as data:
-            if "binaryInputNCHWPacked" not in data:
-                raise KeyError(f"{f} missing 'binaryInputNCHWPacked' array")
-            total_positions += data["binaryInputNCHWPacked"].shape[0]
+        total_positions = 0
+        for f in position_files:
+            with np.load(f) as data:
+                if "binaryInputNCHWPacked" not in data:
+                    raise KeyError(f"{f} missing 'binaryInputNCHWPacked' array")
+                total_positions += data["binaryInputNCHWPacked"].shape[0]
 
-    print(f"[INFO] Total positions to process: {total_positions}")
+        print(f"[INFO] [{tag}] Total positions to process: {total_positions}")
 
-    matrix, index = extractor.run(position_files, total_positions=total_positions)
+        matrix, index = extractor.run(position_files, total_positions=total_positions)
 
-    # With 3x3 pooling, we have 9x the original channels
-    expected_channels = channels * 9
-    if matrix.shape[1] != expected_channels:
-        raise ValueError(
-            f"Channel mismatch: expected {expected_channels} (9x{channels}), got {matrix.shape[1]}")
+        # With 3x3 pooling, we have 9x the original channels
+        expected_channels = channels * 9
+        if matrix.shape[1] != expected_channels:
+            raise ValueError(
+                f"Channel mismatch: expected {expected_channels} (9x{channels}), got {matrix.shape[1]}")
 
-    matrix = shift_to_non_negative(matrix)
-    matrix = scale_columns(matrix)
+        matrix_nn = shift_to_non_negative(matrix)
+        matrix_scaled = scale_columns(matrix_nn)
 
-    # ── Persist ───────────────────────────────────────────────────────
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    layer_tag = chosen_layer.replace("_output", "")
-    np.save(args.output_dir / f"pooled_{layer_tag}.npy", matrix)
+        # ── Persist ───────────────────────────────────────────────────
+        args.output_dir.mkdir(parents=True, exist_ok=True)
+        layer_tag = chosen_layer.replace("_output", "")
+        np.save(args.output_dir / f"pooled_{layer_tag}__{tag}.npy", matrix_scaled)
 
-    with (args.output_dir / "pos_index_to_npz.txt").open("w", encoding="utf-8") as f:
-        f.write("\n".join(index))
+        with (args.output_dir / f"pos_index_to_npz__{tag}.txt").open("w", encoding="utf-8") as f:
+            f.write("\n".join(index))
 
-    meta = {
-        "date": date.today().isoformat(),
-        "source_model": str(args.ckpt_path),
-        "layer": chosen_layer,
-        "positions": len(position_files),
-        "original_channels": channels,
-        "pooled_channels": expected_channels,
-        "pooling_method": "3x3_grid",
-        "batch_size": args.batch_size,
-        "non_negative_shift": True,
-        "column_scaled": True,
-    }
-    with (args.output_dir / "pooled_meta.json").open("w", encoding="utf-8") as f:
-        json.dump(meta, f, indent=2)
+        meta = {
+            "date": date.today().isoformat(),
+            "source_model": str(args.ckpt_path),
+            "layer": chosen_layer,
+            "positions": len(position_files),
+            "original_channels": channels,
+            "pooled_channels": expected_channels,
+            "pooling_method": "3x3_grid",
+            "batch_size": args.batch_size,
+            "non_negative_shift": True,
+            "column_scaled": True,
+            "variant_tag": tag,
+            "dataset_dir": str(dataset_dir),
+        }
+        with (args.output_dir / f"pooled_meta__{tag}.json").open("w", encoding="utf-8") as f:
+            json.dump(meta, f, indent=2)
 
-    print(
-        f"✅ Extracted {matrix.shape[0]} rows × {matrix.shape[1]} channels → "
-        f"{args.output_dir}/pooled_{layer_tag}.npy")
+        print(
+            f"✅ [{tag}] Extracted {matrix.shape[0]} rows × {matrix.shape[1]} channels → "
+            f"{args.output_dir}/pooled_{layer_tag}__{tag}.npy")
+
+    # ── Decide datasets ───────────────────────────────────────────────
+    if args.positions_dir:
+        _process_dataset(args.positions_dir, "baseline")
+    else:
+        root: Path = args.variants_root
+        if not root.exists():
+            raise FileNotFoundError(f"variants_root not found: {root}")
+        subdirs = [d for d in root.iterdir() if d.is_dir()]
+        if not subdirs:
+            raise FileNotFoundError(f"No subdirectories found under {root}")
+        for sub in sorted(subdirs):
+            _process_dataset(sub, sub.name)
 
 
 if __name__ == "__main__":

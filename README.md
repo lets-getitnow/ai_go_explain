@@ -21,7 +21,7 @@ Currently using SAE Approach: https://web.stanford.edu/class/cs294a/sparseAutoen
 
 ## Caveat: Global / Contextual Channels
 
-KataGo’s inputs include more than the current board arrangement—move history, komi, rules, ko state, and estimated score are all encoded. Therefore some internal channels capture **contextual information rather than spatial shape**. Typical triggers include:
+KataGo's inputs include more than the current board arrangement—move history, komi, rules, ko state, and estimated score are all encoded. Therefore some internal channels capture **contextual information rather than spatial shape**. Typical triggers include:
 
 * Move number / player to play
 * Komi or handicap stones
@@ -32,12 +32,32 @@ KataGo’s inputs include more than the current board arrangement—move history
 ### Detecting and controlling for non-spatial channels
 
 1. **Board-holdout tests** – Feed the *same* board position while varying one global input (e.g. komi) and record which channels change.
-2. **History shuffling** – Re-order plausible move histories that lead to the identical final board; contextual channels should vary, purely spatial ones should not.
-3. **Komi sweep** – Evaluate a single position across a range of komi (-10 → +10) and mark channels with monotonic correlation.
-4. **Score perturbation** – If score-estimate features are present, offset them and observe correlated activation shifts.
-5. **Ko toggles** – Create paired positions that differ only by a single ko capture to isolate ko-sensitive channels.
+2. **History shuffling** – Randomize move history that leads to identical final board states.
+3. **Komi sweep** – Vary komi ±N points while keeping board identical.
+4. **Score perturbation** – Modify estimated score/win-probability inputs.
+5. **Ko toggles** – Flip individual ko capture states.
 
-Channels that react to any of these probes should be **tagged as contextual** and either removed from the spatial NMF/SAE pipeline or analysed separately.
+### Implementation Status
 
-> Planned update: extend `3_extract_activations/` scripts to auto-generate these controlled variants and output a mask of contextual-only channels so that later stages can skip or separately factor them.
+✅ **Variant Generation**: `1_collect_positions/generate_variants.py` supports `zero_global` mode  
+✅ **Multi-Variant Extraction**: `3_extract_activations/extract_pooled_activations.py` processes multiple datasets  
+✅ **Contextual Detection**: `3_extract_activations/contextual_channel_detector.py` analyzes variance  
+✅ **Layer Analysis**: Tested `rconv14.out` layer - found **purely spatial** (0 contextual channels)  
+
+### Current Findings
+
+**Layer `rconv14.out` Analysis**:
+- **Tested**: Zeroing globalInputNC vs baseline
+- **Result**: Identical activations (0 contextual channels)
+- **Conclusion**: Layer is purely spatial - no global context sensitivity
+- **Action**: Proceed with NMF using all 4608 channels
+
+### Future Work
+
+- **Test earlier layers**: Investigate layers closer to input for global sensitivity
+- **Additional variants**: Implement `komi_sweep`, `history_shuffle` modes
+- **Multi-layer analysis**: Systematic testing across network depth
+- **Direct correlation**: Analyze correlation between globalInputNC values and activations
+
+The contextual channel detection infrastructure is now ready and can be applied to any layer in the network.
 

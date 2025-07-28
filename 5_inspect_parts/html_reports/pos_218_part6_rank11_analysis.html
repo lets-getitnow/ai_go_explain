@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Position 218 Analysis</title>
+    
+    <!-- Besogo CSS and JS -->
+    <link rel="stylesheet" href="besogo/besogo.css">
+    <link rel="stylesheet" href="besogo/board-flat.css">
+    <link rel="stylesheet" href="besogo/analysis-styles.css">
+    <script src="besogo/besogo.all.js"></script>
+</head>
+<body>
+    <div class="github-header">
+        <a href="https://github.com/lets-getitnow/ai_go_explain" target="_blank" rel="noopener noreferrer">
+            <svg class="github-logo" viewBox="0 0 24 24">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            <span class="project-name">ai_go_explain</span>
+            <span>View on GitHub</span>
+        </a>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>Position 218 Analysis</h1>
+            <div class="subtitle">Part 6, Rank 11 - NMF Part Analysis</div>
+            <div class="timestamp" style="color: #ffffff; font-size: 0.9em; margin-top: 5px; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">Generated: 2025-07-28 11:32:15</div>
+        </div>
+        
+        <div class="position-navigation">
+            <a href="pos_6387_part0_rank1_analysis.html" class="nav-button"  data-tooltip="Position 6387 (Part 0, Rank 1)">⏮ First Position</a>
+            <a href="pos_4236_part6_rank10_analysis.html" class="nav-button"  data-tooltip="Position 4236 (Part 6, Rank 10)">← Previous Position</a>
+            <span class="position-counter">Position 131 of 500</span>
+            <a href="pos_1797_part6_rank12_analysis.html" class="nav-button"  data-tooltip="Position 1797 (Part 6, Rank 12)">Next Position →</a>
+            <a href="pos_3225_part24_rank20_analysis.html" class="nav-button"  data-tooltip="Position 3225 (Part 24, Rank 20)">Last Position ⏭</a>
+            <span class="keyboard-hint" style="font-size: 0.8em; color: #666; margin-left: 10px;">(Use ← → arrow keys)</span>
+        </div>
+        
+        <div class="content">
+            <div class="board-section">
+                <div class="position-highlight">
+                    <strong>Move of Interest:</strong> B6 at Turn 0
+                    <br><strong>Activation Strength:</strong> 0.8898
+                </div>
+                
+                <div class="current-move-display">
+                    <strong>Current Move:</strong> <span id="current-move-display">Turn 0</span>
+                </div>
+                
+                <!-- Besogo Go Board -->
+                <div class="besogo-viewer" 
+                     size="7" 
+                     coord="western"
+                     panels="control+names"
+                     orient="portrait"
+                     portratio="none"
+                     path="0">(;FF[4]GM[1]SZ[7]PB[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]PW[kata1-b28c512nbt-s9853922560-d5031756885.bin.gz]HA[0]KM[8.5]RU[koPOSITIONALscoreAREAtaxNONEsui0]RE[B+0.5]C[startTurnIdx=1,initTurnNum=0,gameHash=793A835F271A54AAC46FEF16AADB6C56,gtype=normal];B[dd];W[cd]C[0.00 1.00 0.00 -1.0 v=100 weight=0.00];B[de]C[0.01 0.99 0.00 -1.0 v=100 weight=0.00];W[cc]C[0.01 0.99 0.00 -0.8 v=100 weight=0.00];B[dc]C[0.01 0.99 0.00 -0.8 v=100 weight=0.00];W[db]C[0.01 0.99 0.00 -0.8 v=100 weight=0.00];B[eb]C[0.01 0.99 0.00 -0.7 v=100 weight=0.00];W[ce]C[0.01 0.99 0.00 -0.6 v=100 weight=0.00];B[df]C[0.01 0.99 0.00 -0.6 v=100 weight=0.00];W[cb]C[0.00 1.00 0.00 -1.5 v=223 weight=0.24];B[bf]C[0.01 0.99 0.00 -0.8 v=100 weight=0.00];W[ea]C[0.01 0.99 0.00 -0.9 v=100 weight=0.00];B[fb]C[0.00 1.00 0.00 -1.0 v=100 weight=0.00];W[cf]C[0.00 1.00 0.00 -1.0 v=100 weight=0.00];B[cg]C[0.01 0.99 0.00 -0.9 v=100 weight=0.00];W[be]C[0.01 0.99 0.00 -0.9 v=100 weight=0.00];B[fa]C[0.00 1.00 0.00 -0.9 v=100 weight=0.00];W[da]C[0.00 1.00 0.00 -0.9 v=100 weight=0.00];B[dg]C[0.02 0.98 0.00 -0.9 v=217 weight=0.25];W[af]C[0.01 0.99 0.00 -1.0 v=395 weight=0.44];B[bg]C[0.00 1.00 0.00 -0.9 v=192 weight=0.00];W[ae]C[0.00 1.00 0.00 -0.9 v=395 weight=0.41];B[ag]C[0.00 1.00 0.00 -0.9 v=139 weight=0.00];W[]C[0.00 1.00 0.00 -0.8 v=100 weight=0.30];B[ec]C[0.00 1.00 0.00 -0.8 v=100 weight=0.00];W[]C[0.00 1.00 0.00 -0.9 v=100 weight=0.26];B[]C[0.00 1.00 0.00 -0.8 v=100 weight=0.00 result=B+0.5])</div>
+            </div>
+            
+            <div class="analysis-section">
+                <div class="analysis-card">
+                    <h3>🧠 NMF Part Analysis</h3>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="data-label" data-tooltip="Index of the NMF part that this activation belongs to. Parts partition the model into sets of interpretable patterns.">Part: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-value">6</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label" data-tooltip="Rank of this position within the part, ordered by activation strength (1 = strongest example of this component).">Rank: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-value">11</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label" data-tooltip="Unique identifier for this position in the entire dataset, useful for cross-referencing analyses and SGF files.">Global Position: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-value">218</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label" data-tooltip="Percentile of the activation strength when compared with ALL positions in the dataset (e.g. 99 % means stronger than 99 % of positions).">Activation Percentile: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-value">0.00%</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong data-tooltip="Raw activation value (0-1) output by the model for this component at this move; higher values indicate the pattern is strongly present in the board position.">Activation Strength: 0.8898 <span class="tooltip-icon">ⓘ</span></strong>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 89.0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <strong data-tooltip="How many convolutional channels fired above threshold and which ones; gives a low-level view of network attention on the board.">Channel Activity (70 active channels) <span class="tooltip-icon">ⓘ</span></strong>
+                        <div class="channel-activity">
+                            <div class="channel-bar" data-tooltip="Channel 0: 49">
+            <div class="channel-fill" style="width: 100.0%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 1: 6">
+            <div class="channel-fill" style="width: 12.244897959183673%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 2: 7">
+            <div class="channel-fill" style="width: 14.285714285714285%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 3: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 4: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 5: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 6: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 7: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 8: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 9: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 10: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 11: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 12: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 13: 1">
+            <div class="channel-fill" style="width: 2.0408163265306123%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 14: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 15: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 16: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 17: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 18: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 19: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 20: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+<div class="channel-bar" data-tooltip="Channel 21: 0">
+            <div class="channel-fill" style="width: 0.0%"></div>
+        </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3>🎯 Go Pattern Analysis</h3>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="data-label" data-tooltip="Categorisation of the move (normal play, pass, resign) to understand strategic intent or special game events.">Move Type: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-value">Corner</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label" data-tooltip="Stage of the game inferred from move number and board state: opening, middle-game or endgame.">Game Phase: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-value">Opening</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label" data-tooltip="Shannon entropy of the model's move probability distribution; low entropy indicates high confidence concentrated on a few moves.">Policy Entropy: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-value">1.591</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label" data-tooltip="Probability assigned by the neural network to the selected move – effectively its confidence in that play.">Policy Confidence: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-value">0.5353159851301115%</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong data-tooltip="List of moves the policy network thinks are best, with their probabilities and visit counts; helps explain the AI's tactical choices.">Top Policy Moves: <span class="tooltip-icon">ⓘ</span></strong>
+                        <div class="policy-moves">
+                            <div class="policy-move">
+            <span><strong>B6</strong></span>
+            <span>53.5% (432)</span>
+        </div>
+<div class="policy-move">
+            <span><strong>C6</strong></span>
+            <span>30.0% (242)</span>
+        </div>
+<div class="policy-move">
+            <span><strong>B7</strong></span>
+            <span>10.0% (81)</span>
+        </div>
+<div class="policy-move">
+            <span><strong>C5</strong></span>
+            <span>6.4% (52)</span>
+        </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3>📊 Part Comparison</h3>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="data-label" data-tooltip="Measure (0-1) of how distinct this part's activation pattern is compared to other parts – higher means less overlap.">Uniqueness Score: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-value">0.0000</span>
+                        </div>
+                        <div class="data-item">
+                                    <span class="data-label" data-tooltip="Ordering of parts by average activation strength across all positions, where 1 is the most frequently strongest pattern.">Part Rank: <span class="tooltip-icon">ⓘ</span></span>
+        <span class="data-value">Unknown</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label" data-tooltip="Highest activation value among ALL other parts at this position – used to assess selectivity of the current part.">Max Other Activation: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-value">0.0000</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                                <strong data-tooltip="Bar chart of activation values for EVERY part so you can see the full activation profile of this position.">Activation in All Parts: <span class="tooltip-icon">ⓘ</span></strong>
+        
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_6387_part0_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 0 (Position 6387, Rank 1)">
+                    <span>Part 0:</span>
+                </a>
+                <span>3139.9939</span>
+            </div>
+            <a href="pos_6387_part0_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 0 (Position 6387, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 313999.4%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_5036_part1_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 1 (Position 5036, Rank 1)">
+                    <span>Part 1:</span>
+                </a>
+                <span>472.2430</span>
+            </div>
+            <a href="pos_5036_part1_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 1 (Position 5036, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 47224.3%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_623_part2_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 2 (Position 623, Rank 1)">
+                    <span>Part 2:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_623_part2_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 2 (Position 623, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_3361_part3_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 3 (Position 3361, Rank 1)">
+                    <span>Part 3:</span>
+                </a>
+                <span>166.0471</span>
+            </div>
+            <a href="pos_3361_part3_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 3 (Position 3361, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 16604.7%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_2421_part4_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 4 (Position 2421, Rank 1)">
+                    <span>Part 4:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_2421_part4_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 4 (Position 2421, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_912_part5_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 5 (Position 912, Rank 1)">
+                    <span>Part 5:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_912_part5_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 5 (Position 912, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_4237_part6_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 6 (Position 4237, Rank 1)">
+                    <span>Part 6:</span>
+                </a>
+                <span>0.8898</span>
+            </div>
+            <a href="pos_4237_part6_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 6 (Position 4237, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 89.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_285_part7_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 7 (Position 285, Rank 1)">
+                    <span>Part 7:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_285_part7_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 7 (Position 285, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_426_part8_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 8 (Position 426, Rank 1)">
+                    <span>Part 8:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_426_part8_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 8 (Position 426, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_3783_part9_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 9 (Position 3783, Rank 1)">
+                    <span>Part 9:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_3783_part9_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 9 (Position 3783, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_4604_part10_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 10 (Position 4604, Rank 1)">
+                    <span>Part 10:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_4604_part10_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 10 (Position 4604, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_5171_part11_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 11 (Position 5171, Rank 1)">
+                    <span>Part 11:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_5171_part11_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 11 (Position 5171, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_2156_part12_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 12 (Position 2156, Rank 1)">
+                    <span>Part 12:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_2156_part12_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 12 (Position 2156, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_188_part13_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 13 (Position 188, Rank 1)">
+                    <span>Part 13:</span>
+                </a>
+                <span>0.4299</span>
+            </div>
+            <a href="pos_188_part13_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 13 (Position 188, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 43.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_1325_part14_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 14 (Position 1325, Rank 1)">
+                    <span>Part 14:</span>
+                </a>
+                <span>0.2565</span>
+            </div>
+            <a href="pos_1325_part14_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 14 (Position 1325, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 25.7%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_3_part15_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 15 (Position 3, Rank 1)">
+                    <span>Part 15:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_3_part15_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 15 (Position 3, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_2058_part16_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 16 (Position 2058, Rank 1)">
+                    <span>Part 16:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_2058_part16_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 16 (Position 2058, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_6569_part17_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 17 (Position 6569, Rank 1)">
+                    <span>Part 17:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_6569_part17_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 17 (Position 6569, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_1267_part18_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 18 (Position 1267, Rank 1)">
+                    <span>Part 18:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_1267_part18_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 18 (Position 1267, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_3631_part19_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 19 (Position 3631, Rank 1)">
+                    <span>Part 19:</span>
+                </a>
+                <span>0.1292</span>
+            </div>
+            <a href="pos_3631_part19_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 19 (Position 3631, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 12.9%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_4796_part20_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 20 (Position 4796, Rank 1)">
+                    <span>Part 20:</span>
+                </a>
+                <span>0.0156</span>
+            </div>
+            <a href="pos_4796_part20_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 20 (Position 4796, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 1.6%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_4449_part21_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 21 (Position 4449, Rank 1)">
+                    <span>Part 21:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_4449_part21_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 21 (Position 4449, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_1027_part22_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 22 (Position 1027, Rank 1)">
+                    <span>Part 22:</span>
+                </a>
+                <span>0.0429</span>
+            </div>
+            <a href="pos_1027_part22_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 22 (Position 1027, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 4.3%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_5900_part23_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 23 (Position 5900, Rank 1)">
+                    <span>Part 23:</span>
+                </a>
+                <span>0.7686</span>
+            </div>
+            <a href="pos_5900_part23_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 23 (Position 5900, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 76.9%"></div>
+                </div>
+            </a>
+        </div>
+
+        <div style="margin: 5px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="pos_1239_part24_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+                   title="View strongest example of Part 24 (Position 1239, Rank 1)">
+                    <span>Part 24:</span>
+                </a>
+                <span>0.0000</span>
+            </div>
+            <a href="pos_1239_part24_rank1_analysis.html" style="text-decoration: none; color: inherit; cursor: pointer;" 
+               title="View strongest example of Part 24 (Position 1239, Rank 1)">
+                <div class="progress-bar" style="cursor: pointer;">
+                    <div class="progress-fill" style="width: 0.0%"></div>
+                </div>
+            </a>
+        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-card">
+                    <h3>📁 File References</h3>
+                    <div class="data-item">
+                        <span class="data-label" data-tooltip="Original Smart-Game-Format game file from which this position was extracted.">SGF File: <span class="tooltip-icon">ⓘ</span></span>
+                        <span class="data-value"><a href="../output/pos_218/game.sgf">pos_218/game.sgf</a></span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label" data-tooltip="NumPy binary file containing the encoded board tensor used as input to the model.">Board Tensor: <span class="tooltip-icon">ⓘ</span></span>
+                        <span class="data-value"><a href="../output/pos_218/board.npy">pos_218/board.npy</a></span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label" data-tooltip="Compressed KataGo self-play NPZ file that provided raw tensors and move statistics for this position.">NPZ Source: <span class="tooltip-icon">ⓘ</span></span>
+                        <span class="data-value"><a href="../output/1906C337F5CDAFA9.npz">1906C337F5CDAFA9.npz</a></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize Besogo after page load
+        document.addEventListener('DOMContentLoaded', function() {
+            besogo.autoInit();
+            console.log('Besogo Go board initialized for position 218');
+            
+            // Track current move as user navigates through the game
+            const currentMoveDisplay = document.getElementById('current-move-display');
+            
+            // Function to calculate move number from root to current node
+            function calculateMoveNumber(editor) {
+                if (!editor || !editor.getCurrent || !editor.getRoot) return 0;
+                
+                const root = editor.getRoot();
+                const current = editor.getCurrent();
+                if (!root || !current) return 0;
+                
+                let moveNumber = 0;
+                let node = current;
+                
+                // Count moves from current node back to root
+                while (node && node !== root) {
+                    if (node.move) {
+                        moveNumber++;
+                    }
+                    node = node.parent;
+                }
+                
+                // Return the actual move number (no subtraction)
+                return moveNumber;
+            }
+            
+            // Function to update current move display
+            function updateCurrentMove() {
+                const besogoViewer = document.querySelector('.besogo-viewer');
+                if (!besogoViewer || !besogoViewer.besogoEditor) return;
+                
+                const editor = besogoViewer.besogoEditor;
+                const moveNumber = calculateMoveNumber(editor);
+                currentMoveDisplay.textContent = `Turn ${moveNumber}`;
+            }
+            
+            // Wait for Besogo to initialize and then set up the listener
+            function setupBesogoListener() {
+                const besogoViewer = document.querySelector('.besogo-viewer');
+                if (!besogoViewer || !besogoViewer.besogoEditor) {
+                    // Try again in a bit if Besogo isn't ready yet
+                    setTimeout(setupBesogoListener, 100);
+                    return;
+                }
+                
+                const editor = besogoViewer.besogoEditor;
+                
+                // Add listener for navigation changes
+                editor.addListener(function(msg) {
+                    if (msg.navChange) {
+                        updateCurrentMove();
+                    }
+                });
+                
+                // Initial update
+                updateCurrentMove();
+            }
+            
+            // Start setup after a short delay to ensure Besogo is initialized
+            setTimeout(setupBesogoListener, 500);
+            
+            // Keyboard navigation for position navigation
+            document.addEventListener('keydown', function(event) {
+                // Only handle arrow keys if not typing in an input field
+                if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+                
+                switch(event.key) {
+                    case 'ArrowLeft':
+                        // Navigate to previous position
+                        const prevLink = document.querySelector('a[href="pos_4236_part6_rank10_analysis.html"]');
+                        if (prevLink && !prevLink.hasAttribute('style')) {
+                            event.preventDefault();
+                            window.location.href = prevLink.href;
+                        }
+                        break;
+                    case 'ArrowRight':
+                        // Navigate to next position
+                        const nextLink = document.querySelector('a[href="pos_1797_part6_rank12_analysis.html"]');
+                        if (nextLink && !nextLink.hasAttribute('style')) {
+                            event.preventDefault();
+                            window.location.href = nextLink.href;
+                        }
+                        break;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

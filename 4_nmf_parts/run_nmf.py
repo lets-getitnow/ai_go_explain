@@ -179,7 +179,7 @@ def save_results(parts, activations_transformed, model, original_meta):
         "original_channels": original_meta.get("original_channels", parts.shape[1] // 9),
         "reconstruction_error": float(model.reconstruction_err_),
         "n_iterations": int(model.n_iter_),
-        "alpha_H": optimal_alpha_H,  # ℓ1 sparsity penalty used
+        "alpha_H": 0.4,  # ℓ1 sparsity penalty used
         "sparsity_percentage": float(sparsity),
         "avg_boards_per_component": float(avg_boards_per_component),
         "l1_ratio": 1.0,  # Pure ℓ1 penalty

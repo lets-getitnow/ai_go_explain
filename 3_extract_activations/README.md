@@ -1,80 +1,58 @@
-# Step 3: Extract Activations
+# Step 3: Extract Pooled Activations
 
-Extract pooled activations from a chosen layer of KataGo's *general* neural network (trained for all board sizes) using the `.bin.gz` inference checkpoint.
+Extract neural network activations from KataGo model and pool them spatially for downstream analysis.
 
 ## Prerequisites
-- Completed Step 1 (positions in `selfplay_out/`)
-- Completed Step 2 (`layer_selection.yml` exists)
-- KataGo inference model file (`.bin.gz` from https://katagotraining.org/networks/)
-- Python dependencies installed
+- KataGo model checkpoint file
+- Position data (`.npz` files from Step 1)
+- Layer selection from Step 2
 
-## Setup
+## Basic Usage (Single Dataset)
+```bash
+python3 extract_pooled_activations.py \
+  --positions-dir selfplay_out/ \
+  --ckpt-path models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt \
+  --output-dir activations/
+```
 
-1. **Install Python dependencies:**
-   ```bash
-   pip install torch numpy pyyaml
-   ```
-
-2. **Clone KataGo for PyTorch helper code:**
-   ```bash
-   git clone https://github.com/lightvector/KataGo.git
-   ```
-
-3. **Place the training checkpoint** inside `models/` in the format `models/kata1-b28c512nbt-sXXXXXXXXXX-dXXXXXXXXXX/model.ckpt`. These are PyTorch training checkpoints that preserve the internal layer structure needed for activation extraction.
-
-4. *(Optional – recommended for macOS)* **Verify your PyTorch back-end:**
-   ```bash
-   # from inside 3_extract_activations/
-   python verify_pytorch_device.py
-   ```
-   If the script reports
-   ```text
-   MPS built     : True
-   MPS available : True
-   ```
-   then your Apple-Silicon GPU is usable – run the extractor with `--device mps` for faster execution. Otherwise default to `--device cpu` (or `cuda:0` on machines with an NVIDIA GPU).
-
-## Extract Activations
+## Multi-Variant Usage (Contextual Channel Detection)
+For detecting channels sensitive to global inputs vs board shape:
 
 ```bash
-cd 3_extract_activations
-python extract_pooled_activations.py \
-  --positions-dir ../selfplay_out \
-  --ckpt-path   ../models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt \
-  --board-size   7 \
-  --batch-size   512 \
-  --device       mps        # mps (Apple Silicon), cpu, or cuda:0
+# First generate variants (Step 1)
+python3 1_collect_positions/generate_variants.py \
+  --input-dir selfplay_out \
+  --output-dir variants \
+  --mode zero_global
+
+# Then extract activations for all variants
+python3 extract_pooled_activations.py \
+  --variants-root variants \
+  --ckpt-path models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt \
+  --output-dir activations_variants/
 ```
 
-## How It Works
+This produces separate files for each variant:
+- `pooled_rconv14.out__baseline.npy`
+- `pooled_rconv14.out__zero_global.npy`
 
-The script:
-1. **Loads the KataGo model** from PyTorch training checkpoints (`model.ckpt` files).
-2. **Requests exactly one intermediate tensor** via KataGo's `ExtraOutputs` API using the layer name stored in `layer_selection.yml`.
-3. **Processes 7 × 7 positions** in batches for efficiency.
-4. **Spatially pools each channel** (mean across 7 × 7 spatial dimensions).
-5. **Produces a non-negative, column-scaled matrix** suitable for NMF.
+## Contextual Channel Detection
+After extraction, run the contextual channel detector:
 
-## Output
-
-Creates `activations/` directory with:
-```text
-activations/
-  pooled_<layer>.npy      # (N_positions, C) – main data matrix
-  pooled_meta.json        # extraction metadata
-  pos_index_to_npz.txt    # mapping row → original position file
+```bash
+python3 contextual_channel_detector.py \
+  --baseline activations_variants/pooled_rconv14.out__baseline.npy \
+  --variant activations_variants/pooled_rconv14.out__zero_global.npy \
+  --output contextual_mask.json \
+  --threshold 0.1
 ```
 
-## Troubleshooting
+This creates a JSON mask mapping channel IDs to "spatial" or "contextual" classifications for use in Step 4 NMF.
 
-**"Layer '<name>' not found"**
-- Run `python pick_layer.py --list` to view all layer names in your model.
-
-**"Mismatched board shape"**
-- Ensure your `.npz` files contain 7 × 7 tensors.
-
-**"CUDA out of memory"**
-- Lower `--batch-size` or switch to CPU.
+## Output Files
+- `pooled_<layer>.npy` - Activation matrix (positions × channels)
+- `pooled_meta.json` - Metadata about extraction
+- `pos_index_to_npz.txt` - Mapping from matrix rows to source files
 
 ## Next Step
-→ Continue to Step 4 (NMF parts finding) with your extracted activation matrix. 
+→ Go to `4_nmf_parts/` to factorize activations into interpretable parts. 

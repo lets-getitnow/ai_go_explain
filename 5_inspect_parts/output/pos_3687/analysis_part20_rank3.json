@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 20,
+    "rank": 3,
+    "global_position": 3687,
+    "move_coordinate": "G5",
+    "turn_number": 1,
+    "npz_file": "AAE4EE8DC9A92FFF.npz",
+    "board_tensor_file": "pos_3687/board.npy",
+    "sgf_file": "pos_3687/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 1.1816610097885132,
+    "rank_in_part": 3,
+    "activation_in_other_parts": [
+      1298.2581787109375,
+      332.4588928222656,
+      157.38218688964844,
+      210.90682983398438,
+      51.66841125488281,
+      0.0,
+      0.0,
+      0.0,
+      1.1252546310424805,
+      0.36198538541793823,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.40296414494514465,
+      0.181168794631958,
+      0.0,
+      0.0,
+      1.1816610097885132,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      10,
+      10,
+      1,
+      3,
+      6,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      10,
+      10,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        1,
+        10
+      ],
+      [
+        2,
+        10
+      ],
+      [
+        18,
+        10
+      ],
+      [
+        19,
+        10
+      ]
+    ],
+    "total_board_activity": 107
+  },
+  "go_pattern_analysis": {
+    "move_type": "corner",
+    "game_phase": "opening",
+    "turn_number": 1,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(4,6)",
+        "percentage": 100.0,
+        "count": 377
+      }
+    ],
+    "total_policy_counts": 377
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.0009093618718907237,
+    "similar_positions": [
+      4796,
+      4794,
+      4792,
+      1372,
+      4791
+    ],
+    "part_rank": 3,
+    "max_other_part_activation": 1298.2581787109375,
+    "activation_percentile": 99.95456610631531
+  }
+}

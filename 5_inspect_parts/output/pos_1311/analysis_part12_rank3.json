@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 12,
+    "rank": 3,
+    "global_position": 1311,
+    "move_coordinate": "E2",
+    "turn_number": 21,
+    "npz_file": "1D638D50844BD930.npz",
+    "board_tensor_file": "pos_1311/board.npy",
+    "sgf_file": "pos_1311/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 0.9771831035614014,
+    "rank_in_part": 3,
+    "activation_in_other_parts": [
+      0.0,
+      584.1644897460938,
+      375.3085021972656,
+      54.403778076171875,
+      11.688189506530762,
+      0.0,
+      0.22907420992851257,
+      0.0,
+      0.0,
+      0.0,
+      0.3493094742298126,
+      0.0,
+      0.9771831035614014,
+      0.17190834879875183,
+      0.0,
+      0.44704097509384155,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      4,
+      5,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      0,
+      4,
+      5,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        19,
+        5
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        18,
+        4
+      ]
+    ],
+    "total_board_activity": 74
+  },
+  "go_pattern_analysis": {
+    "move_type": "corner",
+    "game_phase": "opening",
+    "turn_number": 21,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(1,4)",
+        "percentage": 100.0,
+        "count": 330
+      }
+    ],
+    "total_policy_counts": 330
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.0016699940897524357,
+    "similar_positions": [
+      2156,
+      4142,
+      5043,
+      4493,
+      5312
+    ],
+    "part_rank": 3,
+    "max_other_part_activation": 584.1644897460938,
+    "activation_percentile": 99.95456610631531
+  }
+}

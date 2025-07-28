@@ -1,0 +1,118 @@
+{
+  "position_info": {
+    "part": 8,
+    "rank": 4,
+    "global_position": 424,
+    "move_coordinate": "B1",
+    "turn_number": 14,
+    "npz_file": "1906C337F5CDAFA9.npz",
+    "board_tensor_file": "pos_424/board.npy",
+    "sgf_file": "pos_424/game.sgf"
+  },
+  "nmf_analysis": {
+    "activation_strength": 1.45466148853302,
+    "rank_in_part": 4,
+    "activation_in_other_parts": [
+      2359.00341796875,
+      274.6358337402344,
+      129.4324951171875,
+      201.12384033203125,
+      24.651329040527344,
+      0.0,
+      0.0,
+      0.2515732944011688,
+      1.45466148853302,
+      0.4178227484226227,
+      0.0,
+      0.0,
+      0.04615666717290878,
+      0.0,
+      0.0,
+      0.0,
+      0.32132014632225037,
+      0.0,
+      0.0,
+      0.0,
+      0.8379899859428406,
+      0.0,
+      0.24896061420440674,
+      0.3137432932853699,
+      0.0
+    ],
+    "channel_activity": [
+      49,
+      13,
+      14,
+      1,
+      6,
+      10,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      0,
+      13,
+      14,
+      0,
+      0
+    ],
+    "top_active_channels": [
+      [
+        0,
+        49
+      ],
+      [
+        2,
+        14
+      ],
+      [
+        19,
+        14
+      ],
+      [
+        1,
+        13
+      ],
+      [
+        18,
+        13
+      ]
+    ],
+    "total_board_activity": 129
+  },
+  "go_pattern_analysis": {
+    "move_type": "corner",
+    "game_phase": "opening",
+    "turn_number": 14,
+    "policy_entropy": -0.0,
+    "policy_confidence": 1.0,
+    "top_policy_moves": [
+      {
+        "coord": "(0,1)",
+        "percentage": 100.0,
+        "count": 174
+      }
+    ],
+    "total_policy_counts": 174
+  },
+  "part_comparison": {
+    "uniqueness_score": 0.0006162623758427799,
+    "similar_positions": [
+      426,
+      425,
+      3786,
+      423,
+      3784
+    ],
+    "part_rank": 4,
+    "max_other_part_activation": 2359.00341796875,
+    "activation_percentile": 99.93942147508709
+  }
+}
