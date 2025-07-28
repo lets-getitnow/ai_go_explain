@@ -345,12 +345,19 @@ class ActivationExtractor:
                 raise ValueError(f"Expected 4-D activations, got {act.shape}")
 
             # 3x3 grid pooling instead of global average
-            # act shape: (B, C, 7, 7)
+            # act shape: (B, C, H, W) where H=W=board_size
             B, C, H, W = act.shape
-            assert H == W == 7, f"Expected 7x7 activations, got {H}x{W}"
+            assert H == W, f"Expected square activations, got {H}x{W}"
+            board_size = H
             
-            # 3-2-2 split for 3x3 grid: (0,3), (3,5), (5,7)
-            bins = [(0,3), (3,5), (5,7)]
+            # Create 3x3 grid pooling for any board size
+            # Split the board into 3x3 regions
+            step = board_size // 3
+            bins = []
+            for i in range(3):
+                start = i * step
+                end = (i + 1) * step if i < 2 else board_size  # Last bin goes to the end
+                bins.append((start, end))
             pooled_parts = []
             for r0, r1 in bins:
                 for c0, c1 in bins:

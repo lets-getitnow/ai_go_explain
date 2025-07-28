@@ -38,7 +38,8 @@ import re
 sys.path.insert(0, str(Path(__file__).parent.parent / "KataGo" / "python"))
 
 try:
-    from katago import Board, Rules, Player, Loc
+    from katago.game.board import Board, Loc
+    from katago.game.data import Board as BoardData
 except ImportError:
     print("Error: Could not import KataGo modules. Make sure KataGo is installed.")
     sys.exit(1)
@@ -47,7 +48,7 @@ except ImportError:
 # SGF parsing utilities
 # ────────────────────────────────────────────────────────────────────────────
 
-def parse_sgf_moves(sgf_content: str) -> List[Tuple[str, Tuple[int, int] | None]]:
+def parse_sgf_moves(sgf_content: str, board_size: int = 13) -> List[Tuple[str, Tuple[int, int] | None]]:
     """Parse SGF content and extract all moves with coordinates.
     
     Returns:
@@ -68,11 +69,11 @@ def parse_sgf_moves(sgf_content: str) -> List[Tuple[str, Tuple[int, int] | None]
                 sgf_col = ord(coord_text[0]) - ord('a')
                 sgf_row = ord(coord_text[1]) - ord('a')
                 
-                # Validate coordinates for 7x7 board
-                if 0 <= sgf_col < 7 and 0 <= sgf_row < 7:
+                # Validate coordinates for the given board size
+                if 0 <= sgf_col < board_size and 0 <= sgf_row < board_size:
                     moves.append((color, (sgf_row, sgf_col)))
                 else:
-                    print(f"Warning: Invalid coordinate {coord_text} for 7x7 board")
+                    print(f"Warning: Invalid coordinate {coord_text} for {board_size}x{board_size} board")
                     moves.append((color, None))
             else:
                 print(f"Warning: Invalid coordinate format {coord_text}")
@@ -80,11 +81,11 @@ def parse_sgf_moves(sgf_content: str) -> List[Tuple[str, Tuple[int, int] | None]
     
     return moves
 
-def coord_to_move_idx(row: int, col: int, board_size: int = 7) -> int:
+def coord_to_move_idx(row: int, col: int, board_size: int = 13) -> int:
     """Convert (row, col) coordinate to KataGo move index."""
     return row * board_size + col
 
-def move_idx_to_coord(move_idx: int, board_size: int = 7) -> Tuple[int, int]:
+def move_idx_to_coord(move_idx: int, board_size: int = 13) -> Tuple[int, int]:
     """Convert KataGo move index to (row, col) coordinate."""
     return move_idx // board_size, move_idx % board_size
 
@@ -92,7 +93,7 @@ def move_idx_to_coord(move_idx: int, board_size: int = 7) -> Tuple[int, int]:
 # Board state generation
 # ────────────────────────────────────────────────────────────────────────────
 
-def create_board_tensor(board: Board, board_size: int = 7) -> np.ndarray:
+def create_board_tensor(board: Board, board_size: int = 13) -> np.ndarray:
     """Create the binary input tensor for KataGo model.
     
     Returns:
@@ -115,12 +116,11 @@ def create_board_tensor(board: Board, board_size: int = 7) -> np.ndarray:
     # Basic board state
     for y in range(board_size):
         for x in range(board_size):
-            loc = Loc(x, y)
-            if board.is_occupied(loc):
-                if board.is_black(loc):
-                    tensor[0, y, x] = 1.0  # Black stone
-                else:
-                    tensor[1, y, x] = 1.0  # White stone
+            loc = board.loc(x, y)
+            if board.board[loc] == Board.BLACK:
+                tensor[0, y, x] = 1.0  # Black stone
+            elif board.board[loc] == Board.WHITE:
+                tensor[1, y, x] = 1.0  # White stone
             else:
                 tensor[2, y, x] = 1.0  # Empty space
     
@@ -130,7 +130,7 @@ def create_board_tensor(board: Board, board_size: int = 7) -> np.ndarray:
     
     return tensor
 
-def create_global_input(board_size: int = 7) -> np.ndarray:
+def create_global_input(board_size: int = 13) -> np.ndarray:
     """Create global input tensor (komi, move number, etc.).
     
     This is a simplified version - real implementation would need proper KataGo encoding.
@@ -142,11 +142,11 @@ def create_global_input(board_size: int = 7) -> np.ndarray:
     # - score estimate
     # etc.
     
-    global_input = np.zeros((10,), dtype=np.float32)  # Simplified size
+    global_input = np.zeros((19,), dtype=np.float32)  # 19 features for 19x19 model
     global_input[0] = 6.5  # Default komi
     return global_input
 
-def create_policy_target(move_coord: Tuple[int, int] | None, board_size: int = 7) -> np.ndarray:
+def create_policy_target(move_coord: Tuple[int, int] | None, board_size: int = 13) -> np.ndarray:
     """Create policy target tensor for the given move.
     
     Args:
@@ -185,17 +185,17 @@ def create_npz_data(game_moves: List[Tuple[str, Tuple[int, int] | None]],
     Returns:
         Dictionary with NPZ arrays
     """
-    board_size = 7
+    board_size = 13  # Human games are 13x13
     num_positions = len(game_moves)
     
     # Initialize arrays with proper KataGo format
-    num_channels = 22  # Standard KataGo input channels for 7x7
+    num_channels = 22  # Standard KataGo input channels for 13x13
     binary_inputs = np.zeros((num_positions, num_channels, board_size, board_size), dtype=np.float32)
-    global_inputs = np.zeros((num_positions, 10), dtype=np.float32)  # Simplified size
+    global_inputs = np.zeros((num_positions, 19), dtype=np.float32)  # 19 features for 19x19 model
     policy_targets = np.zeros((num_positions, board_size * board_size + 1), dtype=np.float32)
     
     # Create board state for each position
-    board = Board(board_size, board_size)
+    board = Board(board_size)
     
     for i, (color, coord) in enumerate(game_moves):
         # Create board tensor for current position
@@ -211,13 +211,15 @@ def create_npz_data(game_moves: List[Tuple[str, Tuple[int, int] | None]],
         # Apply move to board for next position
         if coord is not None:
             row, col = coord
-            loc = Loc(col, row)  # Note: KataGo uses (x, y) order
-            player = Player.BLACK if color == 'B' else Player.WHITE
-            board.playMove(loc, player)
+            loc = board.loc(col, row)  # Note: KataGo uses (x, y) order
+            player = Board.BLACK if color == 'B' else Board.WHITE
+            board.play(player, loc)
     
     # Pack binary inputs into the format expected by the pipeline
     # The pipeline expects binaryInputNCHWPacked to be packed bits
-    binary_packed = np.packbits(binary_inputs.astype(bool), axis=2)
+    # We need to reshape to (N, C, H*W) before packing along the last axis
+    binary_reshaped = binary_inputs.reshape(num_positions, num_channels, -1)
+    binary_packed = np.packbits(binary_reshaped.astype(bool), axis=2)
     
     return {
         'binaryInputNCHWPacked': binary_packed,
@@ -230,7 +232,7 @@ def create_npz_data(game_moves: List[Tuple[str, Tuple[int, int] | None]],
 # Main processing
 # ────────────────────────────────────────────────────────────────────────────
 
-def process_sgf_file(sgf_path: Path, output_dir: Path, board_size: int = 7) -> None:
+def process_sgf_file(sgf_path: Path, output_dir: Path, board_size: int = 13) -> None:
     """Process a single SGF file and create corresponding NPZ file."""
     print(f"Processing {sgf_path.name}...")
     
@@ -238,7 +240,7 @@ def process_sgf_file(sgf_path: Path, output_dir: Path, board_size: int = 7) -> N
     sgf_content = sgf_path.read_text(encoding='utf-8')
     
     # Parse moves
-    moves = parse_sgf_moves(sgf_content)
+    moves = parse_sgf_moves(sgf_content, board_size)
     
     if not moves:
         print(f"Warning: No moves found in {sgf_path.name}")
@@ -275,8 +277,13 @@ def main() -> None:
     parser.add_argument(
         "--board-size",
         type=int,
-        default=7,
-        help="Board size (default: 7)"
+        default=13,
+        help="Board size (default: 13)"
+    )
+    parser.add_argument(
+        "--max-files",
+        type=int,
+        help="Maximum number of files to process (for testing)"
     )
     
     args = parser.parse_args()
@@ -303,7 +310,10 @@ def main() -> None:
     print(f"Found {len(sgf_files)} SGF files")
     
     # Process each SGF file
-    for sgf_file in sgf_files:
+    for i, sgf_file in enumerate(sgf_files):
+        if args.max_files and i >= args.max_files:
+            print(f"Stopping after processing {args.max_files} files (test mode)")
+            break
         try:
             process_sgf_file(sgf_file, args.output_dir, args.board_size)
         except Exception as e:

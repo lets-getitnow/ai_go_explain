@@ -25,6 +25,7 @@ python run_human_games_pipeline.py \
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -37,8 +38,16 @@ def run_command(cmd: List[str], description: str) -> None:
     print(f"COMMAND: {' '.join(cmd)}")
     print(f"{'='*60}")
     
+    # Set up environment with KataGo Python path
+    env = os.environ.copy()
+    katago_python_path = str(Path(__file__).parent.parent / "KataGo" / "python")
+    if "PYTHONPATH" in env:
+        env["PYTHONPATH"] = katago_python_path + ":" + env["PYTHONPATH"]
+    else:
+        env["PYTHONPATH"] = katago_python_path
+    
     try:
-        result = subprocess.run(cmd, check=True, capture_output=False)
+        result = subprocess.run(cmd, check=True, capture_output=False, env=env)
         print(f"✅ {description} completed successfully")
     except subprocess.CalledProcessError as e:
         print(f"❌ {description} failed with exit code {e.returncode}")
@@ -112,7 +121,7 @@ def main() -> None:
     if not args.skip_conversion:
         npz_dir = args.output_dir / "npz_files"
         run_command([
-            "python", "../1_collect_positions/convert_human_games.py",
+            "python3", "1_collect_positions/convert_human_games.py",
             "--input-dir", str(args.input_dir),
             "--output-dir", str(npz_dir),
             "--board-size", str(args.board_size)
@@ -130,7 +139,7 @@ def main() -> None:
         if not layer_selection_file.exists():
             print("⚠️  No existing layer_selection.yml found, running layer selection...")
             run_command([
-                "python", "../2_pick_layer/pick_layer.py",
+                "python3", "2_pick_layer/pick_layer.py",
                 "--model-path", str(args.model_path),
                 "--board-size", str(args.board_size)
             ], "Select layer for analysis")
@@ -142,7 +151,7 @@ def main() -> None:
     # Step 3: Extract activations
     activations_dir = args.output_dir / "activations"
     run_command([
-        "python", "../3_extract_activations/extract_pooled_activations.py",
+        "python3", "3_extract_activations/extract_pooled_activations.py",
         "--positions-dir", str(npz_dir),
         "--ckpt-path", str(args.model_path),
         "--output-dir", str(activations_dir),
@@ -152,7 +161,7 @@ def main() -> None:
     # Step 4: Run NMF analysis
     nmf_dir = args.output_dir / "nmf_parts"
     run_command([
-        "python", "../4_nmf_parts/run_nmf.py",
+        "python3", "4_nmf_parts/run_nmf.py",
         "--activations-file", str(activations_dir / "pooled_rconv14.out.npy"),
         "--output-dir", str(nmf_dir),
         "--num-components", "50",
@@ -162,7 +171,7 @@ def main() -> None:
     # Step 5: Inspect parts and generate HTML reports
     inspect_dir = args.output_dir / "inspect_parts"
     run_command([
-        "python", "../5_inspect_parts/inspect_parts.py",
+        "python3", "5_inspect_parts/inspect_parts.py",
         "--activations-file", str(activations_dir / "pooled_rconv14.out.npy"),
         "--nmf-components", str(nmf_dir / "nmf_components.npy"),
         "--nmf-activations", str(nmf_dir / "nmf_activations.npy"),
@@ -173,7 +182,7 @@ def main() -> None:
     # Generate HTML reports
     html_dir = args.output_dir / "html_reports"
     run_command([
-        "python", "../5_inspect_parts/generate_html_reports.py",
+        "python3", "5_inspect_parts/generate_html_reports.py",
         "--summary-file", str(inspect_dir / "strong_positions_summary.csv"),
         "--output-dir", str(html_dir)
     ], "Generate HTML visualization reports")
