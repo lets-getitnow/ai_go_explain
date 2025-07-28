@@ -2,6 +2,10 @@
 *.sgf
 *.json
 
+# Ignore NumPy data files
+*.npz
+*.npy
+
 # Never ignore important file types
 !*.py
 !*.md
