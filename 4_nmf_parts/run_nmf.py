@@ -175,6 +175,8 @@ def save_results(parts, activations_transformed, model, original_meta):
         "n_parts": parts.shape[0],
         "n_positions": activations_transformed.shape[0],
         "n_channels": parts.shape[1],
+        "pooling_method": original_meta.get("pooling_method", "global_average"),
+        "original_channels": original_meta.get("original_channels", parts.shape[1] // 9),
         "reconstruction_error": float(model.reconstruction_err_),
         "n_iterations": int(model.n_iter_),
         "alpha_H": 0.10,  # ℓ1 sparsity penalty used

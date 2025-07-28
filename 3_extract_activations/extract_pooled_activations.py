@@ -344,7 +344,22 @@ class ActivationExtractor:
             if act.dim() != 4:
                 raise ValueError(f"Expected 4-D activations, got {act.shape}")
 
-            pooled = act.mean(dim=(-1, -2)).cpu().numpy()  # (B, C_channels)
+            # 3x3 grid pooling instead of global average
+            # act shape: (B, C, 7, 7)
+            B, C, H, W = act.shape
+            assert H == W == 7, f"Expected 7x7 activations, got {H}x{W}"
+            
+            # 3-2-2 split for 3x3 grid: (0,3), (3,5), (5,7)
+            bins = [(0,3), (3,5), (5,7)]
+            pooled_parts = []
+            for r0, r1 in bins:
+                for c0, c1 in bins:
+                    # Average over the spatial region (r0:r1, c0:c1)
+                    region = act[:, :, r0:r1, c0:c1].mean(dim=(-1, -2))  # (B, C)
+                    pooled_parts.append(region)
+            
+            # Concatenate all 9 regions: (B, C*9)
+            pooled = torch.cat(pooled_parts, dim=1).cpu().numpy()
             rows.append(pooled)
             index.extend(buffer_paths)
             processed = sum(r.shape[0] for r in rows)
@@ -487,9 +502,11 @@ def main() -> None:  # noqa: D401
 
     matrix, index = extractor.run(position_files, total_positions=total_positions)
 
-    if matrix.shape[1] != channels:
+    # With 3x3 pooling, we have 9x the original channels
+    expected_channels = channels * 9
+    if matrix.shape[1] != expected_channels:
         raise ValueError(
-            f"Channel mismatch: expected {channels}, got {matrix.shape[1]}")
+            f"Channel mismatch: expected {expected_channels} (9x{channels}), got {matrix.shape[1]}")
 
     matrix = shift_to_non_negative(matrix)
     matrix = scale_columns(matrix)
@@ -507,7 +524,9 @@ def main() -> None:  # noqa: D401
         "source_model": str(args.ckpt_path),
         "layer": chosen_layer,
         "positions": len(position_files),
-        "channels": channels,
+        "original_channels": channels,
+        "pooled_channels": expected_channels,
+        "pooling_method": "3x3_grid",
         "batch_size": args.batch_size,
         "non_negative_shift": True,
         "column_scaled": True,
