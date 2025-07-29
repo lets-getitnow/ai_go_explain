@@ -1,8 +1,8 @@
-board_size: 7
+board_size: 13
 chosen_layer: rconv14.out
 date: '2025-07-21'
-layer_shape: 512×7×7 (approx)
-network_file: ../models/kata1-b28c512nbt-s9853922560-d5031756885.bin.gz
+layer_shape: 512×13×13 (approx)
+network_file: ../models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt
 pooling: spatial mean
 rationale: Middle trunk balances local and global signals. Derived from filename metadata
   only.

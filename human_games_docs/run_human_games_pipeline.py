@@ -96,6 +96,12 @@ def main() -> None:
         action="store_true", 
         help="Skip layer selection (use existing layer_selection.yml)"
     )
+    parser.add_argument(
+        "--processor",
+        choices=["cpu", "cuda", "mps"],
+        default="cpu",
+        help="Processor to use for activation extraction (default: cpu)"
+    )
     
     args = parser.parse_args()
     
@@ -150,19 +156,22 @@ def main() -> None:
     
     # Step 3: Extract activations
     activations_dir = args.output_dir / "activations"
+    batch_size = "32" if args.processor == "mps" else "64"
     run_command([
         "python3", "3_extract_activations/extract_pooled_activations.py",
         "--positions-dir", str(npz_dir),
         "--ckpt-path", str(args.model_path),
         "--output-dir", str(activations_dir),
-        "--batch-size", "256"
+        "--batch-size", batch_size,
+        "--board-size", str(args.board_size),
+        "--processor", args.processor
     ], "Extract activations from chosen layer")
     
     # Step 4: Run NMF analysis
     nmf_dir = args.output_dir / "nmf_parts"
     run_command([
         "python3", "4_nmf_parts/run_nmf.py",
-        "--activations-file", str(activations_dir / "pooled_rconv14.out.npy"),
+        "--activations-file", str(activations_dir / "pooled_rconv14.out__baseline.npy"),
         "--output-dir", str(nmf_dir),
         "--num-components", "50",
         "--max-iter", "1000"
@@ -172,7 +181,7 @@ def main() -> None:
     inspect_dir = args.output_dir / "inspect_parts"
     run_command([
         "python3", "5_inspect_parts/inspect_parts.py",
-        "--activations-file", str(activations_dir / "pooled_rconv14.out.npy"),
+        "--activations-file", str(activations_dir / "pooled_rconv14.out__baseline.npy"),
         "--nmf-components", str(nmf_dir / "nmf_components.npy"),
         "--nmf-activations", str(nmf_dir / "nmf_activations.npy"),
         "--output-dir", str(inspect_dir),

@@ -125,12 +125,12 @@ def load_katago_pytorch(ckpt_path: Path) -> torch.nn.Module:
         
         try:
             # Load model using KataGo's infrastructure
-            # pos_len=BOARD_SIZE for correct board size, use_swa=False for standard model, device="cpu" for consistency
+            # pos_len=19 for the 19x19 model (can handle smaller boards), use_swa=False for standard model, device="cpu" for consistency
             model, swa_model, other_state_dict = load_model(
                 checkpoint_file=str(ckpt_path),
                 use_swa=False,
                 device="cpu",
-                pos_len=BOARD_SIZE,
+                pos_len=19,  # Model is 19x19, can handle smaller boards
                 verbose=False
             )
         finally:
@@ -146,7 +146,7 @@ def load_katago_pytorch(ckpt_path: Path) -> torch.nn.Module:
         raise RuntimeError(f"Failed to load KataGo model from {ckpt_path}: {e}")
 
 
-def decode_position_npz(npz_file: Path) -> Tuple[np.ndarray, np.ndarray]:
+def decode_position_npz(npz_file: Path, board_size: int = BOARD_SIZE) -> Tuple[np.ndarray, np.ndarray]:
     """Decode **all** positions contained in a KataGo training `.npz` file.
 
     Every `.npz` written by KataGo's self-play contains a *batch* of positions.
@@ -175,10 +175,10 @@ def decode_position_npz(npz_file: Path) -> Tuple[np.ndarray, np.ndarray]:
         # Unpack the binary format using KataGo's decoding logic
         binaryInputNCHW = np.unpackbits(binaryInputNCHWPacked, axis=2)
         assert len(binaryInputNCHW.shape) == 3
-        assert binaryInputNCHW.shape[2] == ((BOARD_SIZE * BOARD_SIZE + 7) // 8) * 8
-        binaryInputNCHW = binaryInputNCHW[:,:,:BOARD_SIZE*BOARD_SIZE]
+        assert binaryInputNCHW.shape[2] == ((board_size * board_size + 7) // 8) * 8
+        binaryInputNCHW = binaryInputNCHW[:,:,:board_size*board_size]
         binaryInputNCHW = np.reshape(binaryInputNCHW, (
-            binaryInputNCHW.shape[0], binaryInputNCHW.shape[1], BOARD_SIZE, BOARD_SIZE
+            binaryInputNCHW.shape[0], binaryInputNCHW.shape[1], board_size, board_size
         )).astype(np.float32)
         
     # Cast to float32 once at the very end for memory efficiency
@@ -191,7 +191,7 @@ def decode_position_npz(npz_file: Path) -> Tuple[np.ndarray, np.ndarray]:
             f"{binary_arrs.shape[0]} vs {global_arrs.shape[0]}"
         )
 
-    if binary_arrs.shape[-2:] != (BOARD_SIZE, BOARD_SIZE):
+    if binary_arrs.shape[-2:] != (board_size, board_size):
         raise ValueError(
             f"Unexpected board shape in {npz_file}: {binary_arrs.shape[-2:]}"
         )
@@ -241,11 +241,6 @@ class ActivationExtractor:
                 "(…/KataGo/python) and PYTHONPATH is set accordingly."
             ) from e
 
-        # Run one dummy forward pass to populate `.available` so we can give a
-        # Cannot pre-validate the layer name without knowing input tensor
-        # shape.  We therefore defer the check until the first real forward
-        # pass where we verify that the requested activation was produced.
-
         # The real ExtraOutputs instance requesting exactly the layer we want.
         self._extra = ExtraOutputs(requested=[layer_name])
         self._layer_name = layer_name
@@ -273,77 +268,77 @@ class ActivationExtractor:
             f"(~{total_msg} positions) with batch size {self.batch_size}…"
         )
 
+        # ── INITIALISE ───────────────────────────────────────────────────────────
         rows: List[np.ndarray] = []
         index: List[str] = []
-
-        buffer_bin: List[np.ndarray] = []  # (C_in, B, B)
-        buffer_glob: List[np.ndarray] = []  # (G_in,)
+        buffer_bin: List[np.ndarray] = []
+        buffer_glob: List[np.ndarray] = []
         buffer_paths: List[str] = []
+        start_time = time.perf_counter()
 
-        def _flush_buffer() -> None:  # capture outer-scope via closure
-            """Run one batched forward pass and append pooled outputs."""
-            print(f"[DEBUG] Flushing batch of {len(buffer_bin)} positions …")
+        def _flush_buffer() -> None:
             if not buffer_bin:
-                return  # nothing to do
-
-            print("[DEBUG] Beginning inference …")
-
+                return
+            
             print("[DEBUG] Step 1: Creating batch tensors…")
-            batch_binary = np.stack(buffer_bin)
-            batch_global = np.stack(buffer_glob)
-
-            print("[DEBUG] Step 2: Moving to device…")
-            batch_binary_tensor = torch.tensor(
-                batch_binary, dtype=torch.float32, device=self.device
-            )
-            batch_global_tensor = torch.tensor(
-                batch_global, dtype=torch.float32, device=self.device
-            )
-
-            print("[DEBUG] Step 3: Clearing extra outputs…")
-            # ── INFERENCE ────────────────────────────────────────────
-            start_t = time.perf_counter()
+            # Convert numpy arrays to tensors before stacking
+            batch_binary_tensor = torch.stack([torch.from_numpy(arr) for arr in buffer_bin], dim=0).to(self.device)
+            batch_global_tensor = torch.stack([torch.from_numpy(arr) for arr in buffer_glob], dim=0).to(self.device)
+            
+            print(f"[DEBUG] Step 2: Running inference on batch of {len(buffer_bin)} positions…")
             self._extra.returned.clear()
             self._extra.available.clear()
             
-            print(f"[DEBUG] Step 4: Running model forward pass with timeout (60s)…")
-            try:
-                with timeout_context(60):
-                    _ = self.model(
-                        batch_binary_tensor,
-                        batch_global_tensor,
-                        extra_outputs=self._extra,  # type: ignore[call-arg]
-                    )
-            except TimeoutError:
-                print("[ERROR] Model forward pass timed out after 60 seconds!")
-                print(f"[ERROR] Batch shape: binary={batch_binary_tensor.shape}, global={batch_global_tensor.shape}")
-                print(f"[ERROR] Device: {self.device}")
-                raise
+            with timeout_context(300):
+                _ = self.model(batch_binary_tensor, batch_global_tensor, extra_outputs=self._extra)
             
-            print("[DEBUG] Step 5: Forward pass completed, extracting activations…")
-            infer_duration = time.perf_counter() - start_t
-
-            # Validate layer name exactly once
-            if not hasattr(self, "_validated"):
-                if self._layer_name not in self._extra.available:
-                    sample = sorted(self._extra.available)[:15]
-                    raise KeyError(
-                        f"Layer '{self._layer_name}' not recognised. "
-                        f"Some available names: {', '.join(sample)} …"
-                    )
-                self._validated = True  # type: ignore[attr-defined]
-
-            if self._layer_name not in self._extra.returned:
-                raise RuntimeError(
-                    f"ExtraOutputs did not capture '{self._layer_name}'. "
-                    "This indicates a mismatch between requested tensor and "
-                    "what the network produced."
-                )
-
             act = self._extra.returned[self._layer_name]
             if act.dim() != 4:
                 raise ValueError(f"Expected 4-D activations, got {act.shape}")
 
+            if torch.isnan(act).any():
+                print(f"[WARNING] Batch contains NaN activations, retrying with smaller batch...")
+                if len(buffer_bin) > 1:
+                    half_size = len(buffer_bin) // 2
+                    temp_bin = buffer_bin[:half_size]
+                    temp_glob = buffer_glob[:half_size]
+                    temp_paths = buffer_paths[:half_size]
+                    buffer_bin.clear()
+                    buffer_glob.clear()
+                    buffer_paths.clear()
+                    
+                    # Convert numpy arrays to tensors for the smaller batch
+                    batch_binary_tensor = torch.stack([torch.from_numpy(arr) for arr in temp_bin], dim=0).to(self.device)
+                    batch_global_tensor = torch.stack([torch.from_numpy(arr) for arr in temp_glob], dim=0).to(self.device)
+                    self._extra.returned.clear()
+                    self._extra.available.clear()
+                    with timeout_context(300):
+                        _ = self.model(batch_binary_tensor, batch_global_tensor, extra_outputs=self._extra)
+                    act = self._extra.returned[self._layer_name]
+                    if torch.isnan(act).any():
+                        print(f"[WARNING] Skipping batch with NaN activations")
+                        buffer_bin.clear()
+                        buffer_glob.clear()
+                        buffer_paths.clear()
+                        return
+                    else:
+                        print(f"[INFO] Successfully processed smaller batch of {half_size} positions")
+                        _process_activations(act, temp_paths)
+                        return
+                else:
+                    print(f"[WARNING] Skipping single position with NaN activations")
+                    buffer_bin.clear()
+                    buffer_glob.clear()
+                    buffer_paths.clear()
+                    return
+            _process_activations(act, buffer_paths)
+            
+            buffer_bin.clear()
+            buffer_glob.clear()
+            buffer_paths.clear()
+
+        def _process_activations(act: torch.Tensor, paths: List[str]) -> None:
+            """Process activations with 3x3 pooling and track progress."""
             # 3x3 grid pooling instead of global average
             # act shape: (B, C, H, W) where H=W=board_size
             B, C, H, W = act.shape
@@ -368,53 +363,39 @@ class ActivationExtractor:
             # Concatenate all 9 regions: (B, C*9)
             pooled = torch.cat(pooled_parts, dim=1).cpu().numpy()
             rows.append(pooled)
-            index.extend(buffer_paths)
+            index.extend(paths)
             processed = sum(r.shape[0] for r in rows)
             if total_positions:
                 pct = processed / total_positions * 100
                 print(
                     f"[PROGRESS] Processed {processed}/{total_positions} positions "
-                    f"({pct:5.1f}%) [last batch {infer_duration:.2f}s]"
+                    f"({pct:5.1f}%) [last batch {time.perf_counter() - start_time:.2f}s]"
                 )
             else:
                 print(
                     f"[PROGRESS] Processed {processed} positions so far "
-                    f"[last batch {infer_duration:.2f}s]"
+                    f"[last batch {time.perf_counter() - start_time:.2f}s]"
                 )
 
-            # Clear buffers for next mini-batch
-            buffer_bin.clear()
-            buffer_glob.clear()
-            buffer_paths.clear()
-
-        # ── Stream over *.npz files ─────────────────────────────────
-        for npz_file in position_files:
-            print(f"[INFO] Decoding {npz_file} …")
+        # ── Stream over *.npz files ─────────────────────────────────────────────
+        for npz_path in position_files:
+            print(f"[INFO] Decoding {npz_path.name} …")
             decode_start = time.perf_counter()
-            binary_arrs, global_arrs = decode_position_npz(npz_file)
+            binary_arrs, global_arrs = decode_position_npz(npz_path, board_size=BOARD_SIZE)
             decode_dur = time.perf_counter() - decode_start
-            print(
-                f"[DEBUG] Finished decoding {npz_file.name}: "
-                f"{binary_arrs.shape[0]} positions in {decode_dur:.2f}s"
-            )
-
-            if binary_arrs.shape[0] != global_arrs.shape[0]:
-                raise ValueError(
-                    f"Sample count mismatch in {npz_file}: "
-                    f"{binary_arrs.shape[0]} vs {global_arrs.shape[0]}"
-                )
+            print(f"[DEBUG] Finished decoding {npz_path.name}: {binary_arrs.shape[0]} positions in {decode_dur:.2f}s")
 
             for i in range(binary_arrs.shape[0]):
                 buffer_bin.append(binary_arrs[i])
                 buffer_glob.append(global_arrs[i])
-                buffer_paths.append(str(npz_file))  # duplicate path per row
+                buffer_paths.append(str(npz_path))  # duplicate path per row
 
                 # Verbose within-file progress every 100 samples
                 if (i + 1) % 100 == 0 or (i + 1) == binary_arrs.shape[0]:
                     loaded = i + 1
                     print(
                         f"[TRACE] Loaded {loaded}/{binary_arrs.shape[0]} "
-                        f"positions from {npz_file.name} into buffer"
+                        f"positions from {npz_path.name} into buffer"
                     )
 
                 if len(buffer_bin) == self.batch_size:
@@ -459,6 +440,8 @@ def parse_args() -> argparse.Namespace:  # noqa: D401
     p.add_argument("--output-dir", type=Path, default=Path("activations"), help="Where to write outputs")
     p.add_argument("--board-size", type=int, default=7, help="Board size (e.g. 7, 9, 19)")
     p.add_argument("--device", default="cpu", help="CUDA device ID or 'cpu'")
+    p.add_argument("--processor", choices=["cpu", "cuda", "mps"], default="cpu",
+                   help="Processor to use: cpu, cuda, or mps (Metal Performance Shaders for Apple Silicon)")
     return p.parse_args()
 
 
@@ -490,8 +473,25 @@ def main() -> None:  # noqa: D401
     
     chosen_layer, channels = load_layer_selection(layer_selection_path)
 
+    # Determine device based on processor choice
+    if args.processor == "mps":
+        if not torch.backends.mps.is_available():
+            print("Warning: MPS not available, falling back to CPU")
+            device = "cpu"
+        else:
+            device = "mps"
+    elif args.processor == "cuda":
+        if not torch.cuda.is_available():
+            print("Warning: CUDA not available, falling back to CPU")
+            device = "cpu"
+        else:
+            device = args.device if args.device != "cpu" else "cuda"
+    else:
+        device = "cpu"
+    print(f"[INFO] Using device: {device}")
+    
     model = load_katago_pytorch(args.ckpt_path)
-    extractor = ActivationExtractor(model, chosen_layer, args.batch_size, args.device)
+    extractor = ActivationExtractor(model, chosen_layer, args.batch_size, device)
 
     # Helper to process one dataset dir -> npy outputs
     def _process_dataset(dataset_dir: Path, tag: str) -> None:

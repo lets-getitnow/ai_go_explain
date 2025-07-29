@@ -98,10 +98,16 @@ pip install torch torchvision torchaudio
 mkdir -p games/go13 models/
 
 # Download model
-wget https://media.katagotraining.org/uploaded/networks/models/kata1/kata1-b28c512nbt-s9584861952-d4960414494.bin.gz
-gunzip kata1-b28c512nbt-s9584861952-d4960414494.bin.gz
+# Get the latest model from: https://katagotraining.org/networks/
+# For this pipeline, we use: kata1-b28c512nbt-s9584861952-d4960414494
+
+# Download the full checkpoint (includes model + training state):
+wget https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b28c512nbt-s9584861952-d4960414494.zip
+
+# Extract and setup:
+unzip kata1-b28c512nbt-s9584861952-d4960414494.zip
 mkdir -p models/kata1-b28c512nbt-s9584861952-d4960414494
-mv kata1-b28c512nbt-s9584861952-d4960414494.bin models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt
+mv kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt
 ```
 
 ## 🔧 Common Parameters

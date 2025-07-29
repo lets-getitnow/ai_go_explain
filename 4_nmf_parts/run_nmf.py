@@ -24,19 +24,24 @@ like atari patterns, eye shapes, ladder formations, etc., with clear
 sparse activation patterns.
 """
 
+import argparse
 import numpy as np
 import json
 from datetime import datetime
 from sklearn.decomposition import NMF
 from sklearn.preprocessing import StandardScaler
 import os
+from pathlib import Path
 
-def load_activation_data():
+def load_activation_data(activations_file=None):
     """Load the pooled activation data from step 3."""
     print("🔄 Starting to load activation data...", flush=True)
     
-    data_path = "../3_extract_activations/activations/pooled_rconv14.out.npy"
-    meta_path = "../3_extract_activations/activations/pooled_meta.json"
+    if activations_file is None:
+        data_path = "../3_extract_activations/activations/pooled_rconv14.out.npy"
+    else:
+        data_path = activations_file
+    meta_path = str(Path(activations_file).parent / "pooled_meta.json") if activations_file else "../3_extract_activations/activations/pooled_meta.json"
     
     print(f"📁 Checking for data file: {data_path}", flush=True)
     if not os.path.exists(data_path):
@@ -147,18 +152,19 @@ def run_nmf_factorization(activations, n_parts=3, alpha_H=0.10):
     
     return parts, activations_transformed, model
 
-def save_results(parts, activations_transformed, model, original_meta):
+def save_results(parts, activations_transformed, model, original_meta, output_dir="."):
     """Save NMF results to files."""
     print("🔄 Starting to save results...", flush=True)
     
     # Save parts (the learned parts)
     print("💾 Saving NMF parts...", flush=True)
-    np.save("nmf_components.npy", parts)
+    os.makedirs(output_dir, exist_ok=True)
+    np.save(os.path.join(output_dir, "nmf_components.npy"), parts)
     print("✅ Saved nmf_components.npy", flush=True)
     
     # Save transformed activations (how much each part activates per position)
     print("💾 Saving transformed activations...", flush=True)
-    np.save("nmf_activations.npy", activations_transformed)
+    np.save(os.path.join(output_dir, "nmf_activations.npy"), activations_transformed)
     print("✅ Saved nmf_activations.npy", flush=True)
     
     # Save metadata
@@ -186,7 +192,7 @@ def save_results(parts, activations_transformed, model, original_meta):
         "original_meta": original_meta
     }
     
-    with open("nmf_meta.json", 'w') as f:
+    with open(os.path.join(output_dir, "nmf_meta.json"), 'w') as f:
         json.dump(meta, f, indent=2)
     print("✅ Saved nmf_meta.json", flush=True)
     
@@ -196,12 +202,19 @@ def save_results(parts, activations_transformed, model, original_meta):
     print(f"  - nmf_meta.json", flush=True)
 
 def main():
+    parser = argparse.ArgumentParser(description="Run NMF to find interpretable parts")
+    parser.add_argument("--activations-file", type=str, help="Path to activation data file")
+    parser.add_argument("--output-dir", type=str, default=".", help="Output directory")
+    parser.add_argument("--num-components", type=int, default=25, help="Number of components")
+    parser.add_argument("--max-iter", type=int, default=1000, help="Maximum iterations")
+    args = parser.parse_args()
+    
     print("=== Step 4: NMF Parts Finder ===", flush=True)
     print(f"🕐 Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", flush=True)
     
     # Load data
     print("\n📁 PHASE 1: Loading Data", flush=True)
-    activations, meta = load_activation_data()
+    activations, meta = load_activation_data(args.activations_file)
     
     # Determine number of parts based on systematic rank selection analysis
     print("\n🧮 PHASE 2: Determining Parts", flush=True)
@@ -241,7 +254,7 @@ def main():
     
     # Save results
     print("\n💾 PHASE 4: Saving Results", flush=True)
-    save_results(parts, activations_transformed, model, meta)
+    save_results(parts, activations_transformed, model, meta, args.output_dir)
     
     # Calculate final sparsity metrics for summary
     H = model.components_

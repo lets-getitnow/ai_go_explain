@@ -113,20 +113,41 @@ def create_board_tensor(board: Board, board_size: int = 13) -> np.ndarray:
     num_channels = 22  # Standard KataGo input channels for 7x7
     tensor = np.zeros((num_channels, board_size, board_size), dtype=np.float32)
     
-    # Basic board state
+    # ------------------------------------------------------------------
+    # KataGo expects the *first* input plane to be an "on-board" mask of
+    # ones.  The network uses this plane to compute various normalized
+    # statistics, and a zero mask leads to division-by-zero → NaNs.  The
+    # original implementation filled plane 0 with black stones, which is
+    # *zero* on an empty board – precisely the positions that triggered
+    # NaNs in the *first* batch of every SGF.  We fix this by:
+    #   plane 0 : on-board mask (1 everywhere)
+    #   plane 1 : black stones
+    #   plane 2 : white stones
+    #   plane 3 : (very coarse) move-number indicator
+    # Remaining planes stay zero – they correspond to more advanced
+    # features that are not critical for the activation-visualisation
+    # pipeline.
+    # ------------------------------------------------------------------
+
+    tensor = np.zeros((22, board_size, board_size), dtype=np.float32)
+
+    # Plane 0 – mask = 1 on every legal board coordinate
+    tensor[0, :, :] = 1.0
+
+    # Planes 1 / 2 – black / white stone presence
     for y in range(board_size):
         for x in range(board_size):
-            loc = board.loc(x, y)
+            loc = board.loc(x, y)  # KataGo uses (x, y)
             if board.board[loc] == Board.BLACK:
-                tensor[0, y, x] = 1.0  # Black stone
+                tensor[1, y, x] = 1.0  # Black stone
             elif board.board[loc] == Board.WHITE:
-                tensor[1, y, x] = 1.0  # White stone
-            else:
-                tensor[2, y, x] = 1.0  # Empty space
-    
-    # Add move number information (simplified)
-    # In practice, this would be more sophisticated
-    tensor[3, :, :] = 0.1  # Move number indicator
+                tensor[2, y, x] = 1.0  # White stone
+
+    # Plane 3 – extremely coarse move-number signal so that very early
+    # empty boards differ from mid-game emptier boards.  This remains a
+    # placeholder; the full fledged KataGo encoding is far richer but
+    # would be overkill for our purposes.
+    tensor[3, :, :] = 0.1
     
     return tensor
 
@@ -215,14 +236,13 @@ def create_npz_data(game_moves: List[Tuple[str, Tuple[int, int] | None]],
             player = Board.BLACK if color == 'B' else Board.WHITE
             board.play(player, loc)
     
-    # Pack binary inputs into the format expected by the pipeline
-    # The pipeline expects binaryInputNCHWPacked to be packed bits
-    # We need to reshape to (N, C, H*W) before packing along the last axis
+    # The pipeline expects binaryInputNCHWPacked to be 3D (N, C, packed_bits)
+    # We need to reshape to (N, C, H*W) and pack bits for the expected format
     binary_reshaped = binary_inputs.reshape(num_positions, num_channels, -1)
     binary_packed = np.packbits(binary_reshaped.astype(bool), axis=2)
     
     return {
-        'binaryInputNCHWPacked': binary_packed,
+        'binaryInputNCHWPacked': binary_packed.astype(np.uint8),
         'globalInputNC': global_inputs,
         'policyTargetsNCMove': policy_targets,
         'game_id': np.array([game_id.encode()] * num_positions, dtype=object)
