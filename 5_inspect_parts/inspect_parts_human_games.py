@@ -188,7 +188,15 @@ def analyze_position(position_idx: int, part_idx: int, activations: np.ndarray,
     
     # Calculate activation percentile
     all_activations = activations[:, part_idx]
-    activation_percentile = float(np.percentile(all_activations, 100 * (activation_strength - np.min(all_activations)) / (np.max(all_activations) - np.min(all_activations))))
+    # Calculate what percentile this activation strength represents
+    if np.max(all_activations) == np.min(all_activations):
+        activation_percentile = 50.0  # If all values are the same, use 50%
+    else:
+        # Calculate the percentile rank of this activation strength
+        # Count how many activations are less than this one
+        less_than_count = np.sum(all_activations < activation_strength)
+        total_count = len(all_activations)
+        activation_percentile = (less_than_count / total_count) * 100.0
     
     return {
         'position_idx': position_idx,

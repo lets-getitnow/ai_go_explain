@@ -599,103 +599,50 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
         position_idx = int(global_pos)
         for analysis in analyses:
             if analysis.get('position_idx') == position_idx:
-                analysis_data = {
-                    'position_info': {
-                        'part': int(analysis.get('part_idx', 0)),
-                        'rank': 1,
-                        'turn_number': analysis.get('turn_number', 0),
-                        'move_coordinate': analysis.get('move_coord', 'Unknown')
-                    },
-                    'nmf_analysis': {
-                        'activation_strength': float(analysis.get('activation_strength', 0)),
-                        'total_board_activity': 0,
-                        'channel_activity': []
-                    },
-                    'go_pattern_analysis': {
-                        'move_type': 'normal',
-                        'game_phase': 'opening',
-                        'policy_entropy': 0.0,
-                        'policy_confidence': 0,
-                        'top_policy_moves': []
-                    },
-                    'component_comparison': {
-                        'activation_percentile': float(analysis.get('activation_percentile', 0)),
-                        'uniqueness_score': 0.0,
-                        'part_rank': 1,
-                        'max_other_activation': 0.0
-                    }
-                }
+                # Use the actual analysis data directly
+                analysis_data = analysis
                 break
     
     # If still no analysis data, create minimal data
     if not analysis_data:
         analysis_data = {
-            'position_info': {
-                'part': int(part),
-                'rank': int(rank),
-                'turn_number': 0,
-                'move_coordinate': 'Unknown'
-            },
-            'nmf_analysis': {
-                'activation_strength': float(summary_row.get('activation_strength', 0)),
-                'total_board_activity': 0,
-                'channel_activity': []
-            },
-            'go_pattern_analysis': {
-                'move_type': 'normal',
-                'game_phase': 'opening',
-                'policy_entropy': 0.0,
-                'policy_confidence': 0,
-                'top_policy_moves': []
-            },
-            'component_comparison': {
-                'activation_percentile': 0.0,
-                'uniqueness_score': 0.0,
-                'part_rank': 1,
-                'max_other_activation': 0.0
-            }
+            'position_idx': int(global_pos),
+            'part_idx': int(part),
+            'activation_strength': float(summary_row.get('activation_strength', 0)),
+            'activation_percentile': 0.0,
+            'move_coord': 'Unknown',
+            'turn_number': 0,
+            'sgf_content': "(;FF[4]GM[1]SZ[13]C[Human game position])"
         }
     
-    # CRITICAL FIX: Update the analysis data to reflect the correct part and rank
-    # The analysis.json file contains data from the last processed part, but we need
-    # to show the correct part and rank for this specific HTML file
-    if 'position_info' in analysis_data:
-        analysis_data['position_info']['part'] = int(part)
-        analysis_data['position_info']['rank'] = int(rank)
-    else:
-        # If analysis_data is the raw JSON structure, convert it
-        analysis_data = {
-            'position_info': {
-                'part': int(part),
-                'rank': int(rank),
-                'turn_number': analysis_data.get('turn_number', 0),
-                'move_coordinate': analysis_data.get('move_coord', 'Unknown')
-            },
-            'nmf_analysis': {
-                'activation_strength': float(analysis_data.get('activation_strength', 0)),
-                'total_board_activity': 0,
-                'channel_activity': []
-            },
-            'go_pattern_analysis': {
-                'move_type': 'normal',
-                'game_phase': 'opening',
-                'policy_entropy': 0.0,
-                'policy_confidence': 0,
-                'top_policy_moves': []
-            },
-            'component_comparison': {
-                'activation_percentile': float(analysis_data.get('activation_percentile', 0)),
-                'uniqueness_score': 0.0,
-                'part_rank': 1,
-                'max_other_activation': 0.0
-            }
-        }
+    # Extract data for template - use actual values from analysis_data
+    position_info = {
+        'part': int(analysis_data.get('part_idx', part)),
+        'rank': int(rank),
+        'turn_number': analysis_data.get('turn_number', 0),
+        'move_coordinate': analysis_data.get('move_coord', 'Unknown')
+    }
     
-    # Extract data for template
-    position_info = analysis_data.get('position_info', {})
-    nmf_analysis = analysis_data.get('nmf_analysis', {})
-    go_pattern = analysis_data.get('go_pattern_analysis', {})
-    component_comp = analysis_data.get('component_comparison', {})
+    nmf_analysis = {
+        'activation_strength': float(analysis_data.get('activation_strength', 0)),
+        'total_board_activity': 0,  # Not available in human games data
+        'channel_activity': []  # Not available in human games data
+    }
+    
+    go_pattern = {
+        'move_type': 'normal',  # Default for human games
+        'game_phase': 'opening',  # Default for human games
+        'policy_entropy': 0.0,  # Not available in human games data
+        'policy_confidence': 0,  # Not available in human games data
+        'top_policy_moves': []  # Not available in human games data
+    }
+    
+    component_comp = {
+        'activation_percentile': float(analysis_data.get('activation_percentile', 0)),
+        'uniqueness_score': 0.0,  # Not calculated for human games
+        'part_rank': 1,  # Default for human games
+        'max_other_activation': 0.0  # Not calculated for human games
+    }
     
     # Parse SGF for move information (Besogo handles the board display)
     turn_number = int(position_info.get('turn_number', 0))
@@ -721,7 +668,7 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
         'TITLE': f"Position {global_pos} Analysis",
         'SUBTITLE': f"Part {part}, Rank {rank} - NMF Part Analysis",
         'TIMESTAMP': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        'CURRENT_INDEX': current_index + 1,
+        'CURRENT_INDEX': current_index,
         'TOTAL_POSITIONS': len(all_positions),
         'PREV_TITLE': f"Position {prev_pos.get('global_pos', prev_pos.get('position_idx', 'N/A'))} (Part {prev_pos.get('part', prev_pos.get('part_idx', 'N/A'))}, Rank {prev_pos.get('rank', '1')})" if prev_pos else None,
         'NEXT_TITLE': f"Position {next_pos.get('global_pos', next_pos.get('position_idx', 'N/A'))} (Part {next_pos.get('part', next_pos.get('part_idx', 'N/A'))}, Rank {next_pos.get('rank', '1')})" if next_pos else None,
