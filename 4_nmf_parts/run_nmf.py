@@ -34,9 +34,16 @@ import os
 from pathlib import Path
 
 def load_activation_data(activations_file=None):
-    """Load the pooled activation data from step 3."""
-    print("🔄 Starting to load activation data...", flush=True)
+    """
+    Load activation data and metadata.
     
+    Args:
+        activations_file: Path to activation data file
+        
+    Returns:
+        activations: (n_positions, n_channels) array
+        meta: Metadata dictionary
+    """
     if activations_file is None:
         data_path = "../3_extract_activations/activations/pooled_rconv14.out.npy"
     else:
@@ -49,7 +56,28 @@ def load_activation_data(activations_file=None):
     
     print(f"📁 Checking for meta file: {meta_path}", flush=True)
     if not os.path.exists(meta_path):
-        raise FileNotFoundError(f"Meta data not found: {meta_path}")
+        print(f"⚠️  Meta data not found: {meta_path}")
+        print("📋 Creating minimal metadata...", flush=True)
+        meta = {
+            "date": "2025-07-29",
+            "source_model": "unknown",
+            "layer": "rconv14.out",
+            "positions": 0,
+            "original_channels": 0,
+            "pooled_channels": 0,
+            "pooling_method": "3x3_grid",
+            "batch_size": 32,
+            "non_negative_shift": True,
+            "column_scaled": True,
+            "variant_tag": "baseline",
+            "dataset_dir": "unknown"
+        }
+    else:
+        # Load metadata
+        print("📋 Loading metadata...", flush=True)
+        with open(meta_path, 'r') as f:
+            meta = json.load(f)
+        print(f"✅ Loaded metadata with {len(meta)} entries", flush=True)
     
     # Load activation matrix (positions x channels)
     print("📊 Loading numpy activation data...", flush=True)
@@ -57,11 +85,9 @@ def load_activation_data(activations_file=None):
     print(f"✅ Loaded activations shape: {activations.shape}", flush=True)
     print(f"📊 Activation data stats: min={activations.min():.4f}, max={activations.max():.4f}, mean={activations.mean():.4f}", flush=True)
     
-    # Load metadata
-    print("📋 Loading metadata...", flush=True)
-    with open(meta_path, 'r') as f:
-        meta = json.load(f)
-    print(f"✅ Loaded metadata with {len(meta)} entries", flush=True)
+    # Update meta with actual data info
+    meta["positions"] = activations.shape[0]
+    meta["pooled_channels"] = activations.shape[1]
     
     print("✅ Successfully loaded all activation data", flush=True)
     return activations, meta

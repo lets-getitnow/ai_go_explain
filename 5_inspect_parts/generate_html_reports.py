@@ -22,6 +22,7 @@ import os
 import csv
 from datetime import datetime
 from typing import Dict, Any, List
+from pathlib import Path
 
 def load_sgf_content(sgf_file: str) -> str:
     """Load SGF content from file."""
@@ -65,14 +66,15 @@ def format_percentage(value: float) -> str:
     """Format value as percentage."""
     return f"{value * 100:.1f}"
 
-def convert_tuple_to_go_coord(tuple_coord: str) -> str:
+def convert_tuple_to_go_coord(tuple_coord: str, board_size: int = 13) -> str:
     """Convert tuple coordinate format to Go coordinate format.
     
     Args:
         tuple_coord: Coordinate in format "(row,col)" or "PASS"
+        board_size: Board size (default 13 for human games)
         
     Returns:
-        Go coordinate in format "A1" through "G7" for 7x7 board, or "PASS"
+        Go coordinate in format "A1" through "M13" for 13x13 board, or "PASS"
     """
     if tuple_coord == "PASS":
         return "PASS"
@@ -84,7 +86,7 @@ def convert_tuple_to_go_coord(tuple_coord: str) -> str:
             coord_str = tuple_coord[1:-1]  # Remove parentheses
             row, col = map(int, coord_str.split(","))
             
-            # Convert to Go coordinates (A-G for columns, 1-7 for rows)
+            # Convert to Go coordinates (A-M for columns, 1-13 for rows for 13x13)
             # Note: tuple coordinates are 0-indexed, Go coordinates are 1-indexed
             go_col = chr(ord('A') + col)  # A=0, B=1, C=2, etc.
             go_row = str(row + 1)  # 0->1, 1->2, etc.
@@ -194,18 +196,23 @@ def generate_part_activations(activations: List[float], all_positions: List[Dict
     
     return '\n'.join(activations_html)
 
-def parse_sgf_moves(sgf_content: str, target_turn: int) -> tuple:
-    """Parse SGF content and extract stone positions up to target turn.
+def parse_sgf_moves(sgf_content: str, target_turn: int, board_size: int = 13) -> tuple:
+    """Parse SGF moves and find the move of interest.
     
-    Since we're now using Besogo which handles SGF directly, we only need to 
-    extract the move of interest for highlighting purposes.
+    Args:
+        sgf_content: SGF file content
+        target_turn: Turn number to highlight (0-indexed)
+        board_size: Board size (default 13 for human games)
+        
+    Returns:
+        Tuple of (moves_dict, move_of_interest, moves_list)
     """
     import re
     
-    # Extract moves from SGF for move highlighting purposes
     moves = []
-    move_pattern = r'[BW]\[[a-z]{0,2}\]'
     
+    # Extract moves from SGF content
+    move_pattern = r'[BW]\[[a-z]{0,2}\]'
     for match in re.finditer(move_pattern, sgf_content):
         move_text = match.group()
         color = 'B' if move_text[0] == 'B' else 'W'
@@ -216,14 +223,14 @@ def parse_sgf_moves(sgf_content: str, target_turn: int) -> tuple:
         else:
             # Convert SGF coordinates to board position (a=0, b=1, etc.)
             if len(coord_text) == 2:
-                sgf_col = ord(coord_text[0]) - ord('a')  # 0-6 for 7x7
-                sgf_row = ord(coord_text[1]) - ord('a')  # 0-6 for 7x7
+                sgf_col = ord(coord_text[0]) - ord('a')  # 0-12 for 13x13
+                sgf_row = ord(coord_text[1]) - ord('a')  # 0-12 for 13x13
                 
-                # Direct mapping for 7x7 board - no offset needed
-                if 0 <= sgf_col < 7 and 0 <= sgf_row < 7:
+                # Direct mapping for 13x13 board - no offset needed
+                if 0 <= sgf_col < board_size and 0 <= sgf_row < board_size:
                     moves.append((color, (sgf_row, sgf_col)))
                 else:
-                    moves.append((color, None))  # Outside 7x7 region
+                    moves.append((color, None))  # Outside board region
             else:
                 moves.append((color, None))  # Invalid or pass
     
@@ -237,14 +244,14 @@ def parse_sgf_moves(sgf_content: str, target_turn: int) -> tuple:
 
 # SVG generation functions removed - now using Besogo
 
-def get_html_template() -> str:
+def get_html_template(board_size: int = 13) -> str:
     """Return the embedded HTML template using Besogo."""
-    return '''<!DOCTYPE html>
+    return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{TITLE}}</title>
+    <title>{{{{TITLE}}}}</title>
     
     <!-- Besogo CSS and JS -->
     <link rel="stylesheet" href="besogo/besogo.css">
@@ -264,39 +271,38 @@ def get_html_template() -> str:
     </div>
     <div class="container">
         <div class="header">
-            <h1>{{TITLE}}</h1>
-            <div class="subtitle">{{SUBTITLE}}</div>
-            <div class="timestamp" style="color: #ffffff; font-size: 0.9em; margin-top: 5px; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">Generated: {{TIMESTAMP}}</div>
+            <h1>{{{{TITLE}}}}</h1>
+            <div class="subtitle">{{{{SUBTITLE}}}}</div>
+            <div class="timestamp" style="color: #ffffff; font-size: 0.9em; margin-top: 5px; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">Generated: {{{{TIMESTAMP}}}}</div>
         </div>
         
         <div class="position-navigation">
-            <a href="{{FIRST_POS_HTML}}" class="nav-button" {{FIRST_DISABLED}} data-tooltip="{{FIRST_TITLE}}">⏮ First Position</a>
-            <a href="{{PREV_POS_HTML}}" class="nav-button" {{PREV_DISABLED}} data-tooltip="{{PREV_TITLE}}">← Previous Position</a>
-            <span class="position-counter">Position {{CURRENT_INDEX}} of {{TOTAL_POSITIONS}}</span>
-            <a href="{{NEXT_POS_HTML}}" class="nav-button" {{NEXT_DISABLED}} data-tooltip="{{NEXT_TITLE}}">Next Position →</a>
-            <a href="{{LAST_POS_HTML}}" class="nav-button" {{LAST_DISABLED}} data-tooltip="{{LAST_TITLE}}">Last Position ⏭</a>
+            <a href="{{{{FIRST_POS_HTML}}}}" class="nav-button" {{{{FIRST_DISABLED}}}} data-tooltip="{{{{FIRST_TITLE}}}}">⏮ First Position</a>
+            <a href="{{{{PREV_POS_HTML}}}}" class="nav-button" {{{{PREV_DISABLED}}}} data-tooltip="{{{{PREV_TITLE}}}}">← Previous Position</a>
+            <span class="position-counter">Position {{{{CURRENT_INDEX}}}} of {{{{TOTAL_POSITIONS}}}}</span>
+            <a href="{{{{NEXT_POS_HTML}}}}" class="nav-button" {{{{NEXT_DISABLED}}}} data-tooltip="{{{{NEXT_TITLE}}}}">Next Position →</a>
+            <a href="{{{{LAST_POS_HTML}}}}" class="nav-button" {{{{LAST_DISABLED}}}} data-tooltip="{{{{LAST_TITLE}}}}">Last Position ⏭</a>
             <span class="keyboard-hint" style="font-size: 0.8em; color: #666; margin-left: 10px;">(Use ← → arrow keys)</span>
         </div>
         
         <div class="content">
             <div class="board-section">
                 <div class="position-highlight">
-                    <strong>Move of Interest:</strong> {{MOVE_COORD}} at Turn {{TURN_NUMBER}}
-                    <br><strong>Activation Strength:</strong> {{ACTIVATION_STRENGTH}}
+                    <strong>Move of Interest:</strong> {{{{MOVE_COORD}}}} at Turn {{{{TURN_NUMBER}}}}
+                    <br><strong>Activation Strength:</strong> {{{{ACTIVATION_STRENGTH}}}}
                 </div>
                 
                 <div class="current-move-display">
-                    <strong>Current Move:</strong> <span id="current-move-display">Turn {{TURN_NUMBER}}</span>
+                    <strong>Current Move:</strong> <span id="current-move-display">Turn {{{{TURN_NUMBER}}}}</span>
                 </div>
                 
                 <!-- Besogo Go Board -->
                 <div class="besogo-viewer" 
-                     size="7" 
+                     size="{board_size}" 
                      coord="western"
                      panels="control+names"
                      orient="portrait"
-                     portratio="none"
-                     path="{{TURN_NUMBER}}">{{SGF_CONTENT}}</div>
+                     portratio="none">{{{{SGF_CONTENT}}}}</div>
             </div>
             
             <div class="analysis-section">
@@ -305,33 +311,33 @@ def get_html_template() -> str:
                     <div class="data-grid">
                         <div class="data-item">
                             <span class="data-label" data-tooltip="Index of the NMF part that this activation belongs to. Parts partition the model into sets of interpretable patterns.">Part: <span class="tooltip-icon">ⓘ</span></span>
-                            <span class="data-value">{{PART}}</span>
+                            <span class="data-value">{{{{PART}}}}</span>
                         </div>
                         <div class="data-item">
                             <span class="data-label" data-tooltip="Rank of this position within the part, ordered by activation strength (1 = strongest example of this component).">Rank: <span class="tooltip-icon">ⓘ</span></span>
-                            <span class="data-value">{{RANK}}</span>
+                            <span class="data-value">{{{{RANK}}}}</span>
                         </div>
                         <div class="data-item">
                             <span class="data-label" data-tooltip="Unique identifier for this position in the entire dataset, useful for cross-referencing analyses and SGF files.">Global Position: <span class="tooltip-icon">ⓘ</span></span>
-                            <span class="data-value">{{GLOBAL_POS}}</span>
+                            <span class="data-value">{{{{GLOBAL_POS}}}}</span>
                         </div>
                         <div class="data-item">
                             <span class="data-label" data-tooltip="Percentile of the activation strength when compared with ALL positions in the dataset (e.g. 99 % means stronger than 99 % of positions).">Activation Percentile: <span class="tooltip-icon">ⓘ</span></span>
-                            <span class="data-value">{{ACTIVATION_PERCENTILE}}%</span>
+                            <span class="data-value">{{{{ACTIVATION_PERCENTILE}}}}%</span>
                         </div>
                     </div>
                     
                     <div>
-                        <strong data-tooltip="Raw activation value (0-1) output by the model for this component at this move; higher values indicate the pattern is strongly present in the board position.">Activation Strength: {{ACTIVATION_STRENGTH}} <span class="tooltip-icon">ⓘ</span></strong>
+                        <strong data-tooltip="Raw activation value (0-1) output by the model for this component at this move; higher values indicate the pattern is strongly present in the board position.">Activation Strength: {{{{ACTIVATION_STRENGTH}}}} <span class="tooltip-icon">ⓘ</span></strong>
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: {{ACTIVATION_PERCENT}}%"></div>
+                            <div class="progress-fill" style="width: {{{{ACTIVATION_PERCENT}}}}%"></div>
                         </div>
                     </div>
                     
                     <div style="margin-top: 15px;">
-                        <strong data-tooltip="How many convolutional channels fired above threshold and which ones; gives a low-level view of network attention on the board.">Channel Activity ({{TOTAL_BOARD_ACTIVITY}} active channels) <span class="tooltip-icon">ⓘ</span></strong>
+                        <strong data-tooltip="How many convolutional channels fired above threshold and which ones; gives a low-level view of network attention on the board.">Channel Activity ({{{{TOTAL_BOARD_ACTIVITY}}}} active channels) <span class="tooltip-icon">ⓘ</span></strong>
                         <div class="channel-activity">
-                            {{CHANNEL_BARS}}
+                            {{{{CHANNEL_BARS}}}}
                         </div>
                     </div>
                 </div>
@@ -341,26 +347,26 @@ def get_html_template() -> str:
                     <div class="data-grid">
                         <div class="data-item">
                             <span class="data-label" data-tooltip="Categorisation of the move (normal play, pass, resign) to understand strategic intent or special game events.">Move Type: <span class="tooltip-icon">ⓘ</span></span>
-                            <span class="data-value">{{MOVE_TYPE}}</span>
+                            <span class="data-value">{{{{MOVE_TYPE}}}}</span>
                         </div>
                         <div class="data-item">
                             <span class="data-label" data-tooltip="Stage of the game inferred from move number and board state: opening, middle-game or endgame.">Game Phase: <span class="tooltip-icon">ⓘ</span></span>
-                            <span class="data-value">{{GAME_PHASE}}</span>
+                            <span class="data-value">{{{{GAME_PHASE}}}}</span>
                         </div>
                         <div class="data-item">
                             <span class="data-label" data-tooltip="Shannon entropy of the model's move probability distribution; low entropy indicates high confidence concentrated on a few moves.">Policy Entropy: <span class="tooltip-icon">ⓘ</span></span>
-                            <span class="data-value">{{POLICY_ENTROPY}}</span>
+                            <span class="data-value">{{{{POLICY_ENTROPY}}}}</span>
                         </div>
                         <div class="data-item">
                             <span class="data-label" data-tooltip="Probability assigned by the neural network to the selected move – effectively its confidence in that play.">Policy Confidence: <span class="tooltip-icon">ⓘ</span></span>
-                            <span class="data-value">{{POLICY_CONFIDENCE}}%</span>
+                            <span class="data-value">{{{{POLICY_CONFIDENCE}}}}%</span>
                         </div>
                     </div>
                     
                     <div>
                         <strong data-tooltip="List of moves the policy network thinks are best, with their probabilities and visit counts; helps explain the AI's tactical choices.">Top Policy Moves: <span class="tooltip-icon">ⓘ</span></strong>
                         <div class="policy-moves">
-                            {{POLICY_MOVES}}
+                            {{{{POLICY_MOVES}}}}
                         </div>
                     </div>
                 </div>
@@ -370,21 +376,21 @@ def get_html_template() -> str:
                     <div class="data-grid">
                         <div class="data-item">
                             <span class="data-label" data-tooltip="Measure (0-1) of how distinct this part's activation pattern is compared to other parts – higher means less overlap.">Uniqueness Score: <span class="tooltip-icon">ⓘ</span></span>
-                            <span class="data-value">{{UNIQUENESS_SCORE}}</span>
+                            <span class="data-value">{{{{UNIQUENESS_SCORE}}}}</span>
                         </div>
                         <div class="data-item">
-                                    <span class="data-label" data-tooltip="Ordering of parts by average activation strength across all positions, where 1 is the most frequently strongest pattern.">Part Rank: <span class="tooltip-icon">ⓘ</span></span>
-        <span class="data-value">{{PART_RANK}}</span>
+                            <span class="data-label" data-tooltip="Ordering of parts by average activation strength across all positions, where 1 is the most frequently strongest pattern.">Part Rank: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-value">{{{{PART_RANK}}}}</span>
                         </div>
                         <div class="data-item">
                             <span class="data-label" data-tooltip="Highest activation value among ALL other parts at this position – used to assess selectivity of the current part.">Max Other Activation: <span class="tooltip-icon">ⓘ</span></span>
-                            <span class="data-value">{{MAX_OTHER_ACTIVATION}}</span>
+                            <span class="data-value">{{{{MAX_OTHER_ACTIVATION}}}}</span>
                         </div>
                     </div>
                     
                     <div>
-                                <strong data-tooltip="Bar chart of activation values for EVERY part so you can see the full activation profile of this position.">Activation in All Parts: <span class="tooltip-icon">ⓘ</span></strong>
-        {{PART_ACTIVATIONS}}
+                        <strong data-tooltip="Bar chart of activation values for EVERY part so you can see the full activation profile of this position.">Activation in All Parts: <span class="tooltip-icon">ⓘ</span></strong>
+                        {{{{PART_ACTIVATIONS}}}}
                     </div>
                 </div>
                 
@@ -392,15 +398,15 @@ def get_html_template() -> str:
                     <h3>📁 File References</h3>
                     <div class="data-item">
                         <span class="data-label" data-tooltip="Original Smart-Game-Format game file from which this position was extracted.">SGF File: <span class="tooltip-icon">ⓘ</span></span>
-                        <span class="data-value"><a href="{{SGF_FILE_LINK}}">{{SGF_FILE}}</a></span>
+                        <span class="data-value"><a href="{{{{SGF_FILE_LINK}}}}">{{{{SGF_FILE}}}}</a></span>
                     </div>
                     <div class="data-item">
                         <span class="data-label" data-tooltip="NumPy binary file containing the encoded board tensor used as input to the model.">Board Tensor: <span class="tooltip-icon">ⓘ</span></span>
-                        <span class="data-value"><a href="{{BOARD_NPY_LINK}}">{{BOARD_NPY}}</a></span>
+                        <span class="data-value"><a href="{{{{BOARD_NPY_LINK}}}}">{{{{BOARD_NPY}}}}</a></span>
                     </div>
                     <div class="data-item">
                         <span class="data-label" data-tooltip="Compressed KataGo self-play NPZ file that provided raw tensors and move statistics for this position.">NPZ Source: <span class="tooltip-icon">ⓘ</span></span>
-                        <span class="data-value"><a href="{{NPZ_FILE_LINK}}">{{NPZ_FILE}}</a></span>
+                        <span class="data-value"><a href="{{{{NPZ_FILE_LINK}}}}">{{{{NPZ_FILE}}}}</a></span>
                     </div>
                 </div>
             </div>
@@ -409,15 +415,15 @@ def get_html_template() -> str:
     
     <script>
         // Initialize Besogo after page load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() {{
             besogo.autoInit();
-            console.log('Besogo Go board initialized for position {{GLOBAL_POS}}');
+            console.log('Besogo Go board initialized for position {{{{GLOBAL_POS}}}}');
             
             // Track current move as user navigates through the game
             const currentMoveDisplay = document.getElementById('current-move-display');
             
             // Function to calculate move number from root to current node
-            function calculateMoveNumber(editor) {
+            function calculateMoveNumber(editor) {{
                 if (!editor || !editor.getCurrent || !editor.getRoot) return 0;
                 
                 const root = editor.getRoot();
@@ -428,112 +434,121 @@ def get_html_template() -> str:
                 let node = current;
                 
                 // Count moves from current node back to root
-                while (node && node !== root) {
-                    if (node.move) {
+                while (node && node !== root) {{
+                    if (node.move) {{
                         moveNumber++;
-                    }
+                    }}
                     node = node.parent;
-                }
+                }}
                 
                 // Return the actual move number (no subtraction)
                 return moveNumber;
-            }
+            }}
             
             // Function to update current move display
-            function updateCurrentMove() {
+            function updateCurrentMove() {{
                 const besogoViewer = document.querySelector('.besogo-viewer');
                 if (!besogoViewer || !besogoViewer.besogoEditor) return;
                 
                 const editor = besogoViewer.besogoEditor;
                 const moveNumber = calculateMoveNumber(editor);
-                currentMoveDisplay.textContent = `Turn ${moveNumber}`;
-            }
+                currentMoveDisplay.textContent = `Turn ${{moveNumber}}`;
+            }}
             
             // Wait for Besogo to initialize and then set up the listener
-            function setupBesogoListener() {
+            function setupBesogoListener() {{
                 const besogoViewer = document.querySelector('.besogo-viewer');
-                if (!besogoViewer || !besogoViewer.besogoEditor) {
+                if (!besogoViewer || !besogoViewer.besogoEditor) {{
                     // Try again in a bit if Besogo isn't ready yet
                     setTimeout(setupBesogoListener, 100);
                     return;
-                }
+                }}
                 
                 const editor = besogoViewer.besogoEditor;
                 
                 // Add listener for navigation changes
-                editor.addListener(function(msg) {
-                    if (msg.navChange) {
+                editor.addListener(function(msg) {{
+                    if (msg.navChange) {{
                         updateCurrentMove();
-                    }
-                });
+                    }}
+                }});
                 
                 // Initial update
                 updateCurrentMove();
-            }
+            }}
             
             // Start setup after a short delay to ensure Besogo is initialized
             setTimeout(setupBesogoListener, 500);
             
             // Keyboard navigation for position navigation
-            document.addEventListener('keydown', function(event) {
+            document.addEventListener('keydown', function(event) {{
                 // Only handle arrow keys if not typing in an input field
-                if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {{
                     return;
-                }
+                }}
                 
-                switch(event.key) {
+                switch(event.key) {{
                     case 'ArrowLeft':
                         // Navigate to previous position
-                        const prevLink = document.querySelector('a[href="{{PREV_POS_HTML}}"]');
-                        if (prevLink && !prevLink.hasAttribute('style')) {
+                        const prevLink = document.querySelector('a[href="{{{{PREV_POS_HTML}}}}"]');
+                        if (prevLink && !prevLink.hasAttribute('style')) {{
                             event.preventDefault();
                             window.location.href = prevLink.href;
-                        }
+                        }}
                         break;
                     case 'ArrowRight':
                         // Navigate to next position
-                        const nextLink = document.querySelector('a[href="{{NEXT_POS_HTML}}"]');
-                        if (nextLink && !nextLink.hasAttribute('style')) {
+                        const nextLink = document.querySelector('a[href="{{{{NEXT_POS_HTML}}}}"]');
+                        if (nextLink && !nextLink.hasAttribute('style')) {{
                             event.preventDefault();
                             window.location.href = nextLink.href;
-                        }
+                        }}
                         break;
-                }
-            });
-        });
+                }}
+            }});
+        }});
     </script>
 </body>
 </html>'''
 
 
-def generate_html_file(output_path: str, data: Dict[str, Any]) -> None:
-    """Generate HTML file from template and data."""
-    try:
-        template = get_html_template()
-        
-        # Replace all template variables
-        for key, value in data.items():
-            placeholder = f"{{{{{key}}}}}"
-            template = template.replace(placeholder, str(value))
-        
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(template)
-        
-        print(f"Generated: {output_path}")
-        
-    except Exception as e:
-        print(f"Error generating HTML file {output_path}: {e}")
+def generate_html_file(output_path: str, data: Dict[str, Any], board_size: int = 13) -> None:
+    """Generate HTML file with the given data."""
+    template = get_html_template(board_size)
+    
+    # Replace template variables
+    html_content = template
+    for key, value in data.items():
+        placeholder = f"{{{{{key}}}}}"
+        html_content = html_content.replace(placeholder, str(value))
+    
+    # Write to file
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
 
-def process_position(summary_row: Dict[str, str], output_dir: str, all_positions: List[Dict[str, str]]) -> None:
+def process_position(summary_row: Dict[str, str], output_dir: str, all_positions: List[Dict[str, str]], board_size: int = 13) -> None:
     """Process a single position and generate its HTML file."""
-    global_pos = summary_row['global_pos']
-    part = summary_row['part']
-    rank = summary_row['rank']
+    # Handle both human games format and selfplay format
+    if 'global_pos' in summary_row:
+        # Selfplay format
+        global_pos = summary_row['global_pos']
+        part = summary_row['part']
+        rank = summary_row['rank']
+    else:
+        # Human games format - use part index as position identifier
+        global_pos = summary_row.get('position_idx', '0')
+        if global_pos == 'N/A':
+            global_pos = summary_row.get('part_idx', '0')  # Use part_idx as position identifier
+        part = summary_row.get('part_idx', '0')
+        rank = '1'  # Human games don't have rank, use 1 as default
     
     # Find current position index and navigation data
     current_index = -1
     for i, pos in enumerate(all_positions):
-        if pos['global_pos'] == global_pos and pos['part'] == part and pos['rank'] == rank:
+        pos_global = pos.get('global_pos', pos.get('position_idx', '0'))
+        pos_part = pos.get('part', pos.get('part_idx', '0'))
+        pos_rank = pos.get('rank', '1')
+        if pos_global == global_pos and pos_part == part and pos_rank == rank:
             current_index = i
             break
     
@@ -545,22 +560,136 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     first_pos = all_positions[0] if all_positions else None
     last_pos = all_positions[-1] if all_positions else None
     
+    # Load analysis data from JSON file
+    analysis_file = Path(output_dir).parent / "inspect_parts" / "part_analyses.json"
+    analysis_data = {}
+    if analysis_file.exists():
+        with open(analysis_file, 'r') as f:
+            analyses = json.load(f)
+        
+        # Find the analysis for this position
+        position_idx = int(global_pos)
+        for analysis in analyses:
+            if analysis.get('position_idx') == position_idx:
+                analysis_data = analysis
+                break
+    
     # Load data files
-    sgf_content = load_sgf_content(summary_row['sgf_file'])
+    sgf_content = ""
+    if 'sgf_file' in summary_row:
+        sgf_content = load_sgf_content(summary_row['sgf_file'])
+    elif analysis_data:
+        # Use SGF content from analysis data
+        sgf_content = analysis_data.get('sgf_content', "")
+    else:
+        # Human games format - create placeholder SGF content
+        sgf_content = "(;FF[4]GM[1]SZ[13]AB[dd][dj][pd][pj]AW[cd][cj][nd][nj]C[Human game position])"
     
     # Load analysis data - use part-specific analysis file if it exists
-    analysis_file = summary_row['analysis_file']
-    analysis_data = load_analysis_data(analysis_file)
+    if 'analysis_file' in summary_row:
+        analysis_file = summary_row['analysis_file']
+        analysis_data = load_analysis_data(analysis_file)
     
+    # For human games, create analysis data from JSON
+    if not analysis_data and Path(output_dir).parent.joinpath("inspect_parts/part_analyses.json").exists():
+        with open(Path(output_dir).parent / "inspect_parts/part_analyses.json", 'r') as f:
+            analyses = json.load(f)
+        
+        # Find the analysis for this position
+        position_idx = int(global_pos)
+        for analysis in analyses:
+            if analysis.get('position_idx') == position_idx:
+                analysis_data = {
+                    'position_info': {
+                        'part': int(analysis.get('part_idx', 0)),
+                        'rank': 1,
+                        'turn_number': analysis.get('turn_number', 0),
+                        'move_coordinate': analysis.get('move_coord', 'Unknown')
+                    },
+                    'nmf_analysis': {
+                        'activation_strength': float(analysis.get('activation_strength', 0)),
+                        'total_board_activity': 0,
+                        'channel_activity': []
+                    },
+                    'go_pattern_analysis': {
+                        'move_type': 'normal',
+                        'game_phase': 'opening',
+                        'policy_entropy': 0.0,
+                        'policy_confidence': 0,
+                        'top_policy_moves': []
+                    },
+                    'component_comparison': {
+                        'activation_percentile': float(analysis.get('activation_percentile', 0)),
+                        'uniqueness_score': 0.0,
+                        'part_rank': 1,
+                        'max_other_activation': 0.0
+                    }
+                }
+                break
+    
+    # If still no analysis data, create minimal data
     if not analysis_data:
-        print(f"Skipping position {global_pos} - no analysis data")
-        return
+        analysis_data = {
+            'position_info': {
+                'part': int(part),
+                'rank': int(rank),
+                'turn_number': 0,
+                'move_coordinate': 'Unknown'
+            },
+            'nmf_analysis': {
+                'activation_strength': float(summary_row.get('activation_strength', 0)),
+                'total_board_activity': 0,
+                'channel_activity': []
+            },
+            'go_pattern_analysis': {
+                'move_type': 'normal',
+                'game_phase': 'opening',
+                'policy_entropy': 0.0,
+                'policy_confidence': 0,
+                'top_policy_moves': []
+            },
+            'component_comparison': {
+                'activation_percentile': 0.0,
+                'uniqueness_score': 0.0,
+                'part_rank': 1,
+                'max_other_activation': 0.0
+            }
+        }
     
     # CRITICAL FIX: Update the analysis data to reflect the correct part and rank
     # The analysis.json file contains data from the last processed part, but we need
     # to show the correct part and rank for this specific HTML file
-    analysis_data['position_info']['part'] = int(part)
-    analysis_data['position_info']['rank'] = int(rank)
+    if 'position_info' in analysis_data:
+        analysis_data['position_info']['part'] = int(part)
+        analysis_data['position_info']['rank'] = int(rank)
+    else:
+        # If analysis_data is the raw JSON structure, convert it
+        analysis_data = {
+            'position_info': {
+                'part': int(part),
+                'rank': int(rank),
+                'turn_number': analysis_data.get('turn_number', 0),
+                'move_coordinate': analysis_data.get('move_coord', 'Unknown')
+            },
+            'nmf_analysis': {
+                'activation_strength': float(analysis_data.get('activation_strength', 0)),
+                'total_board_activity': 0,
+                'channel_activity': []
+            },
+            'go_pattern_analysis': {
+                'move_type': 'normal',
+                'game_phase': 'opening',
+                'policy_entropy': 0.0,
+                'policy_confidence': 0,
+                'top_policy_moves': []
+            },
+            'component_comparison': {
+                'activation_percentile': float(analysis_data.get('activation_percentile', 0)),
+                'uniqueness_score': 0.0,
+                'part_rank': 1,
+                'max_other_activation': 0.0
+            }
+        }
     
     # Extract data for template
     position_info = analysis_data.get('position_info', {})
@@ -570,15 +699,22 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     
     # Parse SGF for move information (Besogo handles the board display)
     turn_number = int(position_info.get('turn_number', 0))
-    board_state, move_of_interest, all_moves = parse_sgf_moves(sgf_content, turn_number)
+    board_state, move_of_interest, all_moves = parse_sgf_moves(sgf_content, turn_number, board_size)
     
-    # Calculate the correct display turn number (subtract 1 to match expected numbering)
-    display_turn_number = max(0, turn_number - 1)
+    # Calculate the correct display turn number (use the actual turn number from analysis)
+    display_turn_number = turn_number
     
     # Generate file links for new structured format
-    sgf_file_link = f"../output/{summary_row['sgf_file']}"
-    board_npy_link = f"../output/{summary_row['board_npy']}"
-    npz_file_link = f"../output/{position_info.get('npz_file', 'Unknown')}"
+    sgf_file_link = "#"
+    board_npy_link = "#"
+    npz_file_link = "#"
+    
+    if 'sgf_file' in summary_row:
+        sgf_file_link = f"../output/{summary_row['sgf_file']}"
+    if 'board_npy' in summary_row:
+        board_npy_link = f"../output/{summary_row['board_npy']}"
+    if 'npz_file' in position_info:
+        npz_file_link = f"../output/{position_info.get('npz_file', 'Unknown')}"
     
     # Build template data
     template_data = {
@@ -587,31 +723,31 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
         'TIMESTAMP': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         'CURRENT_INDEX': current_index + 1,
         'TOTAL_POSITIONS': len(all_positions),
-        'PREV_TITLE': f"Position {prev_pos['global_pos']} (Part {prev_pos['part']}, Rank {prev_pos['rank']})" if prev_pos else None,
-        'NEXT_TITLE': f"Position {next_pos['global_pos']} (Part {next_pos['part']}, Rank {next_pos['rank']})" if next_pos else None,
-        'PREV_POS_HTML': f"pos_{prev_pos['global_pos']}_part{prev_pos['part']}_rank{prev_pos['rank']}_analysis.html" if prev_pos else "#",
-        'NEXT_POS_HTML': f"pos_{next_pos['global_pos']}_part{next_pos['part']}_rank{next_pos['rank']}_analysis.html" if next_pos else "#",
+        'PREV_TITLE': f"Position {prev_pos.get('global_pos', prev_pos.get('position_idx', 'N/A'))} (Part {prev_pos.get('part', prev_pos.get('part_idx', 'N/A'))}, Rank {prev_pos.get('rank', '1')})" if prev_pos else None,
+        'NEXT_TITLE': f"Position {next_pos.get('global_pos', next_pos.get('position_idx', 'N/A'))} (Part {next_pos.get('part', next_pos.get('part_idx', 'N/A'))}, Rank {next_pos.get('rank', '1')})" if next_pos else None,
+        'PREV_POS_HTML': f"pos_{prev_pos.get('global_pos', prev_pos.get('position_idx', 'N/A'))}_part{prev_pos.get('part', prev_pos.get('part_idx', 'N/A'))}_rank{prev_pos.get('rank', '1')}_analysis.html" if prev_pos else "#",
+        'NEXT_POS_HTML': f"pos_{next_pos.get('global_pos', next_pos.get('position_idx', 'N/A'))}_part{next_pos.get('part', next_pos.get('part_idx', 'N/A'))}_rank{next_pos.get('rank', '1')}_analysis.html" if next_pos else "#",
         'PREV_DISABLED': 'style="opacity: 0.5; pointer-events: none;"' if not prev_pos else '',
         'NEXT_DISABLED': 'style="opacity: 0.5; pointer-events: none;"' if not next_pos else '',
-        'FIRST_POS': first_pos['global_pos'] if first_pos else None,
-        'LAST_POS': last_pos['global_pos'] if last_pos else None,
-        'FIRST_TITLE': f"Position {first_pos['global_pos']} (Part {first_pos['part']}, Rank {first_pos['rank']})" if first_pos else None,
-        'LAST_TITLE': f"Position {last_pos['global_pos']} (Part {last_pos['part']}, Rank {last_pos['rank']})" if last_pos else None,
-        'FIRST_POS_HTML': f"pos_{first_pos['global_pos']}_part{first_pos['part']}_rank{first_pos['rank']}_analysis.html" if first_pos else "#",
-        'LAST_POS_HTML': f"pos_{last_pos['global_pos']}_part{last_pos['part']}_rank{last_pos['rank']}_analysis.html" if last_pos else "#",
+        'FIRST_POS': first_pos.get('global_pos', first_pos.get('position_idx', 'N/A')) if first_pos else None,
+        'LAST_POS': last_pos.get('global_pos', last_pos.get('position_idx', 'N/A')) if last_pos else None,
+        'FIRST_TITLE': f"Position {first_pos.get('global_pos', first_pos.get('position_idx', 'N/A'))} (Part {first_pos.get('part', first_pos.get('part_idx', 'N/A'))}, Rank {first_pos.get('rank', '1')})" if first_pos else None,
+        'LAST_TITLE': f"Position {last_pos.get('global_pos', last_pos.get('position_idx', 'N/A'))} (Part {last_pos.get('part', last_pos.get('part_idx', 'N/A'))}, Rank {last_pos.get('rank', '1')})" if last_pos else None,
+        'FIRST_POS_HTML': f"pos_{first_pos.get('global_pos', first_pos.get('position_idx', 'N/A'))}_part{first_pos.get('part', first_pos.get('part_idx', 'N/A'))}_rank{first_pos.get('rank', '1')}_analysis.html" if first_pos else "#",
+        'LAST_POS_HTML': f"pos_{last_pos.get('global_pos', last_pos.get('position_idx', 'N/A'))}_part{last_pos.get('part', last_pos.get('part_idx', 'N/A'))}_rank{last_pos.get('rank', '1')}_analysis.html" if last_pos else "#",
         'FIRST_DISABLED': 'style="opacity: 0.5; pointer-events: none;"' if not first_pos or current_index == 0 else '',
         'LAST_DISABLED': 'style="opacity: 0.5; pointer-events: none;"' if not last_pos or current_index == len(all_positions) - 1 else '',
         'PART': part,
         'RANK': rank,
         'GLOBAL_POS': global_pos,
         'TURN_NUMBER': str(display_turn_number),
-        'MOVE_COORD': position_info.get('move_coordinate', 'Unknown'),
+        'MOVE_COORD': position_info.get('move_coordinate', analysis_data.get('move_coord', 'Unknown')),
         'SGF_CONTENT': sgf_content,  # Raw SGF for Besogo
-        'SGF_FILE': summary_row['sgf_file'],
+        'SGF_FILE': summary_row.get('sgf_file', 'Human Game'),
         'SGF_FILE_LINK': sgf_file_link,
-        'BOARD_NPY': summary_row['board_npy'],
+        'BOARD_NPY': summary_row.get('board_npy', 'N/A'),
         'BOARD_NPY_LINK': board_npy_link,
-        'NPZ_FILE': position_info.get('npz_file', 'Unknown'),
+        'NPZ_FILE': position_info.get('npz_file', 'Human Game Data'),
         'NPZ_FILE_LINK': npz_file_link,
         
         # NMF Analysis
@@ -631,7 +767,7 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
         # Part Comparison
         'UNIQUENESS_SCORE': f"{component_comp.get('uniqueness_score', 0):.4f}",
         'PART_RANK': component_comp.get('part_rank', 'Unknown'),
-        'MAX_OTHER_ACTIVATION': f"{component_comp.get('max_other_part_activation', 0):.4f}",
+        'MAX_OTHER_ACTIVATION': f"{component_comp.get('max_other_activation', 0):.4f}",
         'PART_ACTIVATIONS': generate_part_activations(
             nmf_analysis.get('activation_in_other_parts', []), all_positions
         )
@@ -642,41 +778,45 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     output_path = os.path.join(output_dir, output_filename)
     
     # Generate HTML file
-    generate_html_file(output_path, template_data)
+    generate_html_file(output_path, template_data, board_size)
 
 def generate_index_page(summary_data: List[Dict[str, str]], output_dir: str) -> None:
-    """Generate index page linking to all position analyses."""
-    index_html = '''<!DOCTYPE html>
+    """Generate index page with all positions."""
+    index_html = f'''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go Position Analysis - Step 5 Results</title>
-    <link rel="stylesheet" href="besogo/index-styles.css">
+    <title>NMF Parts Analysis - Index</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; margin: 20px; }}
+        .part-section {{ margin-bottom: 30px; }}
+        .part-header {{ background: #f0f0f0; padding: 10px; border-radius: 5px; }}
+        .positions-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin-top: 15px; }}
+        .position-card {{ border: 1px solid #ddd; padding: 15px; border-radius: 5px; }}
+        .position-title {{ font-weight: bold; margin-bottom: 10px; }}
+        .position-details {{ margin-bottom: 15px; }}
+        .detail-item {{ margin: 5px 0; }}
+        .detail-label {{ font-weight: bold; }}
+        .view-button {{ display: inline-block; background: #007bff; color: white; padding: 8px 15px; text-decoration: none; border-radius: 3px; }}
+        .view-button:hover {{ background: #0056b3; }}
+    </style>
 </head>
 <body>
-    <div class="github-header">
-        <a href="https://github.com/lets-getitnow/ai_go_explain" target="_blank" rel="noopener noreferrer">
-            <svg class="github-logo" viewBox="0 0 24 24">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-            </svg>
-            <span class="project-name">ai_go_explain</span>
-            <span>View on GitHub</span>
-        </a>
-    </div>
-    <div class="container">
-        <div class="header">
-            <h1>Go Position Analysis Results</h1>
-            <p>Step 5: NMF Part Analysis - Positions of Interest</p>
-            <p>Positions analyzed across NMF parts, each showing the top 20 strongest activations</p>
-        </div>
-        
+    <h1>NMF Parts Analysis - Index</h1>
+    <p>Total positions: {len(summary_data)}</p>
+    <div class="content">
 '''
     
     # Group positions by part
     parts = {}
     for row in summary_data:
-        part = row['part']
+        # Handle both formats
+        if 'part' in row:
+            part = row['part']
+        else:
+            part = row.get('part_idx', '0')
+        
         if part not in parts:
             parts[part] = []
         parts[part].append(row)
@@ -693,31 +833,35 @@ def generate_index_page(summary_data: List[Dict[str, str]], output_dir: str) -> 
 '''
         
         # Sort by rank
-        positions.sort(key=lambda x: int(x['rank']))
+        positions.sort(key=lambda x: int(x.get('rank', '1')))
         
         for pos in positions:
+            # Handle both formats
+            global_pos = pos.get('global_pos', pos.get('position_idx', '0'))
+            if global_pos == 'N/A':
+                global_pos = pos.get('part_idx', '0')
+            
+            part = pos.get('part', pos.get('part_idx', '0'))
+            rank = pos.get('rank', '1')
+            
             index_html += f'''
                 <div class="position-card">
-                    <div class="position-title">Position {pos['global_pos']}</div>
+                    <div class="position-title">Position {global_pos}</div>
                     <div class="position-details">
                         <div class="detail-item">
                             <span class="detail-label">Rank:</span>
-                            <span class="detail-value">{pos['rank']}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Move:</span>
-                            <span class="detail-value">{pos['coord']}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Turn:</span>
-                            <span class="detail-value">{pos['turn']}</span>
+                            <span class="detail-value">{rank}</span>
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Part:</span>
-                            <span class="detail-value">{pos['part']}</span>
+                            <span class="detail-value">{part}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Activation:</span>
+                            <span class="detail-value">{pos.get('activation_strength', 'N/A')}</span>
                         </div>
                     </div>
-                    <a href="pos_{pos['global_pos']}_part{pos['part']}_rank{pos['rank']}_analysis.html" class="view-button">
+                    <a href="pos_{global_pos}_part{part}_rank{rank}_analysis.html" class="view-button">
                         View Analysis →
                     </a>
                 </div>
@@ -742,10 +886,18 @@ def generate_index_page(summary_data: List[Dict[str, str]], output_dir: str) -> 
 
 def main():
     """Main function to generate all HTML reports."""
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--summary-file", required=True, help="CSV summary file")
+    parser.add_argument("--output-dir", required=True, help="Output directory for HTML reports")
+    parser.add_argument("--board-size", type=int, default=13, help="Board size (default: 13 for human games)")
+    
+    args = parser.parse_args()
+    
     # Set up paths
-    base_dir = os.path.dirname(__file__)
-    summary_file = os.path.join(base_dir, 'strong_positions_summary.csv')
-    output_dir = os.path.join(base_dir, 'html_reports')
+    summary_file = args.summary_file
+    output_dir = args.output_dir
+    board_size = args.board_size
     
     # Create output directory
     os.makedirs(output_dir, exist_ok=True)
@@ -762,10 +914,8 @@ def main():
     print(f"Processing {len(summary_data)} positions...")
     
     # Process each position
-    os.chdir(base_dir)  # Change to base directory for relative file paths
-    
     for row in summary_data:
-        process_position(row, output_dir, summary_data)
+        process_position(row, output_dir, summary_data, board_size)
     
     # Generate index page
     generate_index_page(summary_data, output_dir)

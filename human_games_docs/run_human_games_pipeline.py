@@ -102,6 +102,11 @@ def main() -> None:
         default="cpu",
         help="Processor to use for activation extraction (default: cpu)"
     )
+    parser.add_argument(
+        "--max-files",
+        type=int,
+        help="Maximum number of SGF files to process (for testing)"
+    )
     
     args = parser.parse_args()
     
@@ -126,12 +131,15 @@ def main() -> None:
     # Step 1: Convert SGF to NPZ (if not skipped)
     if not args.skip_conversion:
         npz_dir = args.output_dir / "npz_files"
-        run_command([
+        convert_cmd = [
             "python3", "1_collect_positions/convert_human_games.py",
             "--input-dir", str(args.input_dir),
             "--output-dir", str(npz_dir),
             "--board-size", str(args.board_size)
-        ], "Convert SGF games to NPZ format")
+        ]
+        if args.max_files:
+            convert_cmd.extend(["--max-files", str(args.max_files)])
+        run_command(convert_cmd, "Convert SGF games to NPZ format")
     else:
         npz_dir = args.output_dir / "npz_files"
         if not npz_dir.exists():
@@ -180,12 +188,12 @@ def main() -> None:
     # Step 5: Inspect parts and generate HTML reports
     inspect_dir = args.output_dir / "inspect_parts"
     run_command([
-        "python3", "5_inspect_parts/inspect_parts.py",
-        "--activations-file", str(activations_dir / "pooled_rconv14.out__baseline.npy"),
-        "--nmf-components", str(nmf_dir / "nmf_components.npy"),
-        "--nmf-activations", str(nmf_dir / "nmf_activations.npy"),
+        "python3", "5_inspect_parts/inspect_parts_human_games.py",
+        "--nmf-dir", str(nmf_dir),
+        "--npz-dir", str(npz_dir),
         "--output-dir", str(inspect_dir),
-        "--num-positions-per-part", "10"
+        "--max-positions", "10",
+        "--board-size", str(args.board_size)
     ], "Inspect NMF parts and generate analysis")
     
     # Generate HTML reports
@@ -193,7 +201,8 @@ def main() -> None:
     run_command([
         "python3", "5_inspect_parts/generate_html_reports.py",
         "--summary-file", str(inspect_dir / "strong_positions_summary.csv"),
-        "--output-dir", str(html_dir)
+        "--output-dir", str(html_dir),
+        "--board-size", str(args.board_size)
     ], "Generate HTML visualization reports")
     
     print(f"\n🎉 Pipeline completed successfully!")
