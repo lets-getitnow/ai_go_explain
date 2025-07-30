@@ -248,7 +248,7 @@ class ActivationExtractor:
         self._extra.no_grad = True
 
     # ── PUBLIC API ──────────────────────────────────────────────────────
-    def run(self, position_files: List[Path], *, total_positions: int | None = None) -> Tuple[np.ndarray, List[str]]:
+    def run(self, position_files: List[Path], *, total_positions: int | None = None) -> Tuple[np.ndarray, List[str], np.ndarray, np.ndarray]:
         """Run inference on **every** position in `position_files`.
 
         The method streams data in mini-batches of size ``self.batch_size`` to
@@ -256,6 +256,8 @@ class ActivationExtractor:
 
         • ``big_matrix`` – shape (N_positions, C_channels)
         • ``index``      – list mapping each row → originating `.npz` file
+        • ``policy_outputs`` – shape (N_positions, 6, 362) policy logits
+        • ``value_outputs`` – shape (N_positions, 6, 362) value outputs
         """
 
         if total_positions is None:
@@ -271,6 +273,8 @@ class ActivationExtractor:
         # ── INITIALISE ───────────────────────────────────────────────────────────
         rows: List[np.ndarray] = []
         index: List[str] = []
+        policy_outputs: List[np.ndarray] = []
+        value_outputs: List[np.ndarray] = []
         buffer_bin: List[np.ndarray] = []
         buffer_glob: List[np.ndarray] = []
         buffer_paths: List[str] = []
@@ -290,14 +294,15 @@ class ActivationExtractor:
             self._extra.available.clear()
             
             with timeout_context(300):
-                _ = self.model(batch_binary_tensor, batch_global_tensor, extra_outputs=self._extra)
+                # Get both activation outputs and policy/value outputs
+                model_outputs = self.model(batch_binary_tensor, batch_global_tensor, extra_outputs=self._extra)
             
             act = self._extra.returned[self._layer_name]
             if act.dim() != 4:
                 raise ValueError(f"Expected 4-D activations, got {act.shape}")
 
             if torch.isnan(act).any():
-                print(f"[WARNING] Batch contains NaN activations, retrying with smaller batch...")
+                print(f"[WARNING] NaN detected in activations, retrying with smaller batch...")
                 if len(buffer_bin) > 1:
                     half_size = len(buffer_bin) // 2
                     temp_bin = buffer_bin[:half_size]
@@ -313,7 +318,7 @@ class ActivationExtractor:
                     self._extra.returned.clear()
                     self._extra.available.clear()
                     with timeout_context(300):
-                        _ = self.model(batch_binary_tensor, batch_global_tensor, extra_outputs=self._extra)
+                        model_outputs = self.model(batch_binary_tensor, batch_global_tensor, extra_outputs=self._extra)
                     act = self._extra.returned[self._layer_name]
                     if torch.isnan(act).any():
                         print(f"[WARNING] Skipping batch with NaN activations")
@@ -323,7 +328,7 @@ class ActivationExtractor:
                         return
                     else:
                         print(f"[INFO] Successfully processed smaller batch of {half_size} positions")
-                        _process_activations(act, temp_paths)
+                        _process_activations(act, temp_paths, model_outputs)
                         return
                 else:
                     print(f"[WARNING] Skipping single position with NaN activations")
@@ -331,14 +336,14 @@ class ActivationExtractor:
                     buffer_glob.clear()
                     buffer_paths.clear()
                     return
-            _process_activations(act, buffer_paths)
+            _process_activations(act, buffer_paths, model_outputs)
             
             buffer_bin.clear()
             buffer_glob.clear()
             buffer_paths.clear()
 
-        def _process_activations(act: torch.Tensor, paths: List[str]) -> None:
-            """Process activations with 3x3 pooling and track progress."""
+        def _process_activations(act: torch.Tensor, paths: List[str], model_outputs: Tuple) -> None:
+            """Process activations and policy/value outputs for a batch."""
             # 3x3 grid pooling instead of global average
             # act shape: (B, C, H, W) where H=W=board_size
             B, C, H, W = act.shape
@@ -364,6 +369,18 @@ class ActivationExtractor:
             pooled = torch.cat(pooled_parts, dim=1).cpu().numpy()
             rows.append(pooled)
             index.extend(paths)
+            
+            # Process policy and value outputs
+            policy_output, value_output = model_outputs
+            
+            # Extract policy logits (first component of policy output)
+            policy_logits = policy_output[0].detach().cpu().numpy()  # Shape: (batch_size, 6, 362)
+            value_logits = value_output[0].detach().cpu().numpy()    # Shape: (batch_size, 6, 362)
+            
+            for i in range(len(paths)):
+                policy_outputs.append(policy_logits[i])  # Shape: (6, 362)
+                value_outputs.append(value_logits[i])    # Shape: (6, 362)
+            
             processed = sum(r.shape[0] for r in rows)
             if total_positions:
                 pct = processed / total_positions * 100
@@ -405,7 +422,7 @@ class ActivationExtractor:
         _flush_buffer()
 
         big_matrix = np.concatenate(rows, axis=0)  # (N_positions, C_channels)
-        return big_matrix, index
+        return big_matrix, index, np.array(policy_outputs), np.array(value_outputs)
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -509,7 +526,7 @@ def main() -> None:  # noqa: D401
 
         print(f"[INFO] [{tag}] Total positions to process: {total_positions}")
 
-        matrix, index = extractor.run(position_files, total_positions=total_positions)
+        matrix, index, policy_outputs, value_outputs = extractor.run(position_files, total_positions=total_positions)
 
         # With 3x3 pooling, we have 9x the original channels
         expected_channels = channels * 9
@@ -524,6 +541,10 @@ def main() -> None:  # noqa: D401
         args.output_dir.mkdir(parents=True, exist_ok=True)
         layer_tag = chosen_layer.replace("_output", "")
         np.save(args.output_dir / f"pooled_{layer_tag}__{tag}.npy", matrix_scaled)
+        
+        # Save policy and value outputs
+        np.save(args.output_dir / f"policy_outputs__{tag}.npy", policy_outputs)
+        np.save(args.output_dir / f"value_outputs__{tag}.npy", value_outputs)
 
         with (args.output_dir / f"pos_index_to_npz__{tag}.txt").open("w", encoding="utf-8") as f:
             f.write("\n".join(index))
@@ -541,6 +562,8 @@ def main() -> None:  # noqa: D401
             "column_scaled": True,
             "variant_tag": tag,
             "dataset_dir": str(dataset_dir),
+            "policy_outputs_shape": list(policy_outputs.shape),
+            "value_outputs_shape": list(value_outputs.shape),
         }
         with (args.output_dir / f"pooled_meta__{tag}.json").open("w", encoding="utf-8") as f:
             json.dump(meta, f, indent=2)
@@ -548,6 +571,12 @@ def main() -> None:  # noqa: D401
         print(
             f"✅ [{tag}] Extracted {matrix.shape[0]} rows × {matrix.shape[1]} channels → "
             f"{args.output_dir}/pooled_{layer_tag}__{tag}.npy")
+        print(
+            f"✅ [{tag}] Policy outputs: {policy_outputs.shape} → "
+            f"{args.output_dir}/policy_outputs__{tag}.npy")
+        print(
+            f"✅ [{tag}] Value outputs: {value_outputs.shape} → "
+            f"{args.output_dir}/value_outputs__{tag}.npy")
 
     # ── Decide datasets ───────────────────────────────────────────────
     if args.positions_dir:

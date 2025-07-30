@@ -163,7 +163,9 @@ def create_position_sgf(moves: List[Tuple[str, str]], position_idx: int, origina
         return "".join(sgf_parts)
 
 def analyze_position(position_idx: int, part_idx: int, activations: np.ndarray, 
-                   game_data: Dict[str, Any], board_size: int = 13) -> Dict[str, Any]:
+                   game_data: Dict[str, Any], board_size: int = 13, 
+                   policy_outputs: np.ndarray = None, value_outputs: np.ndarray = None,
+                   components: np.ndarray = None) -> Dict[str, Any]:
     """Analyze a specific position."""
     # Get activation strength for this position and part
     activation_strength = float(activations[position_idx, part_idx])
@@ -198,6 +200,71 @@ def analyze_position(position_idx: int, part_idx: int, activations: np.ndarray,
         total_count = len(all_activations)
         activation_percentile = (less_than_count / total_count) * 100.0
     
+    # Calculate uniqueness score and part comparison
+    uniqueness_score = calculate_uniqueness_score(activations, position_idx, part_idx)
+    part_comparison = calculate_part_comparison(activations, position_idx, part_idx)
+    
+    # Calculate channel activity if components are available
+    channel_activity = []
+    if components is not None:
+        channel_activity = calculate_channel_activity(components, part_idx, board_size)
+    
+    # Analyze policy outputs if available
+    policy_analysis = {}
+    if policy_outputs is not None:
+        policy_logits = policy_outputs[position_idx]  # Shape: (6, 170)
+        
+        # Use the first policy head (most common)
+        main_policy = policy_logits[0]  # Shape: (170,)
+        
+        # Convert logits to probabilities
+        policy_probs = np.exp(main_policy - np.max(main_policy))  # Softmax
+        policy_probs = policy_probs / np.sum(policy_probs)
+        
+        # Calculate policy entropy
+        policy_entropy = -np.sum(policy_probs * np.log(policy_probs + 1e-10))
+        
+        # Get top moves
+        top_indices = np.argsort(policy_probs)[-5:][::-1]  # Top 5 moves
+        top_moves = []
+        for idx in top_indices:
+            if idx == 169:  # Pass move for 13x13 board (169 board positions + 1 pass)
+                move = "PASS"
+            else:
+                # Convert to board coordinates for 13x13 board
+                row = idx // 13
+                col = idx % 13
+                # Convert to Go coordinates (A1, B2, etc.) for 13x13
+                move = f"{chr(ord('A') + col)}{row + 1}"
+            top_moves.append({
+                'move': move,
+                'probability': float(policy_probs[idx]),
+                'logit': float(main_policy[idx])
+            })
+        
+        policy_analysis = {
+            'entropy': float(policy_entropy),
+            'confidence': float(np.max(policy_probs)),
+            'top_moves': top_moves
+        }
+    
+    # Analyze value outputs if available
+    value_analysis = {}
+    if value_outputs is not None:
+        value_logits = value_outputs[position_idx]  # Shape: (6, 170)
+        
+        # Use the first value head
+        main_value = value_logits[0]  # Shape: (170,)
+        
+        # Convert logits to probabilities
+        value_probs = np.exp(main_value - np.max(main_value))  # Softmax
+        value_probs = value_probs / np.sum(value_probs)
+        
+        value_analysis = {
+            'max_value': float(np.max(value_probs)),
+            'value_entropy': float(-np.sum(value_probs * np.log(value_probs + 1e-10)))
+        }
+    
     return {
         'position_idx': position_idx,
         'part_idx': part_idx,
@@ -207,7 +274,12 @@ def analyze_position(position_idx: int, part_idx: int, activations: np.ndarray,
         'move_coord': move_coord,
         'turn_number': turn_number,
         'game_id': game_id,
-        'total_moves': len(moves)
+        'total_moves': len(moves),
+        'policy_analysis': policy_analysis,
+        'value_analysis': value_analysis,
+        'uniqueness_score': uniqueness_score,
+        'part_comparison': part_comparison,
+        'channel_activity': channel_activity
     }
 
 def generate_csv_summary(analyses: List[Dict[str, Any]], output_dir: Path) -> None:
@@ -242,12 +314,86 @@ def generate_csv_summary(analyses: List[Dict[str, Any]], output_dir: Path) -> No
     
     print(f"✅ CSV summary saved to {csv_file}")
 
+def calculate_uniqueness_score(activations: np.ndarray, position_idx: int, part_idx: int) -> float:
+    """Calculate how unique this part's activation is compared to others."""
+    position_activations = activations[position_idx, :]  # All parts for this position
+    current_activation = position_activations[part_idx]
+    
+    # Calculate uniqueness as 1 - (max other activation / current activation)
+    other_activations = np.delete(position_activations, part_idx)
+    max_other = np.max(other_activations)
+    
+    if current_activation == 0:
+        return 0.0
+    
+    uniqueness = 1.0 - (max_other / current_activation)
+    return max(0.0, uniqueness)
+
+def calculate_channel_activity(components: np.ndarray, part_idx: int, board_size: int = 13) -> List[Dict[str, Any]]:
+    """Calculate which channels are most active for this part."""
+    # Get the component weights for this part
+    part_weights = components[part_idx, :]  # Shape: (n_channels,)
+    
+    # Reshape to 3x3 grid format (9 regions per channel)
+    n_channels = part_weights.shape[0] // 9
+    channel_weights = part_weights.reshape(n_channels, 9)
+    
+    # Calculate average activation per channel
+    channel_activities = []
+    for i in range(n_channels):
+        avg_activation = np.mean(channel_weights[i, :])
+        if avg_activation > 0.01:  # Only include channels with significant activity
+            channel_activities.append({
+                'channel': i,
+                'activity': float(avg_activation),
+                'max_region': int(np.argmax(channel_weights[i, :])),
+                'min_region': int(np.argmin(channel_weights[i, :]))
+            })
+    
+    # Sort by activity (highest first)
+    channel_activities.sort(key=lambda x: x['activity'], reverse=True)
+    return channel_activities[:10]  # Return top 10 channels
+
+def calculate_part_comparison(activations: np.ndarray, position_idx: int, part_idx: int) -> Dict[str, Any]:
+    """Calculate part comparison metrics."""
+    position_activations = activations[position_idx, :]  # All parts for this position
+    current_activation = position_activations[part_idx]
+    
+    # Calculate max other activation
+    other_activations = np.delete(position_activations, part_idx)
+    max_other_activation = np.max(other_activations)
+    
+    # Calculate part rank (1 = highest activation)
+    sorted_indices = np.argsort(position_activations)[::-1]
+    part_rank = np.where(sorted_indices == part_idx)[0][0] + 1
+    
+    # Calculate activation in other parts (top 10)
+    top_other_parts = []
+    for i in range(min(10, len(other_activations))):
+        other_part_idx = np.argsort(other_activations)[::-1][i]
+        # Map back to original part index
+        if other_part_idx >= part_idx:
+            original_idx = other_part_idx + 1
+        else:
+            original_idx = other_part_idx
+        top_other_parts.append({
+            'part': int(original_idx),
+            'activation': float(other_activations[other_part_idx])
+        })
+    
+    return {
+        'max_other_activation': float(max_other_activation),
+        'part_rank': int(part_rank),
+        'top_other_parts': top_other_parts
+    }
+
 def main():
+    """Main entry point."""
     import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--nmf-dir", type=Path, required=True, help="Directory containing NMF results")
-    parser.add_argument("--npz-dir", type=Path, required=True, help="Directory containing NPZ files")
-    parser.add_argument("--output-dir", type=Path, required=True, help="Output directory for reports")
+    parser = argparse.ArgumentParser(description="Inspect NMF parts for human games")
+    parser.add_argument("--nmf-dir", required=True, type=Path, help="Directory containing NMF results")
+    parser.add_argument("--npz-dir", required=True, type=Path, help="Directory containing NPZ files")
+    parser.add_argument("--output-dir", required=True, type=Path, help="Output directory for analysis")
     parser.add_argument("--max-positions", type=int, default=10, help="Maximum number of positions to analyze")
     parser.add_argument("--board-size", type=int, default=13, help="Board size")
     
@@ -256,7 +402,7 @@ def main():
     print("=== Step 5 – Inspect Parts (Human Games) ===")
     
     # Load NMF data
-    print(f"Loading NMF data from {args.nmf_dir}...")
+    print("Loading NMF data from", args.nmf_dir)
     components, activations, meta = load_nmf_data(args.nmf_dir)
     
     print(f"Components shape: {components.shape}")
@@ -264,34 +410,51 @@ def main():
     print(f"Meta keys: {list(meta.keys())}")
     
     # Load game data
-    print(f"Loading game data from {args.npz_dir}...")
+    print("Loading game data from", args.npz_dir)
     game_data = load_game_data(args.npz_dir)
     print(f"Loaded {len(game_data)} games")
     
+    # Load policy and value outputs if available
+    policy_outputs = None
+    value_outputs = None
+    activations_dir = args.nmf_dir.parent / "activations"
+    policy_file = activations_dir / "policy_outputs__baseline.npy"
+    value_file = activations_dir / "value_outputs__baseline.npy"
+    
+    if policy_file.exists() and value_file.exists():
+        print("Loading policy and value outputs...")
+        policy_outputs = np.load(policy_file)
+        value_outputs = np.load(value_file)
+        print(f"Policy outputs shape: {policy_outputs.shape}")
+        print(f"Value outputs shape: {value_outputs.shape}")
+    else:
+        print("Policy and value outputs not found, analysis will be limited")
+    
     # Create output directory
-    args.output_dir.mkdir(exist_ok=True)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
     
     # Analyze positions
     n_positions = min(args.max_positions, activations.shape[0])
-    n_parts = min(10, activations.shape[1])  # Analyze top 10 parts
+    n_parts = activations.shape[1]
     
     print(f"Analyzing {n_positions} positions across {n_parts} parts...")
     
     analyses = []
     for position_idx in range(n_positions):
-        # Find the part with highest activation for this position
-        position_activations = activations[position_idx, :]
-        best_part_idx = np.argmax(position_activations)
+        # Find the best part for this position
+        best_part = np.argmax(activations[position_idx])
+        print(f"Analyzing position {position_idx} (best part: {best_part})...")
         
-        print(f"Analyzing position {position_idx} (best part: {best_part_idx})...")
-        analysis = analyze_position(position_idx, best_part_idx, activations, game_data, args.board_size)
+        analysis = analyze_position(
+            position_idx, best_part, activations, game_data, 
+            args.board_size, policy_outputs, value_outputs, components
+        )
         analyses.append(analysis)
     
-    # Save analysis
+    # Save detailed analysis
     output_file = args.output_dir / "part_analyses.json"
-    with output_file.open('w') as f:
-        json.dump(analyses, f, indent=2, cls=NumpyEncoder)
-    
+    with open(output_file, 'w') as f:
+        json.dump(analyses, f, cls=NumpyEncoder, indent=2)
     print(f"✅ Analysis saved to {output_file}")
     
     # Generate CSV summary
@@ -300,10 +463,10 @@ def main():
     # Print summary
     print("\n=== Summary ===")
     for analysis in analyses:
-        pos_idx = analysis["position_idx"]
-        part_idx = analysis["part_idx"]
-        strength = analysis["activation_strength"]
-        move = analysis["move_coord"]
+        pos_idx = analysis['position_idx']
+        part_idx = analysis['part_idx']
+        strength = analysis['activation_strength']
+        move = analysis['move_coord']
         print(f"Position {pos_idx}: Part {part_idx}, Strength {strength:.6f}, Move {move}")
 
 if __name__ == "__main__":

@@ -99,26 +99,44 @@ def convert_tuple_to_go_coord(tuple_coord: str, board_size: int = 13) -> str:
     # If already in Go format or unknown format, return as is
     return tuple_coord
 
-def generate_channel_bars(channel_activity: List[int]) -> str:
-    """Generate HTML for channel activity visualization."""
+def generate_channel_bars(channel_activity: List[Dict[str, Any]]) -> str:
+    """Generate HTML for channel activity bars."""
     if not channel_activity:
-        return ""
+        return "<div>No channel activity data available</div>"
     
-    max_activity = max(channel_activity) if channel_activity else 1
-    bars = []
-    
-    for i, activity in enumerate(channel_activity):
-        if max_activity > 0:
-            height_percent = (activity / max_activity) * 100
+    bars_html = []
+    for channel_info in channel_activity:
+        if isinstance(channel_info, dict):
+            # New format from enhanced analysis
+            channel_num = channel_info.get('channel', 0)
+            activity = channel_info.get('activity', 0)
+            max_region = channel_info.get('max_region', 0)
+            min_region = channel_info.get('min_region', 0)
+            
+            # Convert activity to percentage (assuming max activity is around 1.0)
+            percentage = min(100, activity * 100)
+            
+            bar_html = f'''<div class="channel-bar">
+                <span>Channel {channel_num}:</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {percentage:.1f}%"></div>
+                </div>
+                <span>{activity:.4f}</span>
+            </div>'''
         else:
-            height_percent = 0
+            # Old format from selfplay analysis
+            channel_num = channel_info
+            bar_html = f'''<div class="channel-bar">
+                <span>Channel {channel_num}:</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%"></div>
+                </div>
+                <span>Active</span>
+            </div>'''
         
-        bar_html = f'''<div class="channel-bar" data-tooltip="Channel {i}: {activity}">
-            <div class="channel-fill" style="width: {height_percent}%"></div>
-        </div>'''
-        bars.append(bar_html)
+        bars_html.append(bar_html)
     
-    return '\n'.join(bars)
+    return '\n'.join(bars_html)
 
 def generate_policy_moves(policy_moves: List[Dict[str, Any]]) -> str:
     """Generate HTML for top policy moves with Go coordinate format."""
@@ -127,22 +145,33 @@ def generate_policy_moves(policy_moves: List[Dict[str, Any]]) -> str:
     
     moves_html = []
     for move in policy_moves:
-        coord = move.get('coord', 'Unknown')
-        percentage = move.get('percentage', 0)
-        count = move.get('count', 0)
+        # Handle both old format (coord, percentage, count) and new format (move, probability, logit)
+        if 'move' in move:
+            # New format from enhanced analysis
+            coord = move.get('move', 'Unknown')
+            percentage = move.get('probability', 0) * 100  # Convert to percentage
+            count = 0  # Not available in new format
+        else:
+            # Old format from selfplay analysis
+            coord = move.get('coord', 'Unknown')
+            percentage = move.get('percentage', 0)
+            count = move.get('count', 0)
         
-        # Convert tuple coordinates to Go coordinates
-        go_coord = convert_tuple_to_go_coord(coord)
+        # Convert tuple coordinates to Go coordinates if needed
+        if isinstance(coord, str) and coord != 'Unknown' and coord != 'PASS':
+            go_coord = convert_tuple_to_go_coord(coord)
+        else:
+            go_coord = coord
         
         move_html = f'''<div class="policy-move">
             <span><strong>{go_coord}</strong></span>
-            <span>{percentage}% ({count})</span>
+            <span>{percentage:.2f}% ({count})</span>
         </div>'''
         moves_html.append(move_html)
     
     return '\n'.join(moves_html)
 
-def generate_part_activations(activations: List[float], all_positions: List[Dict[str, str]] = None) -> str:
+def generate_part_activations(activations: List[Dict[str, Any]], all_positions: List[Dict[str, str]] = None) -> str:
     """Generate HTML for part activation visualization with clickable bars."""
     if not activations:
         return "<div>No activation data available</div>"
@@ -151,29 +180,58 @@ def generate_part_activations(activations: List[float], all_positions: List[Dict
     part_to_position = {}
     if all_positions:
         for pos in all_positions:
-            part = int(pos['part'])
+            # Handle both formats
+            if 'part' in pos:
+                part = int(pos['part'])
+            else:
+                part = int(pos.get('part_idx', 0))
             if part not in part_to_position:
                 part_to_position[part] = pos
     
     activations_html = []
-    for i, activation in enumerate(activations):
+    for i, activation_info in enumerate(activations):
+        if isinstance(activation_info, dict):
+            # New format from enhanced analysis
+            part_num = activation_info.get('part', i)
+            activation = activation_info.get('activation', 0)
+        else:
+            # Old format from selfplay analysis
+            part_num = i
+            activation = activation_info
+        
         percent = activation * 100
         
         # Create clickable link if we have position data for this part
-        if i in part_to_position:
-            pos = part_to_position[i]
-            link_url = f"pos_{pos['global_pos']}_part{pos['part']}_rank{pos['rank']}_analysis.html"
+        if part_num in part_to_position:
+            pos = part_to_position[part_num]
+            # Handle both formats for position data
+            if 'global_pos' in pos:
+                global_pos = pos['global_pos']
+            else:
+                global_pos = pos.get('position_idx', 'N/A')
+            
+            if 'part' in pos:
+                part = pos['part']
+            else:
+                part = pos.get('part_idx', 'N/A')
+            
+            if 'rank' in pos:
+                rank = pos['rank']
+            else:
+                rank = '1'
+            
+            link_url = f"pos_{global_pos}_part{part}_rank{rank}_analysis.html"
             part_html = f'''
         <div style="margin: 5px 0;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <a href="{link_url}" style="text-decoration: none; color: inherit; cursor: pointer;" 
-                   title="View strongest example of Part {i} (Position {pos['global_pos']}, Rank {pos['rank']})">
-                    <span>Part {i}:</span>
+                   title="View strongest example of Part {part_num} (Position {global_pos}, Rank {rank})">
+                    <span>Part {part_num}:</span>
                 </a>
                 <span>{activation:.4f}</span>
             </div>
             <a href="{link_url}" style="text-decoration: none; color: inherit; cursor: pointer;" 
-               title="View strongest example of Part {i} (Position {pos['global_pos']}, Rank {pos['rank']})">
+               title="View strongest example of Part {part_num} (Position {global_pos}, Rank {rank})">
                 <div class="progress-bar" style="cursor: pointer;">
                     <div class="progress-fill" style="width: {percent:.1f}%"></div>
                 </div>
@@ -184,7 +242,7 @@ def generate_part_activations(activations: List[float], all_positions: List[Dict
             part_html = f'''
         <div style="margin: 5px 0;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Part {i}:</span>
+                <span>Part {part_num}:</span>
                 <span>{activation:.4f}</span>
             </div>
             <div class="progress-bar">
@@ -346,27 +404,12 @@ def get_html_template(board_size: int = 13) -> str:
                     <h3>🎯 Go Pattern Analysis</h3>
                     <div class="data-grid">
                         <div class="data-item">
-                            <span class="data-label" data-tooltip="Categorisation of the move (normal play, pass, resign) to understand strategic intent or special game events.">Move Type: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Classification of the move type (normal, ko, ladder, etc.).">Move Type: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{{{MOVE_TYPE}}}}</span>
                         </div>
                         <div class="data-item">
-                            <span class="data-label" data-tooltip="Stage of the game inferred from move number and board state: opening, middle-game or endgame.">Game Phase: <span class="tooltip-icon">ⓘ</span></span>
+                            <span class="data-label" data-tooltip="Game phase when this position occurred (opening, middle_game, endgame).">Game Phase: <span class="tooltip-icon">ⓘ</span></span>
                             <span class="data-value">{{{{GAME_PHASE}}}}</span>
-                        </div>
-                        <div class="data-item">
-                            <span class="data-label" data-tooltip="Shannon entropy of the model's move probability distribution; low entropy indicates high confidence concentrated on a few moves.">Policy Entropy: <span class="tooltip-icon">ⓘ</span></span>
-                            <span class="data-value">{{{{POLICY_ENTROPY}}}}</span>
-                        </div>
-                        <div class="data-item">
-                            <span class="data-label" data-tooltip="Probability assigned by the neural network to the selected move – effectively its confidence in that play.">Policy Confidence: <span class="tooltip-icon">ⓘ</span></span>
-                            <span class="data-value">{{{{POLICY_CONFIDENCE}}}}%</span>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <strong data-tooltip="List of moves the policy network thinks are best, with their probabilities and visit counts; helps explain the AI's tactical choices.">Top Policy Moves: <span class="tooltip-icon">ⓘ</span></strong>
-                        <div class="policy-moves">
-                            {{{{POLICY_MOVES}}}}
                         </div>
                     </div>
                 </div>
@@ -625,23 +668,26 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     
     nmf_analysis = {
         'activation_strength': float(analysis_data.get('activation_strength', 0)),
-        'total_board_activity': 0,  # Not available in human games data
-        'channel_activity': []  # Not available in human games data
+        'total_board_activity': len(analysis_data.get('channel_activity', [])),
+        'channel_activity': analysis_data.get('channel_activity', [])
     }
     
+    # Enhanced Go Pattern Analysis from policy data
+    policy_analysis = analysis_data.get('policy_analysis', {})
     go_pattern = {
         'move_type': 'normal',  # Default for human games
-        'game_phase': 'opening',  # Default for human games
-        'policy_entropy': 0.0,  # Not available in human games data
-        'policy_confidence': 0,  # Not available in human games data
-        'top_policy_moves': []  # Not available in human games data
+        'game_phase': 'opening'  # Default for human games
+        # Removed policy entropy, confidence, and top moves for human games
     }
     
+    # Enhanced Part Comparison
+    part_comparison = analysis_data.get('part_comparison', {})
     component_comp = {
         'activation_percentile': float(analysis_data.get('activation_percentile', 0)),
-        'uniqueness_score': 0.0,  # Not calculated for human games
-        'part_rank': 1,  # Default for human games
-        'max_other_activation': 0.0  # Not calculated for human games
+        'uniqueness_score': float(analysis_data.get('uniqueness_score', 0)),
+        'part_rank': part_comparison.get('part_rank', 1),
+        'max_other_activation': float(part_comparison.get('max_other_activation', 0)),
+        'activation_in_other_parts': part_comparison.get('top_other_parts', [])
     }
     
     # Parse SGF for move information (Besogo handles the board display)
@@ -707,16 +753,13 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
         # Go Pattern Analysis
         'MOVE_TYPE': go_pattern.get('move_type', 'Unknown').title(),
         'GAME_PHASE': go_pattern.get('game_phase', 'Unknown').replace('_', ' ').title(),
-        'POLICY_ENTROPY': f"{go_pattern.get('policy_entropy', 0):.3f}",
-        'POLICY_CONFIDENCE': go_pattern.get('policy_confidence', 0),
-        'POLICY_MOVES': generate_policy_moves(go_pattern.get('top_policy_moves', [])),
         
         # Part Comparison
         'UNIQUENESS_SCORE': f"{component_comp.get('uniqueness_score', 0):.4f}",
         'PART_RANK': component_comp.get('part_rank', 'Unknown'),
         'MAX_OTHER_ACTIVATION': f"{component_comp.get('max_other_activation', 0):.4f}",
         'PART_ACTIVATIONS': generate_part_activations(
-            nmf_analysis.get('activation_in_other_parts', []), all_positions
+            component_comp.get('activation_in_other_parts', []), all_positions
         )
     }
     
