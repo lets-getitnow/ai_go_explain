@@ -1,4 +1,4 @@
-# 🔬 Proof of Spatial-Only Channels in KataGo Layer rconv14.out
+# 🔬 Proof of Spatial-Only Channels in KataGo Layer [rconv14.out](2_pick_layer/layer_selection.yml)
 
 ## Executive Summary
 
@@ -6,7 +6,7 @@ This document provides **definitive proof** that the `rconv14.out` layer in Kata
 
 ## 🎯 Key Finding
 
-**Layer `rconv14.out` is purely spatial: 0 contextual channels detected out of 4,608 total channels.**
+**Layer [`rconv14.out`](2_pick_layer/layer_selection.yml) is purely spatial: 0 contextual channels detected out of 4,608 total channels.**
 
 ## 📊 Experimental Evidence
 
@@ -19,7 +19,7 @@ This document provides **definitive proof** that the `rconv14.out` layer in Kata
 | **Contextual Channels** | 0 | 0% of channels |
 | **Classification Confidence** | 99.96% | Statistical threshold exceeded |
 
-**Source**: [`3_extract_activations/activations_variants/channel_mask.json`](3_extract_activations/activations_variants/channel_mask.json)
+**Source**: [channel_mask.json](3_extract_activations/activations_variants/channel_mask.json)
 
 ### 2. Experimental Design
 
@@ -74,7 +74,7 @@ This document provides **definitive proof** that the `rconv14.out` layer in Kata
 
 ### What This Proves
 
-1. **Pure Spatial Processing**: Layer `rconv14.out` processes only board shape
+1. **Pure Spatial Processing**: Layer [`rconv14.out`](2_pick_layer/layer_selection.yml) processes only board shape
 2. **No Global Context**: Layer ignores komi, history, ko state, score
 3. **Convolutional Architecture**: Layer behaves as pure spatial convolution
 4. **Information Separation**: Network successfully separates spatial vs global processing
@@ -120,7 +120,7 @@ This document provides **definitive proof** that the `rconv14.out` layer in Kata
 - **Valid Interpretation**: Patterns are purely spatial features
 
 ### For Network Architecture
-- **Layer Specialization**: `rconv14.out` specialized for spatial processing
+- **Layer Specialization**: [`rconv14.out`](2_pick_layer/layer_selection.yml) specialized for spatial processing
 - **Information Flow**: Global context processed earlier in network
 - **Design Validation**: Architecture successfully separates concerns
 
@@ -151,17 +151,17 @@ This document provides **definitive proof** that the `rconv14.out` layer in Kata
 
 ## ✅ Conclusion
 
-The experimental evidence **definitively proves** that layer `rconv14.out` contains **spatial-only channels** with **zero sensitivity to global context**. This finding:
+The experimental evidence **definitively proves** that layer [`rconv14.out`](2_pick_layer/layer_selection.yml) contains **spatial-only channels** with **zero sensitivity to global context**. This finding:
 
 1. **Validates the NMF analysis** using all 4,608 channels
 2. **Confirms the layer's specialization** for spatial processing  
 3. **Demonstrates successful information separation** in the network architecture
 4. **Provides methodological validation** for contextual channel detection
 
-**Status**: ✅ **PROVEN** - Layer `rconv14.out` is purely spatial
+**Status**: ✅ **PROVEN** - Layer [`rconv14.out`](2_pick_layer/layer_selection.yml) is purely spatial
 
 ---
 
-*Generated from experimental data in [`3_extract_activations/activations_variants/`](3_extract_activations/activations_variants/)*
+*Generated from experimental data in [3_extract_activations/activations_variants/](3_extract_activations/activations_variants/)*
 *Analysis date: 2025-07-27*
 *Statistical confidence: 99.96%* 
