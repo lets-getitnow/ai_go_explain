@@ -19,7 +19,7 @@ This document provides **definitive proof** that the `rconv14.out` layer in Kata
 | **Contextual Channels** | 0 | 0% of channels |
 | **Classification Confidence** | 99.96% | Statistical threshold exceeded |
 
-**Source**: `3_extract_activations/activations_variants/channel_mask.json`
+**Source**: [`3_extract_activations/activations_variants/channel_mask.json`](3_extract_activations/activations_variants/channel_mask.json)
 
 ### 2. Experimental Design
 
@@ -134,12 +134,12 @@ This document provides **definitive proof** that the `rconv14.out` layer in Kata
 ### Files Generated
 ```
 3_extract_activations/activations_variants/
-├── channel_mask.json                    # All channels classified as spatial
-├── channel_mask_low_threshold.json      # Confirmation with lenient threshold
-├── pooled_meta__baseline.json          # Baseline experiment metadata
-├── pooled_meta__zero_global.json       # Zero_global experiment metadata
-├── pos_index_to_npz__baseline.txt      # Position mapping (6,603 positions)
-└── pos_index_to_npz__zero_global.txt   # Position mapping (6,603 positions)
+├── [channel_mask.json](3_extract_activations/activations_variants/channel_mask.json)                    # All channels classified as spatial
+├── [channel_mask_low_threshold.json](3_extract_activations/activations_variants/channel_mask_low_threshold.json)      # Confirmation with lenient threshold
+├── [pooled_meta__baseline.json](3_extract_activations/activations_variants/pooled_meta__baseline.json)          # Baseline experiment metadata
+├── [pooled_meta__zero_global.json](3_extract_activations/activations_variants/pooled_meta__zero_global.json)       # Zero_global experiment metadata
+├── [pos_index_to_npz__baseline.txt](3_extract_activations/activations_variants/pos_index_to_npz__baseline.txt)      # Position mapping (6,603 positions)
+└── [pos_index_to_npz__zero_global.txt](3_extract_activations/activations_variants/pos_index_to_npz__zero_global.txt)   # Position mapping (6,603 positions)
 ```
 
 ### Statistical Summary
@@ -162,6 +162,6 @@ The experimental evidence **definitively proves** that layer `rconv14.out` conta
 
 ---
 
-*Generated from experimental data in `3_extract_activations/activations_variants/`*
+*Generated from experimental data in [`3_extract_activations/activations_variants/`](3_extract_activations/activations_variants/)*
 *Analysis date: 2025-07-27*
 *Statistical confidence: 99.96%* 
