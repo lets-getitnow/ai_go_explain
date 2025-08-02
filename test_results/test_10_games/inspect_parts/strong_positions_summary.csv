@@ -1,0 +1,11 @@
+part_idx,position_idx,activation_strength,component_stats,top_activations,meta_info
+3,0,523.294434,"min=0.0000,max=523.2944,mean=523.2944,sparsity=0.00%",top_indices=[0],"n_parts=25,n_positions=114,game_id=2015-12-25T13:17:47.904Z_h0a041jzyvh4"
+3,1,525.424072,"min=0.0000,max=525.4241,mean=525.4241,sparsity=0.00%",top_indices=[1],"n_parts=25,n_positions=114,game_id=2015-12-25T13:17:47.904Z_h0a041jzyvh4"
+3,2,515.884949,"min=0.0000,max=515.8849,mean=515.8849,sparsity=0.00%",top_indices=[2],"n_parts=25,n_positions=114,game_id=2015-12-25T13:17:47.904Z_h0a041jzyvh4"
+0,3,568.060303,"min=0.0000,max=568.0603,mean=568.0603,sparsity=0.00%",top_indices=[3],"n_parts=25,n_positions=114,game_id=2015-12-25T13:17:47.904Z_h0a041jzyvh4"
+0,4,833.152405,"min=0.0000,max=833.1524,mean=833.1524,sparsity=0.00%",top_indices=[4],"n_parts=25,n_positions=114,game_id=2015-12-25T13:17:47.904Z_h0a041jzyvh4"
+0,5,1063.972412,"min=0.0000,max=1063.9724,mean=1063.9724,sparsity=0.00%",top_indices=[5],"n_parts=25,n_positions=114,game_id=2015-12-25T13:17:47.904Z_h0a041jzyvh4"
+0,6,1293.983398,"min=0.0000,max=1293.9834,mean=1293.9834,sparsity=0.00%",top_indices=[6],"n_parts=25,n_positions=114,game_id=2015-12-25T13:17:47.904Z_h0a041jzyvh4"
+0,7,1274.563843,"min=0.0000,max=1274.5638,mean=1274.5638,sparsity=0.00%",top_indices=[7],"n_parts=25,n_positions=114,game_id=2015-12-25T13:17:47.904Z_h0a041jzyvh4"
+0,8,1233.747681,"min=0.0000,max=1233.7477,mean=1233.7477,sparsity=0.00%",top_indices=[8],"n_parts=25,n_positions=114,game_id=2015-12-25T13:17:47.904Z_h0a041jzyvh4"
+0,9,1579.064941,"min=0.0000,max=1579.0649,mean=1579.0649,sparsity=0.00%",top_indices=[9],"n_parts=25,n_positions=114,game_id=2015-12-25T13:17:47.904Z_h0a041jzyvh4"

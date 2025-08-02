@@ -1,8 +1,29 @@
 #!/usr/bin/env python3
 """
 Step 5 – Inspect Parts (Human Games Version)
+============================================
 
 Simplified version for human games data that doesn't require selfplay data.
+
+Expected Working Directory
+-------------------------
+This script expects to be run from the project root directory:
+    /Users/hunterp/dev/ai_go_explain
+
+Path Assumptions
+----------------
+- SGF files: games/go13/ (relative to project root)
+- NPZ files: <output_dir>/npz_files/ (from pipeline)
+- NMF data: <output_dir>/nmf_parts/ (from pipeline)
+
+Usage
+-----
+python3 5_inspect_parts/inspect_parts_human_games.py \
+    --nmf-dir test/nmf_parts \
+    --npz-dir test/npz_files \
+    --output-dir test/inspect_parts \
+    --max-positions 10 \
+    --board-size 13
 """
 
 import json
@@ -49,7 +70,8 @@ def load_game_data(npz_dir: Path) -> Dict[str, Any]:
         print(f"Game ID: {game_id}")
         
         # Load corresponding SGF file
-        sgf_file = Path("../../games/go13") / f"{game_id}.sgf"
+        # Note: Path assumes script is run from project root (/Users/hunterp/dev/ai_go_explain)
+        sgf_file = Path("games/go13") / f"{game_id}.sgf"
         print(f"Looking for SGF file: {sgf_file}")
         print(f"SGF file exists: {sgf_file.exists()}")
         

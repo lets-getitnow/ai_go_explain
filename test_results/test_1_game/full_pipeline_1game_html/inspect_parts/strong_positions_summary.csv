@@ -1,0 +1,11 @@
+part_idx,position_idx,activation_strength,component_stats,top_activations,meta_info
+0,N/A,0.000870,"min=0.0000,max=0.0009,mean=0.0003,sparsity=5.51%","top_indices=[36, 35, 37, 34, 33]","n_parts=25,n_positions=114"
+1,N/A,0.002858,"min=0.0000,max=0.0029,mean=0.0010,sparsity=5.10%","top_indices=[53, 55, 57, 54, 66]","n_parts=25,n_positions=114"
+2,N/A,0.003413,"min=0.0000,max=0.0034,mean=0.0010,sparsity=9.29%","top_indices=[111, 113, 110, 112, 108]","n_parts=25,n_positions=114"
+3,N/A,0.004400,"min=0.0000,max=0.0044,mean=0.0011,sparsity=7.51%","top_indices=[74, 73, 75, 71, 76]","n_parts=25,n_positions=114"
+4,N/A,0.006497,"min=0.0000,max=0.0065,mean=0.0015,sparsity=11.65%","top_indices=[91, 89, 90, 93, 88]","n_parts=25,n_positions=114"
+5,N/A,0.004422,"min=0.0000,max=0.0044,mean=0.0013,sparsity=6.49%","top_indices=[19, 21, 18, 20, 17]","n_parts=25,n_positions=114"
+6,N/A,0.000000,"min=0.0000,max=0.0000,mean=0.0000,sparsity=100.00%","top_indices=[112, 113, 35, 110, 111]","n_parts=25,n_positions=114"
+7,N/A,0.005773,"min=0.0000,max=0.0058,mean=0.0019,sparsity=8.51%","top_indices=[0, 1, 2, 3, 4]","n_parts=25,n_positions=114"
+8,N/A,0.000000,"min=0.0000,max=0.0000,mean=0.0000,sparsity=100.00%","top_indices=[91, 90, 92, 93, 39]","n_parts=25,n_positions=114"
+9,N/A,0.000000,"min=0.0000,max=0.0000,mean=0.0000,sparsity=100.00%","top_indices=[89, 90, 92, 88, 66]","n_parts=25,n_positions=114"

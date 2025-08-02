@@ -465,13 +465,16 @@ def get_html_template(board_size: int = 13) -> str:
             // Track current move as user navigates through the game
             const currentMoveDisplay = document.getElementById('current-move-display');
             
+            // Store the initial turn number from analysis data
+            const initialTurnNumber = {{{{TURN_NUMBER}}}};
+            
             // Function to calculate move number from root to current node
             function calculateMoveNumber(editor) {{
-                if (!editor || !editor.getCurrent || !editor.getRoot) return 0;
+                if (!editor || !editor.getCurrent || !editor.getRoot) return initialTurnNumber;
                 
                 const root = editor.getRoot();
                 const current = editor.getCurrent();
-                if (!root || !current) return 0;
+                if (!root || !current) return initialTurnNumber;
                 
                 let moveNumber = 0;
                 let node = current;
@@ -484,7 +487,7 @@ def get_html_template(board_size: int = 13) -> str:
                     node = node.parent;
                 }}
                 
-                // Return the actual move number (no subtraction)
+                // Return the actual move number (this is correct - Turn 0 = initial position, Turn 1 = first move, etc.)
                 return moveNumber;
             }}
             
@@ -502,8 +505,8 @@ def get_html_template(board_size: int = 13) -> str:
             function setupBesogoListener() {{
                 const besogoViewer = document.querySelector('.besogo-viewer');
                 if (!besogoViewer || !besogoViewer.besogoEditor) {{
-                    // Try again in a bit if Besogo isn't ready yet
-                    setTimeout(setupBesogoListener, 100);
+                    // Try again immediately if Besogo isn't ready yet
+                    setTimeout(setupBesogoListener, 50);
                     return;
                 }}
                 
@@ -516,12 +519,12 @@ def get_html_template(board_size: int = 13) -> str:
                     }}
                 }});
                 
-                // Initial update
-                updateCurrentMove();
+                // Initial update - use the correct turn number from analysis data
+                currentMoveDisplay.textContent = `Turn ${{initialTurnNumber}}`;
             }}
             
-            // Start setup after a short delay to ensure Besogo is initialized
-            setTimeout(setupBesogoListener, 500);
+            // Start setup immediately without delay
+            setupBesogoListener();
             
             // Keyboard navigation for position navigation
             document.addEventListener('keydown', function(event) {{

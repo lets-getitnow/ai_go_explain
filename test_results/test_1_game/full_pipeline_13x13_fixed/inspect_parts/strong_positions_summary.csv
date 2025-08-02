@@ -1,0 +1,6 @@
+part_idx,position_idx,activation_strength,component_stats,top_activations,meta_info
+7,0,1188.150635,"min=0.0000,max=1188.1506,mean=1188.1506,sparsity=0.00%",top_indices=[0],"n_parts=25,n_positions=114,game_id=2015-08-22T07:10:36.827Z_pmpsqhg7m6zr"
+7,1,1169.418213,"min=0.0000,max=1169.4182,mean=1169.4182,sparsity=0.00%",top_indices=[1],"n_parts=25,n_positions=114,game_id=2015-08-22T07:10:36.827Z_pmpsqhg7m6zr"
+7,2,1141.338379,"min=0.0000,max=1141.3384,mean=1141.3384,sparsity=0.00%",top_indices=[2],"n_parts=25,n_positions=114,game_id=2015-08-22T07:10:36.827Z_pmpsqhg7m6zr"
+7,3,1050.517700,"min=0.0000,max=1050.5177,mean=1050.5177,sparsity=0.00%",top_indices=[3],"n_parts=25,n_positions=114,game_id=2015-08-22T07:10:36.827Z_pmpsqhg7m6zr"
+7,4,1019.675049,"min=0.0000,max=1019.6750,mean=1019.6750,sparsity=0.00%",top_indices=[4],"n_parts=25,n_positions=114,game_id=2015-08-22T07:10:36.827Z_pmpsqhg7m6zr"
