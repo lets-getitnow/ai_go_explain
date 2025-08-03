@@ -27,9 +27,17 @@ This isolates the effect of global context on layer activations.
 ### 2.2 Data Collection
 
 - **Positions**: 6,603 board positions from game dataset
-- **Layer**: `rconv14.out` (residual convolution layer 14 output)
+  - Baseline mapping: `3_extract_activations/activations_variants/pos_index_to_npz__baseline.txt`
+  - Zero_global mapping: `3_extract_activations/activations_variants/pos_index_to_npz__zero_global.txt`
+- **Layer**: `rconv14.out` (residual convolution layer 14 output, selected via `2_pick_layer/layer_selection.yml`)
 - **Channels**: 4,608 total (512 original × 3×3 spatial pooling)
 - **Model**: KataGo kata1-b28c512nbt-s9584861952-d4960414494
+  - Model files: `models/kata1-b28c512nbt-s9584861952-d4960414494/`
+
+**Processing Pipeline**:
+1. Variant generation: `1_collect_positions/variants/` (baseline vs zero_global datasets)
+2. Activation extraction: `3_extract_activations/extract_pooled_activations.py`
+3. Channel analysis: `3_extract_activations/contextual_channel_detector.py`
 
 Each position was processed twice: once with normal inputs, once with zeroed global context.
 
@@ -69,7 +77,7 @@ All 4,608 channels were classified as "spatial" using our threshold criteria:
 | **Mean relative change across channels** | 0.0 | 0.1 | All spatial |
 | **Maximum relative change observed** | 0.0 | 0.1 | All spatial |
 
-**Source Data**: [channel_mask.json](3_extract_activations/activations_variants/channel_mask.json)
+**Source Data**: `3_extract_activations/activations_variants/channel_mask.json`
 
 ### 3.2 Statistical Summary
 
@@ -79,6 +87,12 @@ From the experimental data:
 - **Contextual channels identified**: 0 (0.0%)
 - **Mean KS test p-value**: 1.0 (indicating identical distributions)
 - **Standard deviation of relative changes**: 0.0 (no variation detected)
+
+**Raw Results Files**:
+- Primary analysis: `3_extract_activations/activations_variants/channel_mask.json`
+- Low threshold validation: `3_extract_activations/activations_variants/channel_mask_low_threshold.json`
+- Baseline metadata: `3_extract_activations/activations_variants/pooled_meta__baseline.json`
+- Zero_global metadata: `3_extract_activations/activations_variants/pooled_meta__zero_global.json`
 
 ### 3.3 Effect Size Analysis
 
@@ -144,6 +158,12 @@ This result suggests KataGo employs a hierarchical processing strategy:
 3. Cross-validate with alternative statistical approaches
 4. Test with different board sizes and game phases
 
+**Analysis Code**:
+- Main detection script: `3_extract_activations/contextual_channel_detector.py`
+- Variant generation: `1_collect_positions/generate_variants.py` 
+- Activation extraction: `3_extract_activations/extract_pooled_activations.py`
+- Pipeline documentation: `1_collect_positions/CONTEXTUAL_CHANNELS_PROGRESS.md`
+
 ## 6. Conclusion
 
 We analyzed 4,608 channels in KataGo layer `rconv14.out` for sensitivity to global game context. Using controlled experiments with 6,603 positions, relative change metrics (threshold=0.1), and statistical tests (α=0.05), we found zero channels showed meaningful response to global context removal.
@@ -159,7 +179,28 @@ We analyzed 4,608 channels in KataGo layer `rconv14.out` for sensitivity to glob
 
 ---
 
-**Data Availability**: Analysis code and results available in [3_extract_activations/activations_variants/](3_extract_activations/activations_variants/)
+## Data and Code Availability
+
+**Results Data**:
+- `3_extract_activations/activations_variants/channel_mask.json` - Primary channel classifications
+- `3_extract_activations/activations_variants/channel_mask_low_threshold.json` - Validation with lenient threshold
+- `3_extract_activations/activations_variants/pooled_meta__baseline.json` - Baseline experiment metadata
+- `3_extract_activations/activations_variants/pooled_meta__zero_global.json` - Zero_global experiment metadata
+- `3_extract_activations/activations_variants/pos_index_to_npz__baseline.txt` - Position mappings (baseline)
+- `3_extract_activations/activations_variants/pos_index_to_npz__zero_global.txt` - Position mappings (zero_global)
+
+**Analysis Code**:
+- `3_extract_activations/contextual_channel_detector.py` - Channel classification algorithm
+- `1_collect_positions/generate_variants.py` - Input variant generation
+- `3_extract_activations/extract_pooled_activations.py` - Neural activation extraction
+- `2_pick_layer/layer_selection.yml` - Layer selection configuration
+- `2_pick_layer/pick_layer.py` - Layer analysis tool
+
+**Documentation**:
+- `1_collect_positions/CONTEXTUAL_CHANNELS_PROGRESS.md` - Detailed workflow progress
+- `1_collect_positions/FINAL_SUMMARY.md` - Complete experimental summary
+- `3_extract_activations/README.md` - Activation extraction documentation
 
 **Analysis Date**: 2025-07-27  
-**Model**: KataGo kata1-b28c512nbt-s9584861952-d4960414494 
+**Model**: KataGo kata1-b28c512nbt-s9584861952-d4960414494  
+**Model Path**: `models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt` 
