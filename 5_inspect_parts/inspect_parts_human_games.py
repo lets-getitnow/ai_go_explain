@@ -355,28 +355,26 @@ def calculate_uniqueness_score(activations: np.ndarray, position_idx: int, part_
 
 def calculate_channel_activity(components: np.ndarray, part_idx: int, board_size: int = 13) -> List[Dict[str, Any]]:
     """Calculate which channels are most active for this part."""
-    # Get the component weights for this part
     part_weights = components[part_idx, :]  # Shape: (n_channels,)
     
-    # Reshape to 3x3 grid format (9 regions per channel)
-    n_channels = part_weights.shape[0] // 9
-    channel_weights = part_weights.reshape(n_channels, 9)
+    # For human games, we have 4608 channels total
+    # Each channel has a single activation value
     
-    # Calculate average activation per channel
+    # Calculate channel activities directly
     channel_activities = []
-    for i in range(n_channels):
-        avg_activation = np.mean(channel_weights[i, :])
-        if avg_activation > 0.01:  # Only include channels with significant activity
+    for i in range(len(part_weights)):
+        activation = float(part_weights[i])
+        if activation > 0.001:  # Lower threshold for human games
             channel_activities.append({
                 'channel': i,
-                'activity': float(avg_activation),
-                'max_region': int(np.argmax(channel_weights[i, :])),
-                'min_region': int(np.argmin(channel_weights[i, :]))
+                'activity': activation,
+                'max_region': 0,  # Not applicable for single-value channels
+                'min_region': 0   # Not applicable for single-value channels
             })
     
     # Sort by activity (highest first)
     channel_activities.sort(key=lambda x: x['activity'], reverse=True)
-    return channel_activities[:10]  # Return top 10 channels
+    return channel_activities[:20]  # Return top 20 channels for human games
 
 def calculate_part_comparison(activations: np.ndarray, position_idx: int, part_idx: int) -> Dict[str, Any]:
     """Calculate part comparison metrics."""

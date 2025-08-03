@@ -99,44 +99,7 @@ def convert_tuple_to_go_coord(tuple_coord: str, board_size: int = 13) -> str:
     # If already in Go format or unknown format, return as is
     return tuple_coord
 
-def generate_channel_bars(channel_activity: List[Dict[str, Any]]) -> str:
-    """Generate HTML for channel activity bars."""
-    if not channel_activity:
-        return "<div>No channel activity data available</div>"
-    
-    bars_html = []
-    for channel_info in channel_activity:
-        if isinstance(channel_info, dict):
-            # New format from enhanced analysis
-            channel_num = channel_info.get('channel', 0)
-            activity = channel_info.get('activity', 0)
-            max_region = channel_info.get('max_region', 0)
-            min_region = channel_info.get('min_region', 0)
-            
-            # Convert activity to percentage (assuming max activity is around 1.0)
-            percentage = min(100, activity * 100)
-            
-            bar_html = f'''<div class="channel-bar">
-                <span>Channel {channel_num}:</span>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: {percentage:.1f}%"></div>
-                </div>
-                <span>{activity:.4f}</span>
-            </div>'''
-        else:
-            # Old format from selfplay analysis
-            channel_num = channel_info
-            bar_html = f'''<div class="channel-bar">
-                <span>Channel {channel_num}:</span>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 100%"></div>
-                </div>
-                <span>Active</span>
-            </div>'''
-        
-        bars_html.append(bar_html)
-    
-    return '\n'.join(bars_html)
+
 
 def generate_human_move_analysis(move_data: Dict[str, Any]) -> str:
     """Generate HTML for human move analysis."""
@@ -373,12 +336,7 @@ def get_html_template(board_size: int = 13) -> str:
                         </div>
                     </div>
                     
-                    <div style="margin-top: 15px;">
-                        <strong data-tooltip="How many convolutional channels fired above threshold and which ones; gives a low-level view of network attention on the board.">Channel Activity ({{{{TOTAL_BOARD_ACTIVITY}}}} active channels) <span class="tooltip-icon">ⓘ</span></strong>
-                        <div class="channel-activity">
-                            {{{{CHANNEL_BARS}}}}
-                        </div>
-                    </div>
+
                 </div>
                 
                 <div class="analysis-card">
@@ -437,6 +395,9 @@ def get_html_template(board_size: int = 13) -> str:
         </div>
     </div>
     
+    <style>
+
+    </style>
     <script>
         // Initialize Besogo after page load
         document.addEventListener('DOMContentLoaded', function() {{
@@ -585,11 +546,19 @@ def generate_html_file(output_path: str, data: Dict[str, Any], board_size: int =
     """Generate HTML file with the given data."""
     template = get_html_template(board_size)
     
-    # Replace template variables
+    # Replace template variables (handle both {{var}} and {{{{var}}}})
     html_content = template
     for key, value in data.items():
-        placeholder = f"{{{{{key}}}}}"
-        html_content = html_content.replace(placeholder, str(value))
+        # Four-brace pattern used in template
+        html_content = html_content.replace(f"{{{{{{{key}}}}}}}", str(value))
+        # Two-brace fallback pattern
+        html_content = html_content.replace(f"{{{{{key}}}}}", str(value))
+
+    # Ensure CHANNEL_BARS raw HTML is not escaped
+    if 'CHANNEL_BARS' in data:
+        from html import escape as _escape_html
+        bars_raw = str(data['CHANNEL_BARS'])
+        html_content = html_content.replace(_escape_html(bars_raw), bars_raw)
     
     # Write to file
     with open(output_path, 'w', encoding='utf-8') as f:
@@ -693,9 +662,7 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     }
     
     nmf_analysis = {
-        'activation_strength': float(analysis_data.get('activation_strength', 0)),
-        'total_board_activity': len(analysis_data.get('channel_activity', [])),
-        'channel_activity': analysis_data.get('channel_activity', [])
+        'activation_strength': float(analysis_data.get('activation_strength', 0))
     }
     
     # Enhanced Go Pattern Analysis from policy data
@@ -773,8 +740,7 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
         'ACTIVATION_STRENGTH': format_activation_strength(nmf_analysis.get('activation_strength', 0)),
         'ACTIVATION_PERCENT': format_percentage(nmf_analysis.get('activation_strength', 0)),
         'ACTIVATION_PERCENTILE': f"{component_comp.get('activation_percentile', 0):.2f}",
-        'TOTAL_BOARD_ACTIVITY': nmf_analysis.get('total_board_activity', 0),
-        'CHANNEL_BARS': generate_channel_bars(nmf_analysis.get('channel_activity', [])),
+
         
         # Go Pattern Analysis
         'MOVE_TYPE': go_pattern.get('move_type', 'Unknown').title(),
@@ -793,8 +759,10 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
     output_filename = f"pos_{global_pos}_part{part}_rank{rank}_analysis.html"
     output_path = os.path.join(output_dir, output_filename)
     
-    # Generate HTML file
+    # Generate full analysis HTML file
     generate_html_file(output_path, template_data, board_size)
+
+
 
 def generate_index_page(summary_data: List[Dict[str, str]], output_dir: str) -> None:
     """Generate index page with all positions."""
