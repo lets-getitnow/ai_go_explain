@@ -707,7 +707,7 @@ def process_position(summary_row: Dict[str, str], output_dir: str, all_positions
         'TITLE': f"Position {global_pos} Analysis",
         'SUBTITLE': f"Part {part}, Rank {rank} - NMF Part Analysis",
         'TIMESTAMP': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        'CURRENT_INDEX': current_index,
+        'CURRENT_INDEX': current_index + 1,
         'TOTAL_POSITIONS': len(all_positions),
         'PREV_TITLE': f"Position {prev_pos.get('global_pos', prev_pos.get('position_idx', 'N/A'))} (Part {prev_pos.get('part', prev_pos.get('part_idx', 'N/A'))}, Rank {prev_pos.get('rank', '1')})" if prev_pos else None,
         'NEXT_TITLE': f"Position {next_pos.get('global_pos', next_pos.get('position_idx', 'N/A'))} (Part {next_pos.get('part', next_pos.get('part_idx', 'N/A'))}, Rank {next_pos.get('rank', '1')})" if next_pos else None,
@@ -908,4 +908,4 @@ def main():
     print("Open index.html to view all analyses")
 
 if __name__ == "__main__":
-    main() 
+    main()
