@@ -22,18 +22,7 @@ We used a controlled comparison approach:
 - Global input tensor zeroed (all global context removed)
 - Board state tensor unchanged (identical positions)
 
-**Exact implementation** in [`generate_variants.py`](1_collect_positions/generate_variants.py):
-```python
-def _zero_global(arrs: Dict[str, np.ndarray]) -> None:
-    """Set the ``globalInputNC`` array to zeros (float32) in-place."""
-    key = "globalInputNC"
-    if key not in arrs:
-        raise KeyError(f"Required array '{key}' missing from .npz file")
-    g = arrs[key]
-    if not isinstance(g, np.ndarray):
-        raise TypeError(f"'{key}' is not a numpy array – got {type(g)}")
-    arrs[key] = np.zeros_like(g, dtype=np.float32)  # ← THIS LINE ZEROS GLOBAL CONTEXT
-```
+**Exact implementation**: [`generate_variants.py:64`](1_collect_positions/generate_variants.py#L64) - `arrs[key] = np.zeros_like(g, dtype=np.float32)`
 
 This isolates the effect of global context on layer activations by replacing the entire `globalInputNC` array (containing komi, move history, ko state, score estimates) with zeros while preserving all board state information.
 
