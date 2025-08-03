@@ -463,15 +463,15 @@ def main():
     
     analyses = []
     for position_idx in range(n_positions):
-        # Find the best part for this position
-        best_part = np.argmax(activations[position_idx])
-        print(f"Analyzing position {position_idx} (best part: {best_part})...")
-        
-        analysis = analyze_position(
-            position_idx, best_part, activations, game_data, 
-            args.board_size, policy_outputs, value_outputs, components
-        )
-        analyses.append(analysis)
+        # Analyze ALL parts for this position, not just the best one
+        for part_idx in range(n_parts):
+            print(f"Analyzing position {position_idx} (part: {part_idx})...")
+            
+            analysis = analyze_position(
+                position_idx, part_idx, activations, game_data, 
+                args.board_size, policy_outputs, value_outputs, components
+            )
+            analyses.append(analysis)
     
     # Save detailed analysis
     output_file = args.output_dir / "part_analyses.json"

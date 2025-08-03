@@ -2,6 +2,12 @@
 *.sgf
 *.json
 
+# Special case: Include important result files for documentation
+!3_extract_activations/activations_variants/channel_mask.json
+!3_extract_activations/activations_variants/channel_mask_low_threshold.json
+!3_extract_activations/activations_variants/pooled_meta__baseline.json
+!3_extract_activations/activations_variants/pooled_meta__zero_global.json
+
 # Ignore NumPy data files
 *.npz
 *.npy

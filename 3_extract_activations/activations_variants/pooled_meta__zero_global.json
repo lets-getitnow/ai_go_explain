@@ -1,0 +1,14 @@
+{
+  "date": "2025-07-27",
+  "source_model": "models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt",
+  "layer": "rconv14.out",
+  "positions": 8,
+  "original_channels": 512,
+  "pooled_channels": 4608,
+  "pooling_method": "3x3_grid",
+  "batch_size": 256,
+  "non_negative_shift": true,
+  "column_scaled": true,
+  "variant_tag": "zero_global",
+  "dataset_dir": "variants/zero_global"
+}

@@ -194,7 +194,7 @@ def main() -> None:
         "--nmf-dir", str(nmf_dir),
         "--npz-dir", str(npz_dir),
         "--output-dir", str(inspect_dir),
-        "--max-positions", "10",
+        "--max-positions", "50",
         "--board-size", str(args.board_size)
     ], "Inspect NMF parts and generate analysis")
     
