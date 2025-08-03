@@ -2,6 +2,37 @@
 
 This directory contains all documentation and tools for analyzing human SGF games using the ai_go_explain pipeline.
 
+## 🧠 Methodology
+
+### Overview
+The human games analysis pipeline applies interpretability techniques to understand what patterns a Go neural network learns from real human play. By analyzing the internal representations of a trained KataGo model when processing human game positions, we can discover which neural components respond to specific Go concepts and patterns.
+
+### Core Approach
+**Neural Network Dissection**: We extract activations from a chosen layer of the KataGo neural network when it processes thousands of positions from real human games. This gives us a high-dimensional representation of how the network "sees" each position.
+
+**Non-negative Matrix Factorization (NMF)**: We apply NMF to decompose these activations into interpretable "parts" - groups of neural channels that tend to activate together. Each part represents a distinct pattern or concept the network has learned.
+
+**Position-Part Analysis**: For each NMF part, we identify the game positions that activate it most strongly. This reveals what specific Go situations each neural component is specialized for.
+
+### Key Insights
+- **Spatial vs. Contextual Learning**: Different neural components focus on local board patterns vs. global game context
+- **Human vs. AI Patterns**: Comparing activations on human games vs. self-play reveals differences in pattern recognition
+- **Interpretable Features**: NMF parts often correspond to recognizable Go concepts (life/death, territory, tactics)
+
+### Advantages Over Self-Play Analysis
+- **Real Human Patterns**: Analyzes how the network responds to actual human decision-making
+- **Diverse Positions**: Human games contain more varied and suboptimal positions than self-play
+- **Strategic Insights**: Reveals which human concepts the AI has learned vs. ignored
+
+### Output
+The pipeline generates interactive HTML reports showing:
+- Which board positions most strongly activate each neural component
+- Go pattern analysis for each position (move type, game phase, policy confidence)
+- Visual representation of the board state with interactive Go boards
+- Comparison between different neural components
+
+This methodology bridges the gap between neural network weights and human-interpretable Go knowledge, revealing the internal "concepts" that emerge in trained Go AI systems.
+
 ## 📁 Contents
 
 ### Documentation
