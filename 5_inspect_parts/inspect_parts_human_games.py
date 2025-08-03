@@ -188,25 +188,51 @@ def analyze_position(position_idx: int, part_idx: int, activations: np.ndarray,
     # Get activation strength for this position and part
     activation_strength = float(activations[position_idx, part_idx])
     
-    # Get game data (assuming single game for now)
-    game_id = list(game_data.keys())[0]
+    # Get game data for this position - position_idx is global across all games
+    # We need to find which game this position belongs to
+    game_id = None
+    local_position_idx = position_idx
+    
+    # Find the game this position belongs to by checking cumulative positions
+    cumulative_positions = 0
+    for gid, game_info in game_data.items():
+        game_moves = game_info.get('moves', [])
+        if cumulative_positions <= position_idx < cumulative_positions + len(game_moves):
+            game_id = gid
+            local_position_idx = position_idx - cumulative_positions
+            break
+        cumulative_positions += len(game_moves)
+    
+    if game_id is None:
+        # Fallback: use the first game
+        game_id = list(game_data.keys())[0]
+        local_position_idx = 0
+    
     game_info = game_data[game_id]
-    moves = game_info['moves']
-    original_sgf = game_info['sgf_content']
+    moves = game_info.get('moves', [])
+    original_sgf = game_info.get('sgf_content', '')
     
     # Create SGF content for this position
-    sgf_content = create_position_sgf(moves, position_idx, original_sgf)
+    sgf_content = create_position_sgf(moves, local_position_idx, original_sgf)
     
     # Get move information
-    if position_idx == 0:  # Empty board
+    
+    if local_position_idx == 0:  # Empty board
         move_coord = "Unknown"
         turn_number = 0
-    elif position_idx > 0 and position_idx <= len(moves):
-        color, coord = moves[position_idx - 1]  # position_idx 1 corresponds to move 0
+    elif local_position_idx > 0 and local_position_idx <= len(moves):
+        color, coord = moves[local_position_idx - 1]  # local_position_idx 1 corresponds to move 0
         move_coord = coord.upper()
-        turn_number = position_idx
+        turn_number = local_position_idx
     else:
-        raise RuntimeError(f"Invalid position_idx {position_idx} for moves list of length {len(moves)}")
+        # If position is beyond the moves, use the last move
+        if moves:
+            color, coord = moves[-1]
+            move_coord = coord.upper()
+            turn_number = len(moves)
+        else:
+            move_coord = "Unknown"
+            turn_number = 0
     
     # Calculate activation percentile
     all_activations = activations[:, part_idx]
@@ -329,10 +355,10 @@ def generate_csv_summary(analyses: List[Dict[str, Any]], output_dir: Path) -> No
                 part_idx,
                 str(position_idx),  # position_idx
                 f"{activation_strength:.6f}",  # activation_strength
-                f"min=0.0000,max={activation_strength:.4f},mean={activation_strength:.4f},sparsity=0.00%",
+                f"min=0.0000,max={activation_strength:.4f},mean={activation_strength:.4f},sparsity=0.00%",  # component_stats
                 f"top_indices=[{position_idx}]",  # top_activations
-                f"n_parts=25,n_positions=114,game_id={analysis['game_id']}",
-                move_coord,  # move_coord
+                f"n_parts=25,n_positions=114,game_id={analysis['game_id']}",  # meta_info
+                str(move_coord),  # move_coord
                 str(turn_number)  # turn_number
             ])
     
@@ -462,10 +488,16 @@ def main():
     print(f"Analyzing {n_positions} positions across {n_parts} parts...")
     
     analyses = []
-    for position_idx in range(n_positions):
-        # Analyze ALL parts for this position, not just the best one
-        for part_idx in range(n_parts):
-            print(f"Analyzing position {position_idx} (part: {part_idx})...")
+    for part_idx in range(n_parts):
+        # Find the best positions for this part
+        part_activations = activations[:, part_idx]
+        # Get indices of top positions for this part
+        top_position_indices = np.argsort(part_activations)[::-1][:n_positions]
+        
+        print(f"Analyzing part {part_idx} (top {n_positions} positions)...")
+        
+        for i, position_idx in enumerate(top_position_indices):
+            print(f"  Analyzing position {position_idx} (rank {i+1})...")
             
             analysis = analyze_position(
                 position_idx, part_idx, activations, game_data, 

@@ -1,4 +1,4 @@
-# Spatial Channel Analysis of KataGo Layer rconv14.out
+# Spatial Channel Analysis of KataGo Layer rconv14.outidea
 
 ## Abstract
 
