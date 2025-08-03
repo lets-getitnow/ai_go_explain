@@ -88,6 +88,7 @@ This document provides an organized overview of all documentation in the ai_go_e
 - NMF part analysis with activation strengths
 - Go pattern analysis (moves, game phase, policy confidence)
 - Part comparison and uniqueness scores
+- Different positions per part for comprehensive coverage
 
 ## 🧪 Testing and Validation
 
@@ -187,10 +188,13 @@ python 5_inspect_parts/inspect_parts.py \
 ### Human Games Pipeline
 ```bash
 # Complete pipeline
-python run_human_games_pipeline.py \
+python3 human_games_docs/run_human_games_pipeline.py \
     --input-dir games/go13 \
-    --output-dir human_games_analysis \
-    --model-path models/your-model.ckpt
+    --output-dir test/human_games_analysis \
+    --model-path models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt \
+    --max-files 1000 \
+    --processor mps \
+    --board-size 13
 ```
 
 ## 📝 Contributing

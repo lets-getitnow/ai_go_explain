@@ -23,10 +23,13 @@ The pipeline analyzes human Go games to understand what patterns the neural netw
 Run the complete pipeline with one command:
 
 ```bash
-python run_human_games_pipeline.py \
+python3 human_games_docs/run_human_games_pipeline.py \
     --input-dir games/go13 \
-    --output-dir human_games_analysis \
-    --model-path models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt
+    --output-dir test/human_games_analysis \
+    --model-path models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt \
+    --max-files 1000 \
+    --processor mps \
+    --board-size 13
 ```
 
 This will:
@@ -43,10 +46,10 @@ This will:
 Convert human SGF games to the NPZ format required by the pipeline:
 
 ```bash
-python 1_collect_positions/convert_human_games.py \
+python3 1_collect_positions/convert_human_games.py \
     --input-dir games/go13 \
-    --output-dir human_games_analysis/npz_files \
-    --board-size 7
+    --output-dir test/human_games_analysis/npz_files \
+    --board-size 13
 ```
 
 **What this does:**
@@ -60,9 +63,9 @@ python 1_collect_positions/convert_human_games.py \
 If you don't have an existing `layer_selection.yml`, run:
 
 ```bash
-python 2_pick_layer/pick_layer.py \
+python3 2_pick_layer/pick_layer.py \
     --model-path models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt \
-    --board-size 7
+    --board-size 13
 ```
 
 ### Step 3: Extract Activations
@@ -70,11 +73,12 @@ python 2_pick_layer/pick_layer.py \
 Extract activation patterns from the chosen layer:
 
 ```bash
-python 3_extract_activations/extract_pooled_activations.py \
-    --positions-dir human_games_analysis/npz_files \
+python3 3_extract_activations/extract_pooled_activations.py \
+    --positions-dir test/human_games_analysis/npz_files \
     --ckpt-path models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt \
-    --output-dir human_games_analysis/activations \
-    --batch-size 256
+    --output-dir test/human_games_analysis/activations \
+    --batch-size 32 \
+    --processor mps
 ```
 
 ### Step 4: Run NMF Analysis
@@ -82,10 +86,10 @@ python 3_extract_activations/extract_pooled_activations.py \
 Find interpretable parts using Non-negative Matrix Factorization:
 
 ```bash
-python 4_nmf_parts/run_nmf.py \
-    --activations-file human_games_analysis/activations/pooled_rconv14.out.npy \
-    --output-dir human_games_analysis/nmf_parts \
-    --num-components 50 \
+python3 4_nmf_parts/run_nmf.py \
+    --activations-file test/human_games_analysis/activations/pooled_rconv14.out__baseline.npy \
+    --output-dir test/human_games_analysis/nmf_parts \
+    --num-components 25 \
     --max-iter 1000
 ```
 
@@ -94,16 +98,17 @@ python 4_nmf_parts/run_nmf.py \
 Generate detailed analysis and HTML reports:
 
 ```bash
-python 5_inspect_parts/inspect_parts.py \
-    --activations-file human_games_analysis/activations/pooled_rconv14.out.npy \
-    --nmf-components human_games_analysis/nmf_parts/nmf_components.npy \
-    --nmf-activations human_games_analysis/nmf_parts/nmf_activations.npy \
-    --output-dir human_games_analysis/inspect_parts \
-    --num-positions-per-part 10
+python3 5_inspect_parts/inspect_parts_human_games.py \
+    --nmf-dir test/human_games_analysis/nmf_parts \
+    --npz-dir test/human_games_analysis/npz_files \
+    --output-dir test/human_games_analysis/inspect_parts \
+    --max-positions 50 \
+    --board-size 13
 
-python 5_inspect_parts/generate_html_reports.py \
-    --summary-file human_games_analysis/inspect_parts/strong_positions_summary.csv \
-    --output-dir human_games_analysis/html_reports
+python3 5_inspect_parts/generate_html_reports.py \
+    --summary-file test/human_games_analysis/inspect_parts/strong_positions_summary.csv \
+    --output-dir test/human_games_analysis/html_reports \
+    --board-size 13
 ```
 
 ## Output Structure
@@ -111,13 +116,13 @@ python 5_inspect_parts/generate_html_reports.py \
 After running the pipeline, you'll have:
 
 ```
-human_games_analysis/
+test/human_games_analysis/
 ├── npz_files/                    # Converted SGF games
 │   ├── game1.npz
 │   ├── game2.npz
 │   └── ...
 ├── activations/                   # Extracted activations
-│   ├── pooled_rconv14.out.npy
+│   ├── pooled_rconv14.out__baseline.npy
 │   ├── pooled_meta.json
 │   └── pos_index_to_npz.txt
 ├── nmf_parts/                    # NMF analysis results
@@ -151,6 +156,12 @@ human_games_analysis/
 ### Analysis Focus
 - **Self-play**: Understands what the AI learns from its own play
 - **Human games**: Understands what the AI learns from human play patterns
+
+### Recent Improvements
+- **Different positions per part**: Each NMF part now analyzes different positions instead of all parts for each position
+- **Increased position coverage**: 50 positions per part instead of 10 total
+- **Removed channel activity display**: Cleaner HTML reports without channel activity visualization
+- **Better position mapping**: Correctly maps global position indices to specific games and moves
 
 ## Troubleshooting
 
@@ -213,6 +224,7 @@ The HTML reports show:
 - **NMF Part Analysis**: Which neural network components fire strongest at each position
 - **Go Pattern Analysis**: What Go concepts (moves, game phase, policy confidence) are present
 - **Part Comparison**: How each part relates to others in the network
+- **Interactive Go Boards**: Besogo integration for visualizing board positions
 
 This helps understand:
 - What patterns the AI recognizes in human play

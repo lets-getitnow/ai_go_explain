@@ -17,10 +17,13 @@ This directory contains all documentation and tools for analyzing human SGF game
 
 ### One-Command Pipeline
 ```bash
-python human_games_docs/run_human_games_pipeline.py \
+python3 human_games_docs/run_human_games_pipeline.py \
     --input-dir games/go13 \
-    --output-dir human_games_analysis \
-    --model-path models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt
+    --output-dir test/human_games_analysis \
+    --model-path models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt \
+    --max-files 1000 \
+    --processor mps \
+    --board-size 13
 ```
 
 ### Example Script
@@ -54,7 +57,7 @@ python human_games_docs/test_human_games_conversion.py
 ## 📊 Output Structure
 
 ```
-human_games_analysis/
+test/human_games_analysis/
 ├── npz_files/           # Converted SGF games
 ├── activations/          # Extracted activations
 ├── nmf_parts/           # NMF analysis results
