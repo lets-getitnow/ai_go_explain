@@ -119,7 +119,9 @@ def main() -> None:
         print(f"Error: Model file {args.model_path} does not exist")
         sys.exit(1)
     
-    # Create output directory
+    # Create output directory (ensure it's under test/)
+    if not str(args.output_dir).startswith('test/'):
+        args.output_dir = Path('test') / args.output_dir.name
     args.output_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"🚀 Starting human games analysis pipeline")
@@ -204,6 +206,18 @@ def main() -> None:
         "--output-dir", str(html_dir),
         "--board-size", str(args.board_size)
     ], "Generate HTML visualization reports")
+    
+    # Copy Besogo folder for interactive Go board
+    besogo_source = Path("5_inspect_parts/html_reports/besogo")
+    besogo_dest = html_dir / "besogo"
+    if besogo_source.exists():
+        import shutil
+        if besogo_dest.exists():
+            shutil.rmtree(besogo_dest)
+        shutil.copytree(besogo_source, besogo_dest)
+        print(f"✅ Copied Besogo folder to {html_dir}")
+    else:
+        print(f"⚠️  Besogo folder not found at {besogo_source}")
     
     print(f"\n🎉 Pipeline completed successfully!")
     print(f"Results available in: {args.output_dir}")

@@ -138,19 +138,38 @@ def generate_channel_bars(channel_activity: List[Dict[str, Any]]) -> str:
     
     return '\n'.join(bars_html)
 
-def generate_human_move_analysis(move_data: Dict[str, Any]) -> str:
-    """Generate HTML for human move analysis."""
-    if not move_data:
-        return "<div>No human move data available</div>"
+def generate_policy_moves(policy_moves: List[Dict[str, Any]]) -> str:
+    """Generate HTML for top policy moves with Go coordinate format."""
+    if not policy_moves:
+        return "<div>No policy moves available</div>"
     
-    move_coord = move_data.get('move_coord', 'Unknown')
-    turn_number = move_data.get('turn_number', 'Unknown')
-    move_type = move_data.get('move_type', 'Unknown')
+    moves_html = []
+    for move in policy_moves:
+        # Handle both old format (coord, percentage, count) and new format (move, probability, logit)
+        if 'move' in move:
+            # New format from enhanced analysis
+            coord = move.get('move', 'Unknown')
+            percentage = move.get('probability', 0) * 100  # Convert to percentage
+            count = 0  # Not available in new format
+        else:
+            # Old format from selfplay analysis
+            coord = move.get('coord', 'Unknown')
+            percentage = move.get('percentage', 0)
+            count = move.get('count', 0)
+        
+        # Convert tuple coordinates to Go coordinates if needed
+        if isinstance(coord, str) and coord != 'Unknown' and coord != 'PASS':
+            go_coord = convert_tuple_to_go_coord(coord)
+        else:
+            go_coord = coord
+        
+        move_html = f'''<div class="policy-move">
+            <span><strong>{go_coord}</strong></span>
+            <span>{percentage:.2f}% ({count})</span>
+        </div>'''
+        moves_html.append(move_html)
     
-    return f'''<div class="human-move">
-        <span><strong>{move_coord}</strong></span>
-        <span>Turn {turn_number} - {move_type}</span>
-    </div>'''
+    return '\n'.join(moves_html)
 
 def generate_part_activations(activations: List[Dict[str, Any]], all_positions: List[Dict[str, str]] = None) -> str:
     """Generate HTML for part activation visualization with clickable bars."""
@@ -503,51 +522,6 @@ def get_html_template(board_size: int = 13) -> str:
             
             // Start setup after a short delay to ensure Besogo is initialized
             setTimeout(setupBesogoListener, 500);
-            
-            // Set the current move display to the correct turn immediately
-            function setCorrectTurn() {{
-                const currentMoveDisplay = document.getElementById('current-move-display');
-                if (currentMoveDisplay) {{
-                    currentMoveDisplay.textContent = `Turn {{{{TURN_NUMBER}}}}`;
-                }}
-            }}
-            
-            // Force Besogo to show the final position
-            function showFinalPosition() {{
-                const besogoViewer = document.querySelector('.besogo-viewer');
-                if (!besogoViewer || !besogoViewer.besogoEditor) {{
-                    setTimeout(showFinalPosition, 50);
-                    return;
-                }}
-                
-                const editor = besogoViewer.besogoEditor;
-                const targetMove = {{{{TURN_NUMBER}}}};
-                
-                // Navigate to the final move
-                if (targetMove > 0) {{
-                    // Get all nodes and go to the last one
-                    const root = editor.getRoot();
-                    if (root) {{
-                        let currentNode = root;
-                        
-                        // Find the last node with moves
-                        while (currentNode && currentNode.children && currentNode.children.length > 0) {{
-                            currentNode = currentNode.children[0];
-                        }}
-                        
-                        // Set to the final position
-                        if (currentNode) {{
-                            editor.setCurrent(currentNode);
-                        }}
-                    }}
-                }}
-            }}
-            
-            // Set the correct turn immediately
-            setCorrectTurn();
-            
-            // Show final position with minimal delay
-            setTimeout(showFinalPosition, 100);
             
             // Keyboard navigation for position navigation
             document.addEventListener('keydown', function(event) {{

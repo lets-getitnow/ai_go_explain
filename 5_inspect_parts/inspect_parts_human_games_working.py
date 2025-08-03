@@ -1,29 +1,8 @@
 #!/usr/bin/env python3
 """
 Step 5 – Inspect Parts (Human Games Version)
-============================================
 
 Simplified version for human games data that doesn't require selfplay data.
-
-Expected Working Directory
--------------------------
-This script expects to be run from the project root directory:
-    /Users/hunterp/dev/ai_go_explain
-
-Path Assumptions
-----------------
-- SGF files: games/go13/ (relative to project root)
-- NPZ files: <output_dir>/npz_files/ (from pipeline)
-- NMF data: <output_dir>/nmf_parts/ (from pipeline)
-
-Usage
------
-python3 5_inspect_parts/inspect_parts_human_games.py \
-    --nmf-dir test/nmf_parts \
-    --npz-dir test/npz_files \
-    --output-dir test/inspect_parts \
-    --max-positions 10 \
-    --board-size 13
 """
 
 import json
@@ -70,8 +49,7 @@ def load_game_data(npz_dir: Path) -> Dict[str, Any]:
         print(f"Game ID: {game_id}")
         
         # Load corresponding SGF file
-        # Note: Path assumes script is run from project root (/Users/hunterp/dev/ai_go_explain)
-        sgf_file = Path("games/go13") / f"{game_id}.sgf"
+        sgf_file = Path("../../games/go13") / f"{game_id}.sgf"
         print(f"Looking for SGF file: {sgf_file}")
         print(f"SGF file exists: {sgf_file.exists()}")
         
@@ -152,33 +130,37 @@ def create_position_sgf(moves: List[Tuple[str, str]], position_idx: int, origina
         
         sgf_parts.append("(;" + "".join(root_props))
         
-        # Add moves only up to the target position
-        move_count = 0
-        moves_to_add = []
+        # Add all moves from the complete game
         for node in game:
-            if move_count >= position_idx:
-                break
             for key, values in node.properties.items():
                 if key in ['B', 'W']:
                     for value in values:
-                        moves_to_add.append(f";{key}[{value}]")
-                    move_count += 1
-        
-        # Add all moves at once to ensure Besogo shows the final position
-        sgf_parts.extend(moves_to_add)
+                        sgf_parts.append(f";{key}[{value}]")
         
         # Add comment indicating which move this position represents
         if position_idx > 0 and position_idx <= len(moves):
             sgf_parts.append(f"C[Human game position - Move {position_idx} highlighted])")
-            # Add a property to indicate this is the final position
-            sgf_parts.append("C[Final position shown])")
         else:
             sgf_parts.append("C[Human game position])")
         
         return "".join(sgf_parts)
         
     except Exception as e:
-        raise RuntimeError(f"Failed to parse SGF content for position {position_idx}: {e}")
+        print(f"Warning: Could not parse original SGF, using fallback: {e}")
+        # Fallback to simple format with complete moves
+        sgf_parts = ["(;FF[4]GM[1]SZ[13]"]
+        
+        for i in range(len(moves)):
+            color, coord = moves[i]
+            move_str = f";{color.upper()}[{coord}]"
+            sgf_parts.append(move_str)
+        
+        if position_idx > 0 and position_idx <= len(moves):
+            sgf_parts.append(f"C[Human game position - Move {position_idx} highlighted])")
+        else:
+            sgf_parts.append("C[Human game position])")
+        
+        return "".join(sgf_parts)
 
 def analyze_position(position_idx: int, part_idx: int, activations: np.ndarray, 
                    game_data: Dict[str, Any], board_size: int = 13, 
@@ -198,15 +180,13 @@ def analyze_position(position_idx: int, part_idx: int, activations: np.ndarray,
     sgf_content = create_position_sgf(moves, position_idx, original_sgf)
     
     # Get move information
-    if position_idx == 0:  # Empty board
-        move_coord = "Unknown"
-        turn_number = 0
-    elif position_idx > 0 and position_idx <= len(moves):
+    if position_idx > 0 and position_idx <= len(moves):  # position_idx 0 is empty board
         color, coord = moves[position_idx - 1]  # position_idx 1 corresponds to move 0
         move_coord = coord.upper()
         turn_number = position_idx
     else:
-        raise RuntimeError(f"Invalid position_idx {position_idx} for moves list of length {len(moves)}")
+        move_coord = "Unknown"
+        turn_number = position_idx
     
     # Calculate activation percentile
     all_activations = activations[:, part_idx]
@@ -313,7 +293,7 @@ def generate_csv_summary(analyses: List[Dict[str, Any]], output_dir: Path) -> No
         # Write header
         writer.writerow([
             'part_idx', 'position_idx', 'activation_strength', 'component_stats',
-            'top_activations', 'meta_info', 'move_coord', 'turn_number'
+            'top_activations', 'meta_info'
         ])
         
         # Write data rows
@@ -321,8 +301,6 @@ def generate_csv_summary(analyses: List[Dict[str, Any]], output_dir: Path) -> No
             part_idx = analysis['part_idx']
             position_idx = analysis['position_idx']
             activation_strength = analysis['activation_strength']
-            move_coord = analysis['move_coord']
-            turn_number = analysis['turn_number']
             
             # For each position, create a summary row
             writer.writerow([
@@ -331,9 +309,7 @@ def generate_csv_summary(analyses: List[Dict[str, Any]], output_dir: Path) -> No
                 f"{activation_strength:.6f}",  # activation_strength
                 f"min=0.0000,max={activation_strength:.4f},mean={activation_strength:.4f},sparsity=0.00%",
                 f"top_indices=[{position_idx}]",  # top_activations
-                f"n_parts=25,n_positions=114,game_id={analysis['game_id']}",
-                move_coord,  # move_coord
-                str(turn_number)  # turn_number
+                f"n_parts=25,n_positions=114,game_id={analysis['game_id']}"
             ])
     
     print(f"✅ CSV summary saved to {csv_file}")

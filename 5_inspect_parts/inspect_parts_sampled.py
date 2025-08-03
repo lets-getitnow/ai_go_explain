@@ -1,29 +1,8 @@
 #!/usr/bin/env python3
 """
-Step 5 – Inspect Parts (Human Games Version)
-============================================
+Step 5 – Inspect Parts (Sampled Positions Version)
 
-Simplified version for human games data that doesn't require selfplay data.
-
-Expected Working Directory
--------------------------
-This script expects to be run from the project root directory:
-    /Users/hunterp/dev/ai_go_explain
-
-Path Assumptions
-----------------
-- SGF files: games/go13/ (relative to project root)
-- NPZ files: <output_dir>/npz_files/ (from pipeline)
-- NMF data: <output_dir>/nmf_parts/ (from pipeline)
-
-Usage
------
-python3 5_inspect_parts/inspect_parts_human_games.py \
-    --nmf-dir test/nmf_parts \
-    --npz-dir test/npz_files \
-    --output-dir test/inspect_parts \
-    --max-positions 10 \
-    --board-size 13
+Modified version that analyzes sampled positions from all parts.
 """
 
 import json
@@ -32,6 +11,7 @@ import numpy as np
 from pathlib import Path
 from typing import Dict, List, Any, Tuple
 import sgf
+import pandas as pd
 
 class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -59,21 +39,16 @@ def load_game_data(npz_dir: Path) -> Dict[str, Any]:
     
     print(f"Looking for NPZ files in: {npz_dir}")
     npz_files = list(npz_dir.glob("*.npz"))
-    print(f"Found {len(npz_files)} NPZ files: {[f.name for f in npz_files]}")
+    print(f"Found {len(npz_files)} NPZ files")
     
     for npz_file in npz_dir.glob("*.npz"):
-        print(f"Processing NPZ file: {npz_file}")
+        print(f"Processing NPZ file: {npz_file.name}")
         data = np.load(npz_file, allow_pickle=True)
-        print(f"NPZ data keys: {list(data.keys())}")
         
         game_id = data['game_id'][0].decode('utf-8') if len(data['game_id']) > 0 else npz_file.stem
-        print(f"Game ID: {game_id}")
         
         # Load corresponding SGF file
-        # Note: Path assumes script is run from project root (/Users/hunterp/dev/ai_go_explain)
         sgf_file = Path("games/go13") / f"{game_id}.sgf"
-        print(f"Looking for SGF file: {sgf_file}")
-        print(f"SGF file exists: {sgf_file.exists()}")
         
         if sgf_file.exists():
             with open(sgf_file, 'r') as f:
@@ -101,8 +76,6 @@ def load_game_data(npz_dir: Path) -> Dict[str, Any]:
                             coord = pos.upper()
                             moves.append(('w', coord))
                 
-                print(f"Parsed {len(moves)} moves from SGF")
-                
                 game_data[game_id] = {
                     'sgf_content': sgf_content,
                     'moves': moves,
@@ -125,7 +98,6 @@ def create_position_sgf(moves: List[Tuple[str, str]], position_idx: int, origina
     """Create SGF content for a specific position using the original SGF."""
     if position_idx == 0:
         # Empty board - return just the header without moves
-        # Find the first move in the original SGF
         lines = original_sgf.split('\n')
         header_lines = []
         for line in lines:
@@ -152,33 +124,37 @@ def create_position_sgf(moves: List[Tuple[str, str]], position_idx: int, origina
         
         sgf_parts.append("(;" + "".join(root_props))
         
-        # Add moves only up to the target position
-        move_count = 0
-        moves_to_add = []
+        # Add all moves from the complete game
         for node in game:
-            if move_count >= position_idx:
-                break
             for key, values in node.properties.items():
                 if key in ['B', 'W']:
                     for value in values:
-                        moves_to_add.append(f";{key}[{value}]")
-                    move_count += 1
-        
-        # Add all moves at once to ensure Besogo shows the final position
-        sgf_parts.extend(moves_to_add)
+                        sgf_parts.append(f";{key}[{value}]")
         
         # Add comment indicating which move this position represents
         if position_idx > 0 and position_idx <= len(moves):
             sgf_parts.append(f"C[Human game position - Move {position_idx} highlighted])")
-            # Add a property to indicate this is the final position
-            sgf_parts.append("C[Final position shown])")
         else:
             sgf_parts.append("C[Human game position])")
         
         return "".join(sgf_parts)
         
     except Exception as e:
-        raise RuntimeError(f"Failed to parse SGF content for position {position_idx}: {e}")
+        print(f"Warning: Could not parse original SGF, using fallback: {e}")
+        # Fallback to simple format with complete moves
+        sgf_parts = ["(;FF[4]GM[1]SZ[13]"]
+        
+        for i in range(len(moves)):
+            color, coord = moves[i]
+            move_str = f";{color.upper()}[{coord}]"
+            sgf_parts.append(move_str)
+        
+        if position_idx > 0 and position_idx <= len(moves):
+            sgf_parts.append(f"C[Human game position - Move {position_idx} highlighted])")
+        else:
+            sgf_parts.append("C[Human game position])")
+        
+        return "".join(sgf_parts)
 
 def analyze_position(position_idx: int, part_idx: int, activations: np.ndarray, 
                    game_data: Dict[str, Any], board_size: int = 13, 
@@ -198,24 +174,28 @@ def analyze_position(position_idx: int, part_idx: int, activations: np.ndarray,
     sgf_content = create_position_sgf(moves, position_idx, original_sgf)
     
     # Get move information
-    if position_idx == 0:  # Empty board
-        move_coord = "Unknown"
-        turn_number = 0
-    elif position_idx > 0 and position_idx <= len(moves):
-        color, coord = moves[position_idx - 1]  # position_idx 1 corresponds to move 0
-        move_coord = coord.upper()
-        turn_number = position_idx
+    # position_idx is the global position index, not the turn number in the game
+    # Calculate the actual turn number within the game
+    if len(moves) > 0:
+        # Use modulo to get the turn number within the game
+        turn_number = (position_idx % len(moves)) + 1  # +1 because turn numbers start at 1
+        if turn_number > len(moves):
+            turn_number = len(moves)  # Cap at the last move
+        
+        if turn_number > 0 and turn_number <= len(moves):
+            color, coord = moves[turn_number - 1]  # turn_number 1 corresponds to move 0
+            move_coord = coord.upper()
+        else:
+            move_coord = "Unknown"
     else:
-        raise RuntimeError(f"Invalid position_idx {position_idx} for moves list of length {len(moves)}")
+        move_coord = "Unknown"
+        turn_number = 1  # Default to turn 1 if no moves
     
     # Calculate activation percentile
     all_activations = activations[:, part_idx]
-    # Calculate what percentile this activation strength represents
     if np.max(all_activations) == np.min(all_activations):
-        activation_percentile = 50.0  # If all values are the same, use 50%
+        activation_percentile = 50.0
     else:
-        # Calculate the percentile rank of this activation strength
-        # Count how many activations are less than this one
         less_than_count = np.sum(all_activations < activation_strength)
         total_count = len(all_activations)
         activation_percentile = (less_than_count / total_count) * 100.0
@@ -302,128 +282,91 @@ def analyze_position(position_idx: int, part_idx: int, activations: np.ndarray,
         'channel_activity': channel_activity
     }
 
-def generate_csv_summary(analyses: List[Dict[str, Any]], output_dir: Path) -> None:
-    """Generate CSV summary file compatible with HTML generator."""
-    csv_file = output_dir / "strong_positions_summary.csv"
-    
-    # Create CSV with columns expected by HTML generator
-    with csv_file.open('w', newline='') as f:
-        writer = csv.writer(f)
-        
-        # Write header
-        writer.writerow([
-            'part_idx', 'position_idx', 'activation_strength', 'component_stats',
-            'top_activations', 'meta_info', 'move_coord', 'turn_number'
-        ])
-        
-        # Write data rows
-        for analysis in analyses:
-            part_idx = analysis['part_idx']
-            position_idx = analysis['position_idx']
-            activation_strength = analysis['activation_strength']
-            move_coord = analysis['move_coord']
-            turn_number = analysis['turn_number']
-            
-            # For each position, create a summary row
-            writer.writerow([
-                part_idx,
-                str(position_idx),  # position_idx
-                f"{activation_strength:.6f}",  # activation_strength
-                f"min=0.0000,max={activation_strength:.4f},mean={activation_strength:.4f},sparsity=0.00%",
-                f"top_indices=[{position_idx}]",  # top_activations
-                f"n_parts=25,n_positions=114,game_id={analysis['game_id']}",
-                move_coord,  # move_coord
-                str(turn_number)  # turn_number
-            ])
-    
-    print(f"✅ CSV summary saved to {csv_file}")
-
 def calculate_uniqueness_score(activations: np.ndarray, position_idx: int, part_idx: int) -> float:
-    """Calculate how unique this part's activation is compared to others."""
-    position_activations = activations[position_idx, :]  # All parts for this position
-    current_activation = position_activations[part_idx]
+    """Calculate how unique this activation is compared to other parts."""
+    current_activation = activations[position_idx, part_idx]
+    other_activations = [activations[position_idx, i] for i in range(activations.shape[1]) if i != part_idx]
+    max_other = max(other_activations) if other_activations else 0.0
     
-    # Calculate uniqueness as 1 - (max other activation / current activation)
-    other_activations = np.delete(position_activations, part_idx)
-    max_other = np.max(other_activations)
-    
-    if current_activation == 0:
-        return 0.0
-    
-    uniqueness = 1.0 - (max_other / current_activation)
-    return max(0.0, uniqueness)
+    if current_activation + max_other > 0:
+        return float(current_activation / (current_activation + max_other))
+    return 0.0
 
 def calculate_channel_activity(components: np.ndarray, part_idx: int, board_size: int = 13) -> List[Dict[str, Any]]:
     """Calculate which channels are most active for this part."""
+    if components is None:
+        return []
+    
     # Get the component weights for this part
-    part_weights = components[part_idx, :]  # Shape: (n_channels,)
+    component_weights = components[part_idx]  # Shape: (channels,)
     
-    # Reshape to 3x3 grid format (9 regions per channel)
-    n_channels = part_weights.shape[0] // 9
-    channel_weights = part_weights.reshape(n_channels, 9)
+    # Find channels with highest weights
+    top_indices = np.argsort(component_weights)[-10:][::-1]  # Top 10
     
-    # Calculate average activation per channel
-    channel_activities = []
-    for i in range(n_channels):
-        avg_activation = np.mean(channel_weights[i, :])
-        if avg_activation > 0.01:  # Only include channels with significant activity
-            channel_activities.append({
-                'channel': i,
-                'activity': float(avg_activation),
-                'max_region': int(np.argmax(channel_weights[i, :])),
-                'min_region': int(np.argmin(channel_weights[i, :]))
+    channel_activity = []
+    for idx in top_indices:
+        weight = float(component_weights[idx])
+        if weight > 0.01:  # Only include significant channels
+            channel_activity.append({
+                'channel': int(idx),
+                'weight': weight
             })
     
-    # Sort by activity (highest first)
-    channel_activities.sort(key=lambda x: x['activity'], reverse=True)
-    return channel_activities[:10]  # Return top 10 channels
+    return channel_activity
 
 def calculate_part_comparison(activations: np.ndarray, position_idx: int, part_idx: int) -> Dict[str, Any]:
-    """Calculate part comparison metrics."""
-    position_activations = activations[position_idx, :]  # All parts for this position
-    current_activation = position_activations[part_idx]
+    """Calculate comparison with other parts."""
+    current_activation = activations[position_idx, part_idx]
+    part_activations = activations[:, part_idx]
     
-    # Calculate max other activation
-    other_activations = np.delete(position_activations, part_idx)
-    max_other_activation = np.max(other_activations)
+    # Find similar positions (other high-activating positions for this part)
+    similar_indices = np.argsort(part_activations)[-10:][::-1]
+    similar_positions = [int(idx) for idx in similar_indices if idx != position_idx][:5]
     
-    # Calculate part rank (1 = highest activation)
-    sorted_indices = np.argsort(position_activations)[::-1]
-    part_rank = np.where(sorted_indices == part_idx)[0][0] + 1
-    
-    # Calculate activation in other parts (top 10)
-    top_other_parts = []
-    for i in range(min(10, len(other_activations))):
-        other_part_idx = np.argsort(other_activations)[::-1][i]
-        # Map back to original part index
-        if other_part_idx >= part_idx:
-            original_idx = other_part_idx + 1
-        else:
-            original_idx = other_part_idx
-        top_other_parts.append({
-            'part': int(original_idx),
-            'activation': float(other_activations[other_part_idx])
-        })
+    # Ranking across all positions for this part
+    position_rank = np.sum(part_activations > current_activation) + 1
     
     return {
-        'max_other_activation': float(max_other_activation),
-        'part_rank': int(part_rank),
-        'top_other_parts': top_other_parts
+        'similar_positions': similar_positions,
+        'part_rank': int(position_rank),
+        'activation_percentile': float(100 * (1 - position_rank / len(part_activations)))
     }
+
+def generate_csv_summary(analyses: List[Dict[str, Any]], output_dir: Path) -> None:
+    """Generate CSV summary of all analyses."""
+    summary_data = []
+    
+    for analysis in analyses:
+        summary_data.append({
+            'part_idx': analysis['part_idx'],
+            'position_idx': analysis['position_idx'],
+            'activation_strength': analysis['activation_strength'],
+            'activation_percentile': analysis['activation_percentile'],
+            'uniqueness_score': analysis['uniqueness_score'],
+            'part_rank': analysis['part_comparison']['part_rank'],
+            'game_id': analysis['game_id'],
+            'turn_number': analysis['turn_number'],
+            'sgf_content': analysis['sgf_content']
+        })
+    
+    df = pd.DataFrame(summary_data)
+    csv_path = output_dir / "strong_positions_summary.csv"
+    df.to_csv(csv_path, index=False)
+    print(f"✅ CSV summary saved to {csv_path}")
 
 def main():
     """Main entry point."""
     import argparse
-    parser = argparse.ArgumentParser(description="Inspect NMF parts for human games")
+    parser = argparse.ArgumentParser(description="Inspect NMF parts for sampled positions")
     parser.add_argument("--nmf-dir", required=True, type=Path, help="Directory containing NMF results")
     parser.add_argument("--npz-dir", required=True, type=Path, help="Directory containing NPZ files")
+    parser.add_argument("--sampled-positions", required=True, type=Path, help="CSV file with sampled positions")
     parser.add_argument("--output-dir", required=True, type=Path, help="Output directory for analysis")
-    parser.add_argument("--max-positions", type=int, default=10, help="Maximum number of positions to analyze")
     parser.add_argument("--board-size", type=int, default=13, help="Board size")
     
     args = parser.parse_args()
     
-    print("=== Step 5 – Inspect Parts (Human Games) ===")
+    print("=== Step 5 – Inspect Parts (Sampled Positions) ===")
     
     # Load NMF data
     print("Loading NMF data from", args.nmf_dir)
@@ -454,23 +397,23 @@ def main():
     else:
         print("Policy and value outputs not found, analysis will be limited")
     
+    # Load sampled positions
+    print(f"Loading sampled positions from {args.sampled_positions}")
+    sampled_df = pd.read_csv(args.sampled_positions)
+    print(f"Loaded {len(sampled_df)} sampled positions")
+    
     # Create output directory
     args.output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Analyze positions
-    n_positions = min(args.max_positions, activations.shape[0])
-    n_parts = activations.shape[1]
-    
-    print(f"Analyzing {n_positions} positions across {n_parts} parts...")
-    
+    # Analyze sampled positions
     analyses = []
-    for position_idx in range(n_positions):
-        # Find the best part for this position
-        best_part = np.argmax(activations[position_idx])
-        print(f"Analyzing position {position_idx} (best part: {best_part})...")
+    for _, row in sampled_df.iterrows():
+        position_idx = int(row['position_idx'])
+        part_idx = int(row['part_idx'])
+        print(f"Analyzing position {position_idx} (Part {part_idx})...")
         
         analysis = analyze_position(
-            position_idx, best_part, activations, game_data, 
+            position_idx, part_idx, activations, game_data, 
             args.board_size, policy_outputs, value_outputs, components
         )
         analyses.append(analysis)
@@ -494,4 +437,4 @@ def main():
         print(f"Position {pos_idx}: Part {part_idx}, Strength {strength:.6f}, Move {move}")
 
 if __name__ == "__main__":
-    main()
+    main() 
