@@ -64,7 +64,13 @@ def _zero_global(arrs: Dict[str, np.ndarray]) -> None:
     arrs[key] = np.zeros_like(g, dtype=np.float32)
 
 
+def _identity(arrs: Dict[str, np.ndarray]) -> None:
+    """No-op transform to copy original inputs verbatim for the 'baseline' variant."""
+    return
+
+
 VARIANT_FUNCS: Dict[str, Callable[[Dict[str, np.ndarray]], None]] = {
+    "baseline": _identity,
     "zero_global": _zero_global,
 }
 

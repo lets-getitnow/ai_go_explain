@@ -207,4 +207,21 @@ We analyzed 4,608 channels in KataGo layer `rconv14.out` for sensitivity to glob
 
 **Analysis Date**: 2025-07-27  
 **Model**: KataGo kata1-b28c512nbt-s9584861952-d4960414494  
-**Model Path**: `models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt` 
+**Model Path**: `models/kata1-b28c512nbt-s9584861952-d4960414494/model.ckpt`
+
+## 7. Post-Publication Erratum (2025-08-05)
+
+Subsequent review uncovered a **critical data-handling bug** that invalidates the zero-context conclusion reported above:
+
+1. Both the *baseline* and *zero_global* variants referenced the **same directory** (`variants/zero_global/`), so each channel was compared **against itself**.
+2. Only 8 compressed files were processed, not the intended 6 603 positions.
+
+Consequently every relative-change metric was exactly zero, leading to the erroneous claim that all 4 608 channels were spatial-only.
+
+### Corrective actions
+
+* A true `baseline` variant is now generated that preserves `globalInputNC` untouched.
+* Metadata now records the real number of positions processed (`total_positions`).
+* The activation-extraction pipeline has been patched to write the correct dataset directory for each variant.
+
+A full re-run of the corrected analysis is underway; updated results will appear in Section 8 once complete. 

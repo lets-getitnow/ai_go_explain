@@ -553,7 +553,7 @@ def main() -> None:  # noqa: D401
             "date": date.today().isoformat(),
             "source_model": str(args.ckpt_path),
             "layer": chosen_layer,
-            "positions": len(position_files),
+            "positions": total_positions,
             "original_channels": channels,
             "pooled_channels": expected_channels,
             "pooling_method": "3x3_grid",
